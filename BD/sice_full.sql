@@ -19,7 +19,16 @@
 --
 -- Table structure for table `adscripcion`
 --
-
+--
+-- Tabla: adscripcion
+--
+-- Propósito:
+--   Registra la asignación (adscripción) de un empleado a un departamento durante un periodo.
+--   Permite llevar historial de cambios de área, rotaciones o bajas temporales.
+--
+-- Uso principal:
+--   - Consultar departamento actual o histórico de un empleado
+--   - Reportes de planta laboral por área/departamento
 DROP TABLE IF EXISTS `adscripcion`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -49,7 +58,15 @@ UNLOCK TABLES;
 --
 -- Table structure for table `alumno`
 --
-
+-- Tabla: alumno
+--
+-- Propósito:
+--   Entidad principal de los estudiantes. Relaciona persona → matrícula → carrera → avance académico.
+--
+-- Uso principal:
+--   - Base para inscripciones a grupos
+--   - Cálculo de calificaciones y avance curricular
+--   - Reportes de matrícula, deserción, eficiencia terminal, etc.
 DROP TABLE IF EXISTS `alumno`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -82,7 +99,19 @@ UNLOCK TABLES;
 --
 -- Table structure for table `aula`
 --
-
+-- Tabla: aula
+--
+-- Propósito:
+--   Catálogo de espacios físicos disponibles para clases.
+--
+-- Uso principal:
+--   - Asignación de grupos a aulas en horarios
+--   - Validación de capacidad (no exceder alumnos inscritos)
+--   - Reportes de ocupación y mantenimiento de infraestructura
+--
+-- Notas:
+--   - Capacidad se usa para reglas de negocio (ej. no permitir grupos > capacidad)
+--   - Nombre suele ser código como "A-101", "LAB-03", etc.
 DROP TABLE IF EXISTS `aula`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -109,7 +138,16 @@ UNLOCK TABLES;
 --
 -- Table structure for table `bitacora`
 --
-
+-- Propósito:
+--   Registro de auditoría (log) de las acciones importantes realizadas en el sistema.
+--   Sirve para rastrear quién hizo qué, cuándo y desde dónde (seguridad y cumplimiento normativo).
+--
+-- Uso principal:
+--   - Investigar cambios sospechosos o errores
+--   - Generar reportes de actividad por usuario o módulo
+--   - Cumplir con requisitos de auditoría interna o externa
+-- Notas:
+--   - Tabla vacía en dump inicial → se llena automáticamente vía triggers o aplicación
 DROP TABLE IF EXISTS `bitacora`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -140,7 +178,13 @@ UNLOCK TABLES;
 --
 -- Table structure for table `calificacion`
 --
-
+-- Propósito:
+--   Almacena las calificaciones numéricas obtenidas por un alumno en cada evaluación de un grupo inscrito.
+--
+-- Uso principal:
+--   - Registro de parciales, exámenes, proyectos, etc.
+--   - Cálculo de promedios, aprobación/reprobación
+--   - Generación de boletas, historiales académicos y certificados
 DROP TABLE IF EXISTS `calificacion`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -170,7 +214,21 @@ UNLOCK TABLES;
 --
 -- Table structure for table `carrera`
 --
-
+-- Tabla: carrera
+--
+-- Propósito:
+--   Catálogo de las carreras o programas educativos ofrecidos por la institución.
+--
+-- Uso principal:
+--   - Asignación de alumnos a su carrera
+--   - Reportes estadísticos por carrera (matrícula, titulados, etc.)
+--   - Vinculación con planes de estudio y materias
+--
+-- Campos clave:
+--   nombre          → nombre oficial (ej: "Ingeniería en Sistemas Computacionales")
+--   id_departamento → departamento académico responsable
+--   id_nivel        → licenciatura, maestría, técnico superior, etc.
+--   estatus         → 1 = activa, 0 = dada de baja / no ofertada
 DROP TABLE IF EXISTS `carrera`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -200,7 +258,20 @@ UNLOCK TABLES;
 --
 -- Table structure for table `departamento`
 --
-
+-- Tabla: departamento
+--
+-- Propósito:
+--   Catálogo de departamentos o áreas académicas y administrativas de la institución.
+--
+-- Uso principal:
+--   - Organización de carreras y empleados (adscripción)
+--   - Reportes por área (presupuesto, personal, rendimiento académico)
+--   - Estructura jerárquica básica de la institución
+--
+-- Campos clave:
+--   nombre          → nombre oficial del departamento
+--   descripcion     → detalle opcional de funciones o enfoque
+--   estatus         → 1 = activo, 0 = inactivo
 DROP TABLE IF EXISTS `departamento`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -225,7 +296,15 @@ UNLOCK TABLES;
 --
 -- Table structure for table `docente`
 --
-
+-- Tabla: docente
+--
+-- Propósito:
+--   Extensión de la tabla empleado para registrar información específica de profesores/docentes.
+--   Permite diferenciar docentes de otros empleados (administrativos, directivos, etc.).
+--
+-- Uso principal:
+--   - Asignación de docentes a grupos/materias
+--   - Reportes de planta docente, carga horaria, especialidades
 DROP TABLE IF EXISTS `docente`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -252,7 +331,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `edificio`
 --
-
+-- Tabla: edificio
+--
+-- Propósito:
+--   Catálogo simple de los edificios o bloques físicos de la institución.
+--
+-- Uso principal:
+--   - Agrupar aulas por edificio
+--   - Reportes de infraestructura, mantenimiento o ubicación
 DROP TABLE IF EXISTS `edificio`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -275,7 +361,16 @@ UNLOCK TABLES;
 --
 -- Table structure for table `empleado`
 --
-
+-- Tabla: empleado
+--
+-- Propósito:
+--   Entidad principal para todo el personal contratado de la institución.
+--   Relaciona persona con número de empleado, puesto y datos laborales.
+--
+-- Uso principal:
+--   - Registro de todos los empleados (incluye docentes vía tabla docente)
+--   - Control de nómina, contrataciones, bajas
+--   - Reportes de personal activo/inactivo
 DROP TABLE IF EXISTS `empleado`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -307,7 +402,15 @@ UNLOCK TABLES;
 --
 -- Table structure for table `evaluacion`
 --
-
+-- Tabla: evaluacion
+--
+-- Propósito:
+--   Define las evaluaciones o instrumentos de calificación dentro de un grupo (parcial 1, examen final, proyecto, etc.).
+--
+-- Uso principal:
+--   - Registrar múltiples evaluaciones por grupo
+--   - Asignar porcentaje de ponderación para calcular calificación final
+--   - Base para capturar calificaciones individuales
 DROP TABLE IF EXISTS `evaluacion`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -334,7 +437,15 @@ UNLOCK TABLES;
 --
 -- Table structure for table `evento`
 --
-
+-- Tabla: evento
+--
+-- Propósito:
+--   Registro de actividades extracurriculares, culturales, deportivas o académicas de la institución.
+--
+-- Uso principal:
+--   - Calendario de eventos
+--   - Registro de participación de alumnos (vía participacion_evento)
+--   - Emisión de constancias
 DROP TABLE IF EXISTS `evento`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -362,7 +473,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `genero`
 --
-
+-- Tabla: genero
+--
+-- Propósito:
+--   Catálogo de géneros para personas (catálogo pequeño y estático).
+--
+-- Uso principal:
+--   - Campo demográfico en persona
+--   - Reportes estadísticos (equidad de género, etc.)
 DROP TABLE IF EXISTS `genero`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -386,7 +504,20 @@ UNLOCK TABLES;
 --
 -- Table structure for table `grupo`
 --
-
+-- Tabla: grupo
+--
+-- Propósito:
+--   Representa una instancia concreta de una materia impartida en un periodo, aula y con un docente asignado.
+--   Es el núcleo del control académico (clases/grupos).
+--
+-- Uso principal:
+--   - Inscripción de alumnos
+--   - Asignación de horarios y aulas
+--   - Registro de evaluaciones y calificaciones
+-- Campos clave:
+--   clave_grupo     → código identificador 
+--   capacidad       → límite de alumnos (para control de cupo)
+--   estatus         → 1 = activo/abierto, 0 = cerrado/cancelado
 DROP TABLE IF EXISTS `grupo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -423,7 +554,16 @@ UNLOCK TABLES;
 --
 -- Table structure for table `inscripcion`
 --
-
+-- Propósito:
+--   Registra la inscripción de un alumno a un grupo específico (clase).
+--   Es el vínculo principal entre alumno y materia/grupo en un periodo.
+--
+-- Uso principal:
+--   - Control de carga académica del alumno
+--   - Base para capturar calificaciones y asistencia
+--   - Reportes de inscritos, listas de clase, historial por alumno
+-- Trigger asociado:
+--   trg_inscripcion_fecha → asigna automáticamente la fecha actual al insertar
 DROP TABLE IF EXISTS `inscripcion`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -471,7 +611,15 @@ DELIMITER ;
 --
 -- Table structure for table `materia`
 --
-
+-- Tabla: materia
+--
+-- Propósito:
+--   Catálogo maestro de todas las asignaturas/materias ofrecidas en la institución.
+--
+-- Uso principal:
+--   - Definición de planes de estudio
+--   - Asignación a grupos y prerrequisitos
+--   - Cálculo de créditos y carga horaria
 DROP TABLE IF EXISTS `materia`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -500,7 +648,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `modulo`
 --
-
+-- Tabla: modulo
+--
+-- Propósito:
+--   Catálogo de módulos o secciones funcionales del sistema (para control de permisos).
+--
+-- Uso principal:
+--   - Agrupar permisos por funcionalidad (ej: "Alumnos", "Calificaciones", "Eventos")
+--   - Registro en bitácora para saber en qué módulo se realizó una acción
 DROP TABLE IF EXISTS `modulo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -525,7 +680,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `nivel_carrera`
 --
-
+-- Tabla: nivel_carrera
+--
+-- Propósito:
+--   Catálogo de niveles educativos (licenciatura, maestría, doctorado, técnico, etc.).
+--
+-- Uso principal:
+--   - Clasificar carreras por nivel
+--   - Reportes y filtros por tipo de programa
 DROP TABLE IF EXISTS `nivel_carrera`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -548,7 +710,18 @@ UNLOCK TABLES;
 --
 -- Table structure for table `participacion_evento`
 --
-
+-- Tabla: participacion_evento
+--
+-- Propósito:
+--   Registra la participación de alumnos en eventos institucionales.
+--
+-- Uso principal:
+--   - Control de asistencia a eventos
+--   - Emisión de constancias de participación
+--   - Reportes de actividades extracurriculares por alumno
+--
+-- Campos clave:
+--   constancia_emitida → bandera para saber si ya se generó constancia (0/1)
 DROP TABLE IF EXISTS `participacion_evento`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -577,7 +750,15 @@ UNLOCK TABLES;
 --
 -- Table structure for table `periodo`
 --
-
+-- Tabla: periodo
+--
+-- Propósito:
+--   Catálogo de periodos escolares (semestres, cuatrimestres, veranos, etc.).
+--
+-- Uso principal:
+--   - Asignación de grupos e inscripciones a periodos específicos
+--   - Control de calendarios académicos
+--   - Reportes históricos por periodo
 DROP TABLE IF EXISTS `periodo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -603,7 +784,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `permiso`
 --
-
+-- Tabla: permiso
+--
+-- Propósito:
+--   Catálogo de permisos individuales del sistema (acciones específicas).
+--
+-- Uso principal:
+--   - Asignación a roles vía rol_permiso
+--   - Control granular de acceso 
 DROP TABLE IF EXISTS `permiso`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -627,7 +815,13 @@ UNLOCK TABLES;
 --
 -- Table structure for table `permiso_modulo`
 --
-
+-- Tabla: permiso_modulo
+--
+-- Propósito:
+--   Relación muchos-a-muchos entre permisos y módulos (agrupa permisos por funcionalidad).
+--
+-- Uso principal:
+--   - Simplifica la asignación de permisos por módulo completo
 DROP TABLE IF EXISTS `permiso_modulo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -653,7 +847,15 @@ UNLOCK TABLES;
 --
 -- Table structure for table `persona`
 --
-
+-- Tabla: persona
+--
+-- Propósito:
+--   Entidad maestra para todas las personas en el sistema (alumnos, empleados, docentes, etc.).
+--   Contiene datos personales comunes.
+--
+-- Uso principal:
+--   - Base para alumno, empleado, usuario
+--   - Datos demográficos y de identificación (CURP)
 DROP TABLE IF EXISTS `persona`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -686,7 +888,19 @@ UNLOCK TABLES;
 --
 -- Table structure for table `persona_correo`
 --
-
+-- Tabla: persona_correo / persona_direccion / persona_telefono
+--
+-- Propósito:
+--   Tablas de contacto y ubicación para personas (1:N).
+--   Permiten múltiples correos, teléfonos y direcciones por persona.
+--
+-- Uso principal:
+--   - Comunicación oficial (correos)
+--   - Datos de contacto para emergencias o correspondencia
+--   - Dirección para envíos o verificación
+--
+-- Notas:
+--   Diseñadas para escalabilidad (un alumno/empleado puede tener varios teléfonos, etc.)
 DROP TABLE IF EXISTS `persona_correo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -764,7 +978,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `plan_estudio`
 --
-
+-- Tabla: plan_estudio
+--
+-- Propósito:
+--   Registro de planes de estudio vigentes por carrera.
+--
+-- Uso principal:
+--   - Vincular materias a planes (vía plan_materia)
+--   - Validar avance curricular y requisitos por plan
 DROP TABLE IF EXISTS `plan_estudio`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -793,7 +1014,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `plan_materia`
 --
-
+-- Tabla: plan_materia
+--
+-- Propósito:
+--   Relación muchos-a-muchos: qué materias pertenecen a qué plan de estudios y en qué semestre.
+--
+-- Uso principal:
+--   - Construir malla curricular
+--   - Validar prerrequisitos y avance por semestre
 DROP TABLE IF EXISTS `plan_materia`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -820,7 +1048,19 @@ UNLOCK TABLES;
 --
 -- Table structure for table `prerrequisito`
 --
-
+-- Tabla: prerrequisito
+--
+-- Propósito:
+--   Define las relaciones de prerrequisito entre materias (qué materia debe aprobarse antes de cursar otra).
+--   Relación muchos-a-muchos (una materia puede tener varios prerrequisitos y ser prerrequisito de varias).
+--
+-- Uso principal:
+--   - Validación automática al inscribir alumnos (evitar inscripción si no cumple prerrequisitos)
+--   - Construcción de mallas curriculares y reportes de avance
+--
+-- Notas:
+--   - PRIMARY KEY compuesta → evita duplicados
+--   - Ambas FK apuntan a la misma tabla materia (auto-referencia)
 DROP TABLE IF EXISTS `prerrequisito`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -846,7 +1086,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `puesto`
 --
-
+-- Tabla: puesto
+--
+-- Propósito:
+--   Catálogo de puestos o categorías laborales del personal.
+--
+-- Uso principal:
+--   - Asignación a empleados
+--   - Reportes de estructura organizacional y nómina
 DROP TABLE IF EXISTS `puesto`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -870,7 +1117,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `resolucion_comite`
 --
-
+-- Tabla: resolucion_comite
+--
+-- Propósito:
+--   Registra las decisiones finales tomadas por el comité académico/administrativo en una sesión.
+--
+-- Uso principal:
+--   - Historial de resoluciones (aprobaciones, rechazos, observaciones)
+--   - Vinculado a solicitudes específicas
 DROP TABLE IF EXISTS `resolucion_comite`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -900,7 +1154,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `rol`
 --
-
+-- Tabla: rol
+--
+-- Propósito:
+--   Catálogo de roles de usuario en el sistema 
+--
+-- Uso principal:
+--   - Asignación de permisos a través de rol_permiso
+--   - Control de acceso basado en roles
 DROP TABLE IF EXISTS `rol`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -926,7 +1187,13 @@ UNLOCK TABLES;
 --
 -- Table structure for table `rol_permiso`
 --
-
+-- Tabla: rol_permiso
+--
+-- Propósito:
+--   Relación muchos-a-muchos entre roles y permisos.
+--
+-- Uso principal:
+--   - Define exactamente qué puede hacer cada rol
 DROP TABLE IF EXISTS `rol_permiso`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -952,7 +1219,13 @@ UNLOCK TABLES;
 --
 -- Table structure for table `sesion_comite`
 --
-
+-- Tabla: sesion_comite
+--
+-- Propósito:
+--   Registro de sesiones del comité académico/administrativo.
+--
+-- Uso principal:
+--   - Vincular resoluciones a sesiones específicas
 DROP TABLE IF EXISTS `sesion_comite`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -976,7 +1249,14 @@ UNLOCK TABLES;
 --
 -- Table structure for table `solicitud_comite`
 --
-
+-- Tabla: solicitud_comite
+--
+-- Propósito:
+--   Registro de solicitudes formales presentadas al comité (ej: convalidaciones, bajas, excepciones).
+--
+-- Uso principal:
+--   - Trámite de solicitudes excepcionales
+--   - Seguimiento y resolución
 DROP TABLE IF EXISTS `solicitud_comite`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1007,7 +1287,13 @@ UNLOCK TABLES;
 --
 -- Table structure for table `tipo_evento`
 --
-
+-- Tabla: tipo_evento
+--
+-- Propósito:
+--   Catálogo de tipos de eventos 
+--
+-- Uso principal:
+--   - Clasificar eventos para reportes y filtros
 DROP TABLE IF EXISTS `tipo_evento`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1030,7 +1316,13 @@ UNLOCK TABLES;
 --
 -- Table structure for table `tipo_solicitud`
 --
-
+-- Tabla: tipo_solicitud
+--
+-- Propósito:
+--   Catálogo de tipos de solicitudes al comité.
+--
+-- Uso principal:
+--   - Clasificar y estandarizar trámites
 DROP TABLE IF EXISTS `tipo_solicitud`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1053,7 +1345,17 @@ UNLOCK TABLES;
 --
 -- Table structure for table `usuario`
 --
-
+-- Tabla: usuario
+--
+-- Propósito:
+--   Entidad de autenticación del sistema. Vincula persona con credenciales de acceso.
+--
+-- Uso principal:
+--   - Login al sistema
+--   - Asignación de roles y permisos
+--
+-- Trigger asociado:
+--   trg_usuario_fecha → asigna fecha de creación automáticamente
 DROP TABLE IF EXISTS `usuario`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1102,7 +1404,13 @@ DELIMITER ;
 --
 -- Table structure for table `usuario_rol`
 --
-
+-- Tabla: usuario_rol
+--
+-- Propósito:
+--   Asignación muchos-a-muchos de roles a usuarios.
+--
+-- Uso principal:
+--   - Un usuario puede tener varios roles (ej: Docente + Coordinador)
 DROP TABLE IF EXISTS `usuario_rol`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1128,7 +1436,21 @@ UNLOCK TABLES;
 --
 -- Temporary table structure for view `vw_alumnos_carrera`
 --
-
+-- Vistas: vw_alumnos_carrera y vw_grupos_detalle
+--
+-- Propósito:
+--   Vistas de consulta frecuentes para simplificar reportes y consultas comunes.
+--
+-- vw_alumnos_carrera:
+--   Muestra alumnos con su nombre y carrera 
+--
+-- vw_grupos_detalle:
+--   Muestra grupos con detalles completos (materia, docente especialidad, periodo, aula)
+--   Ideal para horarios, listas de clase y reportes de carga docente
+--
+-- Notas:
+--   Ambas vistas están definidas con joins simples y no tienen lógica compleja
+--   Son de solo lectura y se usan en la aplicación para evitar consultas pesadas repetidas
 DROP TABLE IF EXISTS `vw_alumnos_carrera`;
 /*!50001 DROP VIEW IF EXISTS `vw_alumnos_carrera`*/;
 SET @saved_cs_client     = @@character_set_client;
