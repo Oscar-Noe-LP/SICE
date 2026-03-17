@@ -3,7 +3,7 @@ import subprocess
 from config import DB_CONFIG
 
 
-SCHEMA_FILE = "esquema/SICE.sql"
+SCHEMA_FILE = "../esquema/SICE.sql"
 
 
 def reset_database():
@@ -79,5 +79,6 @@ def run_seeds():
 if __name__ == "__main__":
     reset_database()
     create_schema()
+    run_seeds()
 
     print("\nBase de datos completamente reinicializada")
