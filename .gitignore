@@ -1,1 +1,4 @@
-# placeholder
+# para entornos virtuales de python
+venv/
+*__pycache__
+
