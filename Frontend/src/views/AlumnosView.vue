@@ -246,21 +246,16 @@ onMounted(() => {
 
 const alumnosFiltrados = computed(() => {
   return alumnos.value.filter(alumno => {
-<<<<<<< HEAD
+
     // Filtro Global (del Layout)
     const coincideGlobal = !props.busquedaGlobal ||
-=======
     const coincideGlobal = !props.busquedaGlobal || 
->>>>>>> 0ab94e5bd893f1a6ccc1faaeab464b871f381f9c
       normalize(alumno.nombre).includes(normalize(props.busquedaGlobal)) ||
       alumno.noControl.toString().includes(props.busquedaGlobal)
 
-<<<<<<< HEAD
     // Filtro Local (Busqueda arriba de la tabla)
     const coincideLocal = !busquedaAlumno.value ||
-=======
     const coincideLocal = !busquedaAlumno.value || 
->>>>>>> 0ab94e5bd893f1a6ccc1faaeab464b871f381f9c
       normalize(alumno.nombre).includes(normalize(busquedaAlumno.value)) ||
       alumno.noControl.toString().includes(busquedaAlumno.value)
 
