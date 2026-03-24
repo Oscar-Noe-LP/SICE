@@ -1,5 +1,5 @@
 <template>
-  <MainLayout v-slot="{ busquedaGlobal }">
+<MainLayout v-slot="{ busquedaGlobal }">
     <div class="servicios-escolares-page">
 
       <div class="breadcrumb">
@@ -15,12 +15,16 @@
       <div class="content-card">
 
         <div class="stats-grid">
-
           <div class="stat-card blue">
             <svg xmlns="http://www.w3.org/2000/svg" class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2v-2a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2" />
             </svg>
             <div class="info">
+              <h3>Alumnos Registrados</h3>
+              <p class="number">{{ resumen.total_alumnos }}</p>
+              <a href="#" class="ver-link" @click.prevent="irAAlumnos">
+                Ver Alumnos →
+              </a>
               <h3>Alumnos Activos</h3>
               <p class="number">{{ totalAlumnos }}</p>
               <a href="#" class="ver-link" @click.prevent="irAAlumnos">Ver Alumnos →</a>
@@ -32,6 +36,11 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18 9.246 18 10.832 18.477 12 19.253zm0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18 14.754 18 13.168 18.477 12 19.253z" />
             </svg>
             <div class="info">
+              <h3>Inscripciones Totales</h3>
+              <p class="number">{{ resumen.total_inscripciones }}</p>
+              <a href="#" class="ver-link" @click.prevent="irAInscripciones">
+                Ver Inscripciones →
+              </a>
               <h3>Inscripciones del Período</h3>
               <p class="number">{{ totalInscripciones }}</p>
               <a href="#" class="ver-link" @click.prevent="irAInscripciones">Ver Inscripciones →</a>
@@ -45,7 +54,9 @@
             <div class="info">
               <h3>Grupos Abiertos</h3>
               <p class="number">24</p>
-              <a href="#" class="ver-link" @click.prevent="irAGrupos">Ver Grupos →</a>
+              <a href="#" class="ver-link" @click.prevent="irAGrupos">
+                Ver Grupos →
+              </a>
             </div>
           </div>
 
@@ -54,6 +65,11 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 8.944 11.922.42.095.858.143 1.295.143a3 3 0 01.935-.072" />
             </svg>
             <div class="info">
+              <h3>Evaluaciones</h3>
+              <p class="number">16</p>
+              <a href="#" class="ver-link" @click.prevent="irAEvaluaciones">
+                Ver Evaluaciones →
+              </a>
               <h3>Evaluaciones pendientes</h3>
               <p class="number">{{ totalEvaluaciones }}</p>
               <a href="#" class="ver-link" @click.prevent="irAEvaluaciones">Ver Evaluaciones →</a>
@@ -66,10 +82,10 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           <div class="mensaje-texto">
-            <strong>Mensaje Importante</strong><br>
-            Recuerda que hoy es la fecha límite para inscripciones del periodo vigente. ¡No olvides registrar a los alumnos pendientes!
+            <strong>Estado del Sistema</strong><br>
+            Conexión establecida con la base de datos SICE. Mostrando registros en tiempo real.
           </div>
-          <button class="btn-nueva-inscripcion" @click="nuevaInscripcion">
+          <button class="btn-nueva-inscripcion">
             + Nueva Inscripción
           </button>
         </div>
@@ -78,21 +94,8 @@
           <div class="table-header">
             <h3>Últimas Inscripciones</h3>
             <div class="filtros">
-              <input type="text" v-model="busquedaTabla" placeholder="Buscar alumno..." class="search-input">
-              <select v-model="filtroCarrera" class="filter-select">
-                <option value="">Carrera</option>
-                <option value="Ingeniería en Sistemas Computacionales">Ingeniería en Sistemas Computacionales</option>
-                <option value="Ingeniería Industrial">Ingeniería Industrial</option>
-              </select>
-              <select v-model="filtroSemestre" class="filter-select">
-                <option value="">Semestre</option>
-                <option v-for="n in 8" :key="n" :value="n">{{ n }}</option>
-              </select>
-              <select v-model="filtroEstatus" class="filter-select">
-                <option value="">Estatus</option>
-                <option value="Activo">Activo</option>
-              </select>
-              <button class="btn-gestionar" @click="gestionarTodo">Gestionar</button>
+              <input type="text" placeholder="Filtrar resultados..." class="search-input">
+              <button class="btn-gestionar" @click="cargarDatos">Actualizar</button>
             </div>
           </div>
 
@@ -106,34 +109,28 @@
                   <th>Semestre</th>
                   <th>Fecha Inscripción</th>
                   <th>Estatus</th>
-                  <th></th>
+                  <th class="text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in inscripcionesFiltradas" :key="item.id">
-                  <td>{{ item.noControl }}</td>
-                  <td>{{ item.nombre }}</td>
-                  <td>{{ item.carrera }}</td>
-                  <td class="text-center">{{ item.semestre }}</td>
-                  <td>{{ item.fecha }}</td>
-                  <td><span class="estatus-badge">Activo</span></td>
+                <tr v-for="item in resumen.recientes" :key="item.id_inscripcion">
+                  <td>{{ item.noControl || '—' }}</td>
+                  <td>{{ item.nombre || 'Sin nombre' }}</td>
+                  <td>{{ item.carrera || '—' }}</td>
+                  <td class="text-center">{{ item.semestre || '—' }}</td>
+                  <td>{{ item.fecha || '—' }}</td>
+                  <td>
+                    <span :class="['estatus-badge', (item.estatus || 'pendiente').toLowerCase()]">
+                      {{ item.estatus || 'Pendiente' }}
+                    </span>
+                  </td>
                   <td class="text-right">⋯</td>
+                </tr>
+                <tr v-if="!resumen.recientes || resumen.recientes.length === 0">
+                  <td colspan="7" class="text-center">No hay inscripciones registradas.</td>
                 </tr>
               </tbody>
             </table>
-          </div>
-
-          <div class="pagination">
-            <span>Página 1 de 9</span>
-            <div class="pagination-buttons">
-              <button class="page-btn" disabled>‹</button>
-              <button class="page-btn active">1</button>
-              <button class="page-btn">2</button>
-              <button class="page-btn">3</button>
-              <button class="page-btn">4</button>
-              <button class="page-btn">9</button>
-              <button class="page-btn">›</button>
-            </div>
           </div>
         </div>
 
@@ -143,28 +140,45 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import MainLayout from '@/layouts/MainLayout.vue'
+import { ref, onMounted } from 'vue';
+import MainLayout from '@/layouts/MainLayout.vue';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
-const router = useRouter()
+const irAAlumnos = () => router.push({ name: 'Alumnos' });
+const irAInscripciones = () => router.push('/inscripcion');
+const irAGrupos = () => router.push('/gestion-grupos');
+const irAEvaluaciones = () => router.push('/evaluaciones');  
 
-const busquedaTabla = ref('')
-const filtroCarrera = ref('')
-const filtroSemestre = ref('')
-const filtroEstatus = ref('')
+// 1. Agrupamos todo en un objeto 'resumen' para que el HTML lo encuentre
+const resumen = ref({
+  total_alumnos: 0,
+  total_inscripciones: 0,
+  recientes: []
+});
 
-const notification = reactive({ message: '', type: '' })
+const notification = ref({ message: '', type: '' });
 
-const inscripciones = ref([
-  { id: 1, noControl: '21456987', nombre: 'Sara Pérez', carrera: 'Ingeniería en Sistemas Computacionales', semestre: 6, fecha: '23 abr 2024' },
-  { id: 2, noControl: '21463254', nombre: 'Juan García', carrera: 'Ingeniería Industrial', semestre: 4, fecha: '22 abr 2024' },
-  { id: 3, noControl: '21454128', nombre: 'Mariela Gómez', carrera: 'Ingeniería Civil', semestre: 8, fecha: '22 abr 2024' },
-  { id: 4, noControl: '21454321', nombre: 'Ana Rodríguez', carrera: 'Lic. en Administración', semestre: 2, fecha: '22 abr 2024' }
-])
+const cargarDatos = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/resumen-escolar');
+    if (!response.ok) throw new Error('Error en la API');
+    
+    const data = await response.json();
+    // 2. Guardamos la respuesta tal cual viene de Laravel
+    resumen.value = data;
+  } catch (error) {
+    console.error("Error al conectar con SICE:", error);
+    notification.value = { 
+      message: 'Error: No se pudo conectar con el servidor backend (Laravel)', 
+      type: 'error' 
+    };
+  }
+};
 
-const inscripcionesFiltradas = computed(() => inscripciones.value)
-
+onMounted(() => {
+  cargarDatos();
+});
 const totalAlumnos = ref(0)
 const totalInscripciones = ref(0)
 const totalEvaluaciones = ref(0)
@@ -184,19 +198,6 @@ const cargarResumen = async () => {
 onMounted(() => {
   cargarResumen()
 })
-
-const irAAlumnos = () => router.push('/alumnos')
-const irAInscripciones = () => router.push('/inscripcion')
-const irAGrupos = () => router.push('/gestion-grupos')
-const irAEvaluaciones = () => router.push('/evaluaciones')
-const nuevaInscripcion = () => router.push('/inscripcion')
-const gestionarTodo = () => {}
-
-const showNotification = (message, type) => {
-  notification.message = message
-  notification.type = type
-  setTimeout(() => { notification.message = '' }, 3000)
-}
 </script>
 
 <style scoped>

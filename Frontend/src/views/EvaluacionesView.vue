@@ -125,53 +125,139 @@
   </div>
 </template>
 
+
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
-const criterios = ref([
-  { nombre: 'Parcial 1', porcentaje: 30 },
-  { nombre: 'Parcial 2', porcentaje: 30 },
-  { nombre: 'Proyecto', porcentaje: 40 }
-])
-
-const totalPorcentaje = computed(() => criterios.value.reduce((sum, c) => sum + Number(c.porcentaje), 0))
-const circlePath = computed(() => `M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831`)
-
+// --- ESTADO ---
+const idGrupo = ref(1) // ID del grupo actual (puedes recibirlo por props o ruta)
+const criterios = ref([])
 const showModal = ref(false)
 const nuevoNombre = ref('')
 const nuevoPorcentaje = ref(0)
+const editandoIndex = ref(null)
+
+// --- COMPUTADOS ---
+const totalPorcentaje = computed(() => {
+  return criterios.value.reduce((sum, c) => sum + Number(c.porcentaje), 0)
+})
+
+const circlePath = computed(() => `M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831`)
+
+// --- MÉTODOS API ---
+
+// Cargar evaluaciones desde el backend al montar el componente
+const fetchEvaluaciones = async () => {
+  try {
+    const res = await fetch(`http://localhost:8000/api/evaluaciones/${idGrupo.value}`)
+    const data = await res.json()
+    
+    // Si hay datos en la BD los cargamos, si no, dejamos una lista vacía o default
+    if (data && data.length > 0) {
+      criterios.value = data
+    } else {
+      criterios.value = [
+        { nombre: 'Parcial 1', porcentaje: 30 },
+        { nombre: 'Parcial 2', porcentaje: 30 },
+        { nombre: 'Proyecto', porcentaje: 40 }
+      ]
+    }
+  } catch (error) {
+    console.error("Error al conectar con la API:", error)
+  }
+}
+
+// Guardar todos los criterios en la base de datos
+const guardarCambios = async () => {
+  if (totalPorcentaje.value !== 100) {
+    alert('El porcentaje total debe ser exactamente 100% para guardar.')
+    return
+  }
+
+  try {
+    const res = await fetch('http://localhost:8000/api/evaluaciones/guardar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id_grupo: idGrupo.value,
+        criterios: criterios.value
+      })
+    })
+
+    if (res.ok) {
+      alert('✅ Evaluaciones guardadas correctamente en el sistema SICE')
+    } else {
+      throw new Error('Error en la respuesta del servidor')
+    }
+  } catch (error) {
+    alert('❌ No se pudieron guardar los cambios. Revisa la conexión con Laravel.')
+  }
+}
+
+// --- LÓGICA DE INTERFAZ (MODAL Y TABLA) ---
 
 const abrirModalNueva = () => {
   nuevoNombre.value = ''
   nuevoPorcentaje.value = 0
+  editandoIndex.value = null
   showModal.value = true
 }
-const cerrarModal = () => { showModal.value = false }
+
+const cerrarModal = () => {
+  showModal.value = false
+}
 
 const guardarNuevaEvaluacion = () => {
   if (!nuevoNombre.value.trim()) {
     alert('Debes escribir un nombre para la evaluación')
     return
   }
-  if (nuevoPorcentaje.value < 0 || nuevoPorcentaje.value > 100) {
+
+  const porcentajeNum = Number(nuevoPorcentaje.value)
+
+  if (porcentajeNum < 0 || porcentajeNum > 100) {
     alert('El porcentaje debe estar entre 0 y 100')
     return
   }
-  if (totalPorcentaje.value + Number(nuevoPorcentaje.value) > 100) {
-    alert(`El porcentaje total excedería 100% (Actual: ${totalPorcentaje.value}%)`)
-    return
+
+  // Si estamos creando una nueva, verificamos que no pase del 100%
+  if (editandoIndex.value === null) {
+    if (totalPorcentaje.value + porcentajeNum > 100) {
+      alert(`El porcentaje total excedería el 100% (Actual: ${totalPorcentaje.value}%)`)
+      return
+    }
+    criterios.value.push({ 
+      nombre: nuevoNombre.value.trim(), 
+      porcentaje: porcentajeNum 
+    })
+  } else {
+    // Si estamos editando una existente
+    criterios.value[editandoIndex.value].nombre = nuevoNombre.value.trim()
+    criterios.value[editandoIndex.value].porcentaje = porcentajeNum
   }
-  criterios.value.push({ nombre: nuevoNombre.value.trim(), porcentaje: Number(nuevoPorcentaje.value) })
+
   cerrarModal()
 }
 
-const editar = (item) => alert(`Editando: ${item.nombre}`)
-const eliminar = (index) => {
-  if (confirm('¿Eliminar esta evaluación?')) criterios.value.splice(index, 1)
+const editar = (item) => {
+  const index = criterios.value.indexOf(item)
+  nuevoNombre.value = item.nombre
+  nuevoPorcentaje.value = item.porcentaje
+  editandoIndex.value = index
+  showModal.value = true
 }
-const guardarCambios = () => alert('✅ Evaluaciones guardadas correctamente')
+
+const eliminar = (index) => {
+  if (confirm('¿Estás seguro de eliminar este criterio de evaluación?')) {
+    criterios.value.splice(index, 1)
+  }
+}
+
+// Ejecutar carga inicial
+onMounted(fetchEvaluaciones)
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');

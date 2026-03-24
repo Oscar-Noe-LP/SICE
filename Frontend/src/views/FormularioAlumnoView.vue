@@ -154,14 +154,34 @@ const guardarAlumno = async () => {
 
   isLoading.value = true
 
-  await new Promise(resolve => setTimeout(resolve, 1400))
+  try {
+    const response = await fetch('http://localhost:8000/api/alumnos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(form)
+    });
 
-  showNotification('✅ Alumno guardado correctamente', 'success')
+    const data = await response.json();
 
-  setTimeout(() => {
+    if (!response.ok) {
+      throw new Error(data.error || 'Error al guardar');
+    }
+
+    showNotification('✅ Alumno guardado correctamente', 'success')
+
+    // Esperar un momento para que el usuario vea el mensaje y redirigir
+    setTimeout(() => {
+      router.push('/alumnos')
+    }, 1500)
+
+  } catch (error) {
+    showNotification('❌ Error: ' + error.message, 'error')
+  } finally {
     isLoading.value = false
-    router.push('/alumnos')
-  }, 800)
+  }
 }
 
 const cancelar = () => {

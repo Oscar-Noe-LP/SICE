@@ -105,44 +105,69 @@
   </MainLayout>
 </template>
 
+
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, onMounted, computed, reactive } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
 const busquedaAlumno = ref('')
 const busquedaGrupo = ref('')
 const periodo = ref('Ago/Dic 2024')
 const alumnoSeleccionado = ref(null)
-
-const grupos = ref([
-  { id: 1, materia: 'Algoritmos y Programación', docente: 'Mtro. Juan Morales', aula: 'A-201', capacidad: 30, inscritos: 23 },
-  { id: 2, materia: 'Base de Datos', docente: 'Dra. Ana Ruiz', aula: 'B-103', capacidad: 30, inscritos: 28 },
-  { id: 3, materia: 'Administración de Redes', docente: 'Mtro. Carlos Jiménez', aula: 'A-204', capacidad: 25, inscritos: 19 }
-])
+const grupos = ref([])
 
 const notification = reactive({ message: '', type: '' })
 
-const gruposFiltrados = computed(() => grupos.value)
+// Cargar grupos al iniciar
+onMounted(async () => {
+  const res = await fetch('http://localhost:8000/api/grupos-disponibles');
+  grupos.value = await res.json();
+});
 
-const seleccionarAlumno = () => {
-  if (busquedaAlumno.value.trim()) {
-    alumnoSeleccionado.value = {
-      nombre: 'Sara Pérez',
-      noControl: '21456987',
-      carrera: 'Ingeniería en Sistemas Computacionales',
-      semestre: 6
-    }
-    showNotification('Alumno seleccionado correctamente', 'success')
+const gruposFiltrados = computed(() => {
+  return grupos.value.filter(g => 
+    g.materia.toLowerCase().includes(busquedaGrupo.value.toLowerCase())
+  )
+})
+
+const seleccionarAlumno = async () => {
+  if (!busquedaAlumno.value.trim()) return;
+  
+  try {
+    const res = await fetch(`http://localhost:8000/api/buscar-alumno?q=${busquedaAlumno.value}`);
+    if (!res.ok) throw new Error();
+    alumnoSeleccionado.value = await res.json();
+    showNotification('Alumno encontrado', 'success');
+  } catch (err) {
+    showNotification('No se encontró el alumno', 'error');
+    alumnoSeleccionado.value = null;
   }
 }
 
-const inscribirAlumno = (grupo) => {
-  const index = grupos.value.findIndex(g => g.id === grupo.id)
-  if (index !== -1) grupos.value[index].inscritos++
-  showNotification(`✅ Inscrito en ${grupo.materia}`, 'success')
-}
+const inscribirAlumno = async (grupo) => {
+  if (!alumnoSeleccionado.value) {
+    showNotification('Primero busca y selecciona un alumno', 'error');
+    return;
+  }
 
-const filtrarGrupos = () => {}
+  try {
+    const res = await fetch('http://localhost:8000/api/inscribir', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        id_alumno: alumnoSeleccionado.value.id_alumno,
+        id_grupo: grupo.id
+      })
+    });
+
+    if (res.ok) {
+      grupo.inscritos++;
+      showNotification(`✅ Inscrito en ${grupo.materia}`, 'success');
+    }
+  } catch (err) {
+    showNotification('Error al procesar inscripción', 'error');
+  }
+}
 
 const showNotification = (message, type) => {
   notification.message = message
