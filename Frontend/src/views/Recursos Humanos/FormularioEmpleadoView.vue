@@ -341,7 +341,8 @@ const cargarPuestos = async () => {
   try {
     const res = await fetch('http://localhost:8000/api/puestos')
     if (!res.ok) throw new Error()
-    puestos.value = await res.json()
+    const json = await res.json()
+    puestos.value = json.data || json
     console.log('✅ Puestos cargados:', puestos.value.length)
   } catch {
     console.error('❌ Error cargando puestos')

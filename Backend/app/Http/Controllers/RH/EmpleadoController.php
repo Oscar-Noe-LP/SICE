@@ -21,7 +21,12 @@ class EmpleadoController extends Controller
             $query = DB::table('empleado as e')
                 ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
                 ->join('puesto as pu', 'e.id_puesto', '=', 'pu.id_puesto')
-                ->leftJoin('docente as d', 'e.id_empleado', '=', 'd.id_empleado');
+                ->leftJoin('docente as d', 'e.id_empleado', '=', 'd.id_empleado')
+                ->leftJoin('adscripcion as ad', function ($join) {
+                    $join->on('ad.id_empleado', '=', 'e.id_empleado')
+                         ->whereNull('ad.fecha_fin');
+                })
+                ->leftJoin('departamento as dp', 'ad.id_departamento', '=', 'dp.id_departamento');
 
             // Filtro por nombre
             if ($request->has('nombre') && !empty($request->get('nombre'))) {
@@ -54,6 +59,7 @@ class EmpleadoController extends Controller
                 'pu.nombre_puesto',
                 'e.fecha_contratacion',
                 'e.estatus',
+                'dp.nombre as nombre_departamento',
                 DB::raw('CASE WHEN d.id_docente IS NOT NULL THEN true ELSE false END as es_docente')
             )
             ->distinct()
@@ -67,6 +73,7 @@ class EmpleadoController extends Controller
                     'numero_empleado' => $empleado->numero_empleado,
                     'nombre_completo' => "{$empleado->nombre} {$empleado->apellido_paterno} {$empleado->apellido_materno}",
                     'puesto' => $empleado->nombre_puesto,
+                    'departamento' => $empleado->nombre_departamento,
                     'fecha_contratacion' => $empleado->fecha_contratacion,
                     'estatus' => $empleado->estatus,
                     'es_docente' => (bool) $empleado->es_docente,
