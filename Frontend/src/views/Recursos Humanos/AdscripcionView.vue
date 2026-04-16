@@ -222,7 +222,7 @@
             <label class="form-label">Departamento <span class="obligatorio">*</span></label>
             <select v-model="form.id_departamento" class="modal-select" @change="verificarAdscripcionActiva">
               <option value="">Seleccionar departamento</option>
-              <option v-for="d in departamentos" :key="d.id_departamento" :value="d.id_departamento">{{ d.nombre_departamento }}</option>
+              <option v-for="d in departamentos" :key="d.id_departamento" :value="d.id_departamento">{{ d.nombre }}</option>
             </select>
           </div>
 
@@ -256,6 +256,13 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
+import { 
+  getAdscripciones, 
+  crearAdscripcion, 
+  actualizarAdscripcion as actualizarAdscripcionAPI, 
+  eliminarAdscripcion as eliminarAdscripcionAPI
+} from '@/api/recursosHumanos'
+
 
 const adscripciones   = ref([])
 const departamentos   = ref([])
@@ -278,6 +285,50 @@ const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   timerNotif = setTimeout(() => { notificacion.value.visible = false }, 3500)
 }
 
+
+const eliminarAdscripcion = async (id) => {
+  if (!confirm('¿Eliminar adscripción?')) return
+  try {
+    const res = await eliminarAdscripcionAPI(id)
+    if (res.success) {
+      mostrarNotificacion('Adscripción eliminada', 'exito')
+      cargarAdscripciones()
+    }
+  } catch (error) {
+    mostrarNotificacion('Error al eliminar', 'error')
+  }
+}
+
+const actualizarAdscripcion = async (id, datos) => {
+    try {
+      const res = await actualizarAdscripcionAPI(id, {
+        id_departamento: datos.id_departamento,
+        fecha_inicio: datos.fecha_inicio,
+        fecha_fin: datos.fecha_fin || null
+      })
+      
+      if (res.success) {
+        mostrarNotificacion('Adscripción actualizada', 'exito')
+        cargarAdscripciones()
+      }
+    } catch (error) {
+      mostrarNotificacion('Error al actualizar', 'error')
+    }
+  }
+
+  const cargarAdscripciones = async () => {
+    cargando.value = true
+    try {
+      const res = await getAdscripciones()
+      if (!res.success) throw new Error()
+      adscripciones.value = res.data.map(normalizarAdscripcion)
+    } catch (error) {
+      mostrarNotificacion('Error cargando adscripciones', 'error')
+    } finally {
+      cargando.value = false
+    }
+  }
+
 const normalize = (text) => {
   if (!text) return ''
   return text.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -292,8 +343,8 @@ const formatearFecha = (fecha) => {
 const normalizarAdscripcion = (a) => ({
   id_adscripcion:  a.id_adscripcion || a.id,
   numero_empleado: a.numero_empleado || a.empleado?.numero_empleado || '',
-  nombre_empleado: a.nombre_empleado || a.empleado?.nombre || a.persona?.nombre_completo || '',
-  departamento:    a.departamento?.nombre_departamento || a.departamento || '',
+  nombre_empleado: a.nombre_completo || a.nombre_empleado || a.empleado?.nombre || '',
+  departamento:    a.departamento || a.departamento?.nombre_departamento || '',
   id_departamento: a.id_departamento || a.departamento?.id_departamento,
   fecha_inicio:    a.fecha_inicio || '',
   fecha_fin:       a.fecha_fin || null,
@@ -303,19 +354,35 @@ const departamentosDisponibles = computed(() =>
   [...new Set(adscripciones.value.map(a => a.departamento).filter(Boolean))]
 )
 
-const cargarAdscripciones = async () => {
-  cargando.value = true
-  try {
-    const res = await fetch('http://localhost:8000/api/adscripciones')
-    if (!res.ok) throw new Error()
-    adscripciones.value = (await res.json()).map(normalizarAdscripcion)
-    console.log('✅ Adscripciones cargadas:', adscripciones.value.length)
-  } catch {
-    mostrarNotificacion('No se pudo cargar la lista de adscripciones.', 'error')
-  } finally {
-    cargando.value = false
+
+  const handleCrearAdscripcion = async (datos) => {
+    try {
+      const res = await crearAdscripcion({
+        id_empleado: datos.id_empleado,
+        id_departamento: datos.id_departamento,
+        fecha_inicio: datos.fecha_inicio,
+        fecha_fin: datos.fecha_fin || null
+      })
+      
+      if (res.success) {
+        mostrarNotificacion('Adscripción creada', 'exito')
+        cargarAdscripciones()
+      }
+    } catch (error) {
+      // ⚠️ VALIDACIÓN ESPECIAL PARA ADSCRIPCIÓN ACTIVA
+      if (error.response?.status === 409) {
+        // MOSTRAR EN AMARILLO
+        mostrarNotificacion(
+          error.response.data.error,
+          'warning'  // ← Color amarillo
+        )
+        console.log('Adscripción activa:', error.response.data.adscripcion_activa)
+        // Opcional: mostrar modal con datos de adscripción existente
+      } else {
+        mostrarNotificacion('Error al crear', 'error')
+      }
+    }
   }
-}
 
 const cargarDepartamentos = async () => {
   try {
@@ -401,11 +468,12 @@ const buscarEmpleadoModal = () => {
       const params = new URLSearchParams({ q: busquedaEmpleadoModal.value.trim() })
       const res = await fetch(`http://localhost:8000/api/empleados?${params}`)
       if (!res.ok) throw new Error()
-      const data = await res.json()
-      resultadosEmpleado.value = data.map(e => ({
+      const json = await res.json()
+      const lista = json.data || json
+      resultadosEmpleado.value = lista.map(e => ({
         id_empleado:     e.id_empleado || e.id,
         numero_empleado: e.numero_empleado || '',
-        nombre:          e.nombre || e.persona?.nombre_completo || '',
+        nombre:          e.nombre_completo || e.nombre || '',
       }))
     } catch { resultadosEmpleado.value = [] }
     finally { buscandoEmpleado.value = false }
