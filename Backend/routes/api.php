@@ -27,6 +27,8 @@ Route::get('/alumnos-full', [ServiciosEscolaresController::class, 'getAlumnos'])
 Route::post('/alumnos', [ServiciosEscolaresController::class, 'store']);
 Route::get('/buscar-alumno', [ServiciosEscolaresController::class, 'buscarAlumnoInscripcion']);
 
+Route::get('/alumnos/buscar-control', [EventoController::class, 'buscarAlumno']);
+
 // === CRUD COMPLETO DE ALUMNOS ===
 Route::apiResource('alumnos', AlumnoController::class);
 Route::get('/alumnos-crud', [AlumnoController::class, 'index']);
@@ -176,3 +178,11 @@ Route::get('/bitacora', [BitacoraController::class, 'index']);
 //lista de eventos para EventosView.vue
 Route::get('/eventos', [EventoController::class, 'index']);
 Route::get('/tipos-evento', [EventoController::class, 'tiposEvento']);
+
+//participantes eventos
+Route::get('/eventos/{id}', [EventoController::class, 'show']);
+Route::get('/eventos/{id}/participantes', [EventoController::class, 'participantes']);
+Route::post('/eventos/{id}/participantes', [EventoController::class, 'registrarParticipante']);
+Route::patch('/eventos/{id}/participantes/{control}/constancia', [EventoController::class, 'emitirConstancia']);
+Route::delete('/eventos/{id}/participantes/{control}', [EventoController::class, 'eliminarParticipante']);
+

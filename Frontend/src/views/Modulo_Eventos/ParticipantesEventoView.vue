@@ -251,78 +251,123 @@ import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
 const router = useRouter()
-const route  = useRoute()
+const route = useRoute()
 
-const cargando            = ref(false)
-const errorCarga          = ref(false)
+const API_URL = 'http://localhost:8000/api'
+
+const cargando = ref(false)
+const errorCarga = ref(false)
 const mostrarModalRegistro = ref(false)
-const busquedaModal       = ref('')
-const alumnoEncontrado    = ref(null)
-const buscandoAlumno      = ref(false)
+const busquedaModal = ref('')
+const alumnoEncontrado = ref(null)
+const buscandoAlumno = ref(false)
 
-const evento       = ref({ id: null, nombre: '', fecha: '', lugar: '', participantes: 0, cupo_maximo: null })
+const evento = ref({
+  id: null,
+  nombre: '',
+  fecha: '',
+  lugar: '',
+  participantes: 0,
+  cupo_maximo: null
+})
+
 const participantes = ref([])
 
-const notificacion = ref({ visible: false, mensaje: '', tipo: 'exito' })
+const toast = ref({
+  visible: false,
+  mensaje: '',
+  tipo: 'exito'
+})
+
 let timerNotif = null
+let debounce = null
+
 const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   if (timerNotif) clearTimeout(timerNotif)
-  notificacion.value = { visible: true, mensaje, tipo }
-  timerNotif = setTimeout(() => { notificacion.value.visible = false }, 3500)
+
+  toast.value = {
+    visible: true,
+    mensaje,
+    tipo
+  }
+
+  timerNotif = setTimeout(() => {
+    toast.value.visible = false
+  }, 3500)
 }
 
 // ── Carga inicial ─────────────────────────────────────────────
 const cargarEvento = async () => {
   try {
-    const res = await fetch(`http://localhost:8000/api/eventos/${route.params.id}`)
-    if (!res.ok) throw new Error()
+    const res = await fetch(`${API_URL}/eventos/${route.params.id}`)
+
+    if (!res.ok) {
+      throw new Error('No se pudo cargar el evento')
+    }
+
     evento.value = await res.json()
   } catch (error) {
     console.error('Error cargando evento:', error)
     errorCarga.value = true
+    mostrarNotificacion('No se pudo cargar la información del evento', 'error')
   }
 }
 
 const cargarParticipantes = async () => {
-  cargando.value   = true
+  cargando.value = true
   errorCarga.value = false
+
   try {
-    const res = await fetch(`http://localhost:8000/api/eventos/${route.params.id}/participantes`)
-    if (!res.ok) throw new Error('Error en la respuesta del servidor')
+    const res = await fetch(`${API_URL}/eventos/${route.params.id}/participantes`)
+
+    if (!res.ok) {
+      throw new Error('No se pudieron cargar los participantes')
+    }
+
     const data = await res.json()
     participantes.value = Array.isArray(data) ? data : data.data ?? []
   } catch (error) {
     console.error('Error cargando participantes:', error)
     errorCarga.value = true
+    participantes.value = []
+    mostrarNotificacion('No se pudo cargar la lista de participantes', 'error')
   } finally {
     cargando.value = false
   }
 }
 
-onMounted(() => {
-  cargarEvento()
-  cargarParticipantes()
+onMounted(async () => {
+  await cargarEvento()
+  await cargarParticipantes()
 })
 
+// ── Computed ──────────────────────────────────────────────────
 const porcentajeOcupacion = computed(() => {
   if (!evento.value.cupo_maximo) return 0
   return Math.round((evento.value.participantes / evento.value.cupo_maximo) * 100)
 })
 
 // ── Búsqueda de alumno con debounce ───────────────────────────
-let debounce = null
 const buscarAlumnoModal = () => {
   alumnoEncontrado.value = null
-  if (busquedaModal.value.length < 3) return
+
+  if (busquedaModal.value.trim().length < 3) return
+
   clearTimeout(debounce)
+
   debounce = setTimeout(async () => {
     buscandoAlumno.value = true
+
     try {
-      const res = await fetch(`http://localhost:8000/api/alumnos/buscar?no_control=${encodeURIComponent(busquedaModal.value)}`)
+      const res = await fetch(
+        `${API_URL}/alumnos/buscar-control?no_control=${encodeURIComponent(busquedaModal.value.trim())}`
+      )
+
       if (!res.ok) throw new Error()
+
       const data = await res.json()
       alumnoEncontrado.value = data ?? null
-    } catch {
+    } catch (error) {
       alumnoEncontrado.value = null
     } finally {
       buscandoAlumno.value = false
@@ -333,26 +378,40 @@ const buscarAlumnoModal = () => {
 // ── Registrar participante ────────────────────────────────────
 const registrarParticipante = async () => {
   if (!alumnoEncontrado.value) return
+
   cargando.value = true
+
   try {
-    const res = await fetch(`http://localhost:8000/api/eventos/${route.params.id}/participantes`, {
+    const res = await fetch(`${API_URL}/eventos/${route.params.id}/participantes`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ no_control: alumnoEncontrado.value.control }),
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        no_control: alumnoEncontrado.value.control
+      })
     })
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
       throw new Error(err.message || 'Error del servidor')
     }
+
     const nombreGuardado = alumnoEncontrado.value.nombre
+
     mostrarModalRegistro.value = false
     busquedaModal.value = ''
     alumnoEncontrado.value = null
-    await Promise.all([cargarEvento(), cargarParticipantes()])
+
+    await Promise.all([
+      cargarEvento(),
+      cargarParticipantes()
+    ])
+
     mostrarNotificacion(`${nombreGuardado} registrado correctamente`)
   } catch (error) {
     console.error('Error registrando participante:', error)
-    mostrarNotificacion(error.message || 'No se pudo registrar al participante.', 'error')
+    mostrarNotificacion(error.message || 'No se pudo registrar al participante', 'error')
   } finally {
     cargando.value = false
   }
@@ -361,17 +420,28 @@ const registrarParticipante = async () => {
 // ── Emitir constancia ─────────────────────────────────────────
 const emitirConstancia = async (p) => {
   cargando.value = true
+
   try {
-    const res = await fetch(`http://localhost:8000/api/eventos/${route.params.id}/participantes/${p.control}/constancia`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-    })
-    if (!res.ok) throw new Error()
+    const res = await fetch(
+      `${API_URL}/eventos/${route.params.id}/participantes/${p.control}/constancia`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || 'No se pudo emitir la constancia')
+    }
+
     p.constancia_emitida = true
     mostrarNotificacion('Constancia emitida correctamente')
   } catch (error) {
     console.error('Error emitiendo constancia:', error)
-    mostrarNotificacion('No se pudo emitir la constancia.', 'error')
+    mostrarNotificacion(error.message || 'No se pudo emitir la constancia', 'error')
   } finally {
     cargando.value = false
   }
@@ -379,19 +449,31 @@ const emitirConstancia = async (p) => {
 
 // ── Eliminar participante ─────────────────────────────────────
 const eliminarParticipante = async (p) => {
-  if (!confirm(`¿Eliminar a ${p.nombre} de este evento?`)) return
+  const confirmar = confirm(`¿Eliminar a ${p.nombre} de este evento?`)
+  if (!confirmar) return
+
   cargando.value = true
+
   try {
-    const res = await fetch(`http://localhost:8000/api/eventos/${route.params.id}/participantes/${p.control}`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) throw new Error()
+    const res = await fetch(
+      `${API_URL}/eventos/${route.params.id}/participantes/${p.control}`,
+      {
+        method: 'DELETE'
+      }
+    )
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || 'No se pudo eliminar al participante')
+    }
+
     participantes.value = participantes.value.filter(x => x.control !== p.control)
-    evento.value.participantes--
+    evento.value.participantes = Math.max(0, evento.value.participantes - 1)
+
     mostrarNotificacion('Participante eliminado')
   } catch (error) {
     console.error('Error eliminando participante:', error)
-    mostrarNotificacion('No se pudo eliminar al participante.', 'error')
+    mostrarNotificacion(error.message || 'No se pudo eliminar al participante', 'error')
   } finally {
     cargando.value = false
   }
@@ -400,13 +482,26 @@ const eliminarParticipante = async (p) => {
 // ── Helpers ───────────────────────────────────────────────────
 const formatearFecha = (f) => {
   if (!f) return '—'
+
   const [a, m, d] = f.split('-')
-  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
+  const meses = [
+    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+  ]
+
   return `${parseInt(d)} de ${meses[parseInt(m) - 1]} de ${a}`
 }
+
 const iniciales = (nombre) => {
   if (!nombre) return '?'
-  return nombre.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
+
+  return nombre
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
 }
 </script>
 
