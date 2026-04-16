@@ -491,7 +491,7 @@ const confirmarEliminar = async () => {
   --verde:      #16A34A;
   --rojo:       #DC2626;
 
-  width: 100%; max-width: 1100px;
+  width: 100%; 
   background: var(--fondo);
   font-family: 'Montserrat', sans-serif;
   padding-bottom: 2rem;
