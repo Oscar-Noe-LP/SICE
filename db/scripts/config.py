@@ -1,6 +1,6 @@
 DB_CONFIG = {
     "host": "localhost",
-    "user": "",
-    "password": "",
+    "user": "root",
+    "password": "tec12345678",
     "database": "SICE",
 }

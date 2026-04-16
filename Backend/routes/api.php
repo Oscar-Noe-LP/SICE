@@ -169,3 +169,31 @@ Route::get('/permisos', [PermisoController::class, 'index']);
 
 // Bitácora
 Route::get('/bitacora', [BitacoraController::class, 'index']);
+
+
+// ====================== MÓDULO DE RECURSOS HUMANOS ======================
+
+use App\Http\Controllers\Api\RecursosHumanosController;
+use App\Http\Controllers\Api\FormularioEmpleadoController;
+use App\Http\Controllers\Api\DocentesController;
+
+// Dashboard RH
+Route::get('/recursos-humanos/dashboard', [RecursosHumanosController::class, 'dashboard']);
+
+// Empleados
+Route::get('/empleados',           [FormularioEmpleadoController::class, 'index']);
+Route::get('/empleados/{id}',      [FormularioEmpleadoController::class, 'show']);
+Route::post('/empleados',          [FormularioEmpleadoController::class, 'store']);
+Route::put('/empleados/{id}',      [FormularioEmpleadoController::class, 'update']);
+
+// Búsqueda de personas y catálogos para formulario de empleado
+Route::get('/personas',            [FormularioEmpleadoController::class, 'buscarPersona']);
+Route::get('/puestos',             function () {
+    return response()->json(\Illuminate\Support\Facades\DB::table('puesto')->get());
+});
+Route::get('/empleado-catalogos',  [FormularioEmpleadoController::class, 'catalogos']);
+Route::post('/empleados/{id}/toggle-docente', [FormularioEmpleadoController::class, 'toggleDocente']);
+
+// Docentes
+Route::get('/docentes',            [DocentesController::class, 'index']);
+Route::put('/docentes/{id}',       [DocentesController::class, 'update']);

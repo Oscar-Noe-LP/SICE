@@ -280,8 +280,8 @@ const normalize = (text) => {
 }
 
 const claseEstatus = (estatus) => {
-  if (!estatus) return ''
-  return estatus.toLowerCase().replace(/\s/g, '-')
+  if (estatus === null || estatus === undefined) return ''
+  return String(estatus).toLowerCase().replace(/\s/g, '-')
 }
 
 const formatearFecha = (fecha) => {
