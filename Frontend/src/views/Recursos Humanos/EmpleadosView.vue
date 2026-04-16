@@ -242,6 +242,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
+import { getEmpleados } from '@/api/recursosHumanos'
 
 const router = useRouter()
 
@@ -261,8 +262,8 @@ const filasPorPagina    = ref(10)
 const currentPage       = ref(1)
 
 // ── Listas dinámicas para los selects ──
-const puestosDisponibles      = computed(() => [...new Set(empleados.value.map(e => e.puesto?.nombre_puesto || e.puesto).filter(Boolean))])
-const departamentosDisponibles = computed(() => [...new Set(empleados.value.map(e => e.departamento?.nombre_departamento || e.departamento).filter(Boolean))])
+const puestosDisponibles      = computed(() => [...new Set(empleados.value.map(e => e.puesto).filter(Boolean))])
+const departamentosDisponibles = computed(() => [...new Set(empleados.value.map(e => e.departamento).filter(Boolean))])
 
 // ── Notificación ──
 const notificacion = ref({ visible: false, mensaje: '', tipo: 'exito' })
@@ -278,12 +279,12 @@ const normalize = (text) => {
   if (!text) return ''
   return text.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
-
+ 
 const claseEstatus = (estatus) => {
   if (estatus === null || estatus === undefined) return ''
   return String(estatus).toLowerCase().replace(/\s/g, '-')
 }
-
+ 
 const formatearFecha = (fecha) => {
   if (!fecha) return '—'
   try {
@@ -291,29 +292,37 @@ const formatearFecha = (fecha) => {
   } catch { return fecha }
 }
 
+// ── Normalizar datos del backend ──
 const normalizarEmpleado = (e) => ({
-  id_empleado:        e.id_empleado || e.id,
-  numero_empleado:    e.numero_empleado || e.noEmpleado || '',
-  nombre:             e.nombre || e.persona?.nombre_completo || e.persona?.nombre || '',
-  puesto:             e.puesto?.nombre_puesto || e.puesto || '',
-  id_puesto:          e.id_puesto || e.puesto?.id_puesto,
-  departamento:       e.departamento?.nombre_departamento || e.departamento || '',
-  id_departamento:    e.id_departamento || e.departamento?.id_departamento,
-  fecha_contratacion: e.fecha_contratacion || '',
-  estatus:            e.estatus || 'Activo',
-  es_docente:         e.es_docente ?? e.docente ?? false,
-  grado_academico:    e.grado_academico || '',
-  especialidad:       e.especialidad || '',
+  id_empleado:        e.id_empleado,
+  numero_empleado:    e.numero_empleado,
+  nombre:             e.nombre_completo,
+  puesto:             e.puesto,
+  fecha_contratacion: e.fecha_contratacion,
+  estatus:            e.estatus ? 'Activo' : 'Inactivo',
+  es_docente:         e.es_docente || false,
 })
 
 // ── Fetch ──
 const cargarEmpleados = async () => {
   cargando.value = true
   try {
-    const response = await fetch('http://localhost:8000/api/empleados')
-    if (!response.ok) throw new Error('Error del servidor')
-    const data = await response.json()
-    empleados.value = data.map(normalizarEmpleado)
+    const res = await getEmpleados()  // ← USA recursosHumanos.js
+    
+    if (!res.success) throw new Error('Error en respuesta del servidor')
+    
+    // Normalizar y eliminar duplicados
+    const empleadosUnicos = []
+    const ids = new Set()
+    
+    res.data.forEach(emp => {
+      if (!ids.has(emp.id_empleado)) {
+        ids.add(emp.id_empleado)
+        empleadosUnicos.push(normalizarEmpleado(emp))
+      }
+    })
+    
+    empleados.value = empleadosUnicos
     console.log('✅ Empleados cargados:', empleados.value.length, 'registros')
   } catch (error) {
     console.error('❌ Error cargando empleados:', error)
@@ -322,7 +331,7 @@ const cargarEmpleados = async () => {
     cargando.value = false
   }
 }
-
+ 
 onMounted(() => { cargarEmpleados() })
 
 // ── Debounce búsqueda ──
@@ -335,20 +344,20 @@ watch(busquedaEmpleado, () => {
     currentPage.value = 1
   }, 350)
 })
-
+ 
 // ── Modal Ver ──
 const showViewModal = ref(false)
 const empleadoVer   = ref({})
-
+ 
 const abrirModalVer = (empleado) => {
   empleadoVer.value = { ...empleado }
   showViewModal.value = true
 }
 const cerrarModalVer = () => { showViewModal.value = false }
-
+ 
 // ── Navegación ──
-const nuevoEmpleado  = () => router.push('/recursos-humanos/empleados/nuevo')
-const editarEmpleado = (empleado) => router.push(`/recursos-humanos/empleados/${empleado.id_empleado}/editar`)
+const nuevoEmpleado   = () => router.push('/recursos-humanos/empleados/nuevo')
+const editarEmpleado  = (empleado) => router.push(`/recursos-humanos/empleados/${empleado.id_empleado}/editar`)
 
 // ── Filtrado ──
 const empleadosFiltrados = computed(() => {

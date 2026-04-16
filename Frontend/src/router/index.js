@@ -158,6 +158,14 @@ const router = createRouter({
     { path: '/bitacora',       name: 'Bitacora',       component: () => import('@/views/Seguridad y Usuarios/BitacoraView.vue') },
     { path: '/nuevo-usuario',  name: 'NuevoUsuario',   component: () => import('@/views/Seguridad y Usuarios/NuevoUsuarioView.vue') },
 
+
+    // ══════════════════════════════════════════════════════════════════════
+    // MÓDULO: ASIGNACIÓN DOCENTE A GRUPOS
+    // Carpeta: src/views/Asignación_Docente_a_Grupos/
+    // ══════════════════════════════════════════════════════════════════════
+    { path: '/asignacion-docente',name: 'AsignacionDocente', component: () => import('@/views/Asignación_Docente_a_Grupos/Asignaciondocenteview.vue')},
+    { path: '/asignacion-docente/carga', name: 'CargaDocente', component: () => import('@/views/Asignación_Docente_a_Grupos/CargaDocenteView.vue')  },
+
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: EVENTOS
     // Carpeta: src/views/Modulo_Eventos/

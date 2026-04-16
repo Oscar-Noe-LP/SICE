@@ -276,7 +276,7 @@ const irAPuestos       = () => router.push('/recursos-humanos/puestos')
   --morado:      #7C3AED;
 
   width: 100%;
-  max-width: 1100px;
+  
   background: var(--fondo);
   font-family: 'Montserrat', sans-serif;
   padding-bottom: 2rem;
@@ -292,7 +292,7 @@ const irAPuestos       = () => router.push('/recursos-humanos/puestos')
 .breadcrumb-link:hover { color: var(--azul); }
 .breadcrumb-actual { color: var(--azul); font-weight: 600; }
 
-/* ── Encabezado ── */
+/* ── Encabezadoo ── */
 .page-header { margin-bottom: 1.4rem; }
 .page-title { color: var(--texto); font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
 

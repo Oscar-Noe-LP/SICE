@@ -1,10 +1,15 @@
 <template>
   <div class="sistema-layout" :class="{ 'sidebar-collapsed': isCollapsed }" @click="cerrarMenus">
 
-    <!-- ENCABEZADO FIJO -->
+    <!-- ══ ENCABEZADO FIJO ══ -->
     <header class="encabezado-superior">
       <div class="encabezado-izquierda">
-        <button class="btn-toggle-menu" @click.stop="toggleSidebar" title="Ocultar/Mostrar menú">
+        <button
+          class="btn-toggle-menu"
+          @click.stop="toggleSidebar"
+          aria-label="Ocultar o mostrar menú lateral"
+          title="Ocultar/Mostrar menú"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
                   :d="isCollapsed ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'" />
@@ -15,6 +20,7 @@
       </div>
 
       <div class="encabezado-derecha">
+
         <div class="grupo-busqueda">
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-busqueda" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -26,30 +32,25 @@
             v-model="busquedaGlobal"
             @keydown.escape="busquedaGlobal = ''"
             @click.stop
+            aria-label="Búsqueda global"
           >
         </div>
 
-        <!-- Campana de notificaciones -->
-        <div class="campana-notificaciones" @click.stop="toggleNotificaciones" title="Notificaciones">
+        <!-- Campana -->
+        <div class="campana-notificaciones" @click.stop="toggleNotificaciones" aria-label="Notificaciones" title="Notificaciones">
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-campana" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          <span v-if="notificaciones.length > 0" class="contador-notificaciones">
-            {{ notificaciones.length }}
-          </span>
+          <span v-if="notificaciones.length > 0" class="contador-notificaciones">{{ notificaciones.length }}</span>
 
           <div v-if="mostrarNotificaciones" class="panel-notificaciones" @click.stop>
             <div class="panel-encabezado">
               <h4>Notificaciones</h4>
-              <span v-if="notificaciones.length > 0" class="marcar-todo" @click="marcarTodasLeidas">
-                Marcar todo como leído
-              </span>
+              <span v-if="notificaciones.length > 0" class="marcar-todo" @click="marcarTodasLeidas">Marcar todo como leído</span>
             </div>
             <div class="lista-notificaciones">
-              <div v-if="notificaciones.length > 0"
-                   v-for="(notif, index) in notificaciones" :key="index"
-                   class="elemento-notificacion">
+              <div v-if="notificaciones.length > 0" v-for="(notif, index) in notificaciones" :key="index" class="elemento-notificacion">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icono-notif" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -68,14 +69,12 @@
                 <p class="subtitulo-vacio">Cuando ocurra algo importante aparecerá aquí</p>
               </div>
             </div>
-            <div v-if="notificaciones.length > 0" class="pie-notificaciones">
-              Ver todas las notificaciones
-            </div>
+            <div v-if="notificaciones.length > 0" class="pie-notificaciones">Ver todas las notificaciones</div>
           </div>
         </div>
 
-        <!-- Menú de usuario -->
-        <div class="menu-usuario" @click.stop="toggleMenuUsuario">
+        <!-- Menú usuario -->
+        <div class="menu-usuario" @click.stop="toggleMenuUsuario" aria-label="Menú de usuario">
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-usuario" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -108,12 +107,13 @@
             </div>
           </div>
         </div>
+
       </div>
     </header>
 
-    <!-- MENÚ LATERAL -->
+    <!-- ══ MENÚ LATERAL ══ -->
     <aside class="menu-lateral" @click.stop>
-      <nav class="navegacion">
+      <nav class="navegacion" role="navigation" aria-label="Menú principal">
 
         <!-- Inicio -->
         <router-link to="/inicio" class="elemento-menu" active-class="activo">
@@ -124,8 +124,8 @@
           <span class="etiqueta-menu">Inicio</span>
         </router-link>
 
-        <!-- Servicios Escolares -->
-        <div class="elemento-menu elemento-padre" @click="toggleServicios">
+        <!-- ── Servicios Escolares ── -->
+        <div class="elemento-menu elemento-padre" @click.stop="toggleServicios" :aria-expanded="isServiciosOpen" aria-label="Servicios Escolares">
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -135,15 +135,19 @@
         </div>
         <div v-if="isServiciosOpen" class="submenu">
           <router-link to="/servicios-escolares" class="elemento-menu elemento-submenu" active-class="activo">Principal</router-link>
-          <router-link to="/alumnos" class="elemento-menu elemento-submenu" active-class="activo">Alumnos</router-link>
-          <router-link to="/evaluaciones" class="elemento-menu elemento-submenu" active-class="activo">Evaluaciones</router-link>
-          <router-link to="/calificaciones" class="elemento-menu elemento-submenu" active-class="activo">Calificaciones</router-link>
-          <router-link to="/inscripcion" class="elemento-menu elemento-submenu" active-class="activo">Inscripción</router-link>
-          <router-link to="/gestion-grupos" class="elemento-menu elemento-submenu" active-class="activo">Grupos</router-link>
+          <router-link to="/alumnos"             class="elemento-menu elemento-submenu" active-class="activo">Alumnos</router-link>
+          <router-link to="/evaluaciones"        class="elemento-menu elemento-submenu" active-class="activo">Evaluaciones</router-link>
+          <router-link to="/calificaciones"      class="elemento-menu elemento-submenu" active-class="activo">Calificaciones</router-link>
+          <router-link to="/inscripcion"         class="elemento-menu elemento-submenu" active-class="activo">Inscripción</router-link>
+          <router-link to="/gestion-grupos"      class="elemento-menu elemento-submenu" active-class="activo">Grupos</router-link>
+          <!-- Inscripciones Detalladas -->
+          <div class="submenu-separador">Inscripciones Detalladas</div>
+          <router-link to="/inscripciones"           class="elemento-menu elemento-submenu elemento-submenu-anidado" active-class="activo">Panel General</router-link>
+          <router-link to="/inscripciones/historial" class="elemento-menu elemento-submenu elemento-submenu-anidado" active-class="activo">Historial</router-link>
         </div>
 
-        <!-- Gestión Académica -->
-        <div class="elemento-menu elemento-padre" @click="toggleGestionAcademica">
+        <!-- ── Gestión Académica ── -->
+        <div class="elemento-menu elemento-padre" @click.stop="toggleGestionAcademica" :aria-expanded="isGestionAcademicaOpen" aria-label="Gestión Académica">
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 14l9-5-9-5-9 5 9 5zM12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
@@ -152,17 +156,17 @@
           <span class="flecha-submenu" :class="{ abierto: isGestionAcademicaOpen }">›</span>
         </div>
         <div v-if="isGestionAcademicaOpen" class="submenu">
-          <router-link to="/gestion-academica" class="elemento-menu elemento-submenu" active-class="activo">Panel Principal</router-link>
-          <router-link to="/gestion-academica/carreras" class="elemento-menu elemento-submenu" active-class="activo">Carreras</router-link>
-          <router-link to="/gestion-academica/planes" class="elemento-menu elemento-submenu" active-class="activo">Planes de Estudio</router-link>
-          <router-link to="/gestion-academica/materias" class="elemento-menu elemento-submenu" active-class="activo">Materias</router-link>
-          <router-link to="/gestion-academica/prerrequisitos" class="elemento-menu elemento-submenu" active-class="activo">Prerrequisitos</router-link>
-          <router-link to="/gestion-academica/periodos" class="elemento-menu elemento-submenu" active-class="activo">Periodos Académicos</router-link>
+          <router-link to="/gestion-academica"                 class="elemento-menu elemento-submenu" active-class="activo">Panel Principal</router-link>
+          <router-link to="/gestion-academica/carreras"        class="elemento-menu elemento-submenu" active-class="activo">Carreras</router-link>
+          <router-link to="/gestion-academica/planes"          class="elemento-menu elemento-submenu" active-class="activo">Planes de Estudio</router-link>
+          <router-link to="/gestion-academica/materias"        class="elemento-menu elemento-submenu" active-class="activo">Materias</router-link>
+          <router-link to="/gestion-academica/prerrequisitos"  class="elemento-menu elemento-submenu" active-class="activo">Prerrequisitos</router-link>
+          <router-link to="/gestion-academica/periodos"        class="elemento-menu elemento-submenu" active-class="activo">Periodos Académicos</router-link>
           <router-link to="/gestion-academica/edificios-aulas" class="elemento-menu elemento-submenu" active-class="activo">Edificios y Aulas</router-link>
         </div>
 
-        <!-- Eventos -->
-        <div class="elemento-menu elemento-padre" @click="toggleEventos">
+        <!-- ── Eventos ── -->
+        <div class="elemento-menu elemento-padre" @click.stop="toggleEventos" :aria-expanded="isEventosOpen" aria-label="Eventos">
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -171,12 +175,12 @@
           <span class="flecha-submenu" :class="{ abierto: isEventosOpen }">›</span>
         </div>
         <div v-if="isEventosOpen" class="submenu">
-          <router-link to="/eventos" class="elemento-menu elemento-submenu" active-class="activo">Lista de Eventos</router-link>
+          <router-link to="/eventos"       class="elemento-menu elemento-submenu" active-class="activo">Lista de Eventos</router-link>
           <router-link to="/eventos/nuevo" class="elemento-menu elemento-submenu" active-class="activo">Nuevo Evento</router-link>
         </div>
 
-        <!-- Comité Académico -->
-        <div class="elemento-menu elemento-padre" @click="toggleComite">
+        <!-- ── Comité Académico ── -->
+        <div class="elemento-menu elemento-padre" @click.stop="toggleComite" :aria-expanded="isComiteOpen" aria-label="Comité Académico">
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -185,21 +189,22 @@
           <span class="flecha-submenu" :class="{ abierto: isComiteOpen }">›</span>
         </div>
         <div v-if="isComiteOpen" class="submenu">
-          <router-link to="/comite" class="elemento-menu elemento-submenu" active-class="activo">Panel Principal</router-link>
-          <router-link to="/comite/solicitudes" class="elemento-menu elemento-submenu" active-class="activo">Solicitudes</router-link>
+          <router-link to="/comite"                   class="elemento-menu elemento-submenu" active-class="activo">Panel Principal</router-link>
+          <router-link to="/comite/solicitudes"       class="elemento-menu elemento-submenu" active-class="activo">Solicitudes</router-link>
           <router-link to="/comite/solicitudes/nueva" class="elemento-menu elemento-submenu" active-class="activo">Nueva Solicitud</router-link>
-          <router-link to="/comite/sesiones" class="elemento-menu elemento-submenu" active-class="activo">Sesiones</router-link>
-          <router-link to="/comite/resoluciones" class="elemento-menu elemento-submenu" active-class="activo">Resoluciones</router-link>
+          <router-link to="/comite/sesiones"          class="elemento-menu elemento-submenu" active-class="activo">Sesiones</router-link>
+          <router-link to="/comite/resoluciones"      class="elemento-menu elemento-submenu" active-class="activo">Resoluciones</router-link>
         </div>
 
-        <!-- ADMINISTRACIÓN (solo admin) -->
+        <!-- ══════════════════════════════════════
+             ADMINISTRACIÓN (solo admin)
+        ══════════════════════════════════════ -->
         <template v-if="rolActual === 'admin'">
-          <div class="separador-menu">
-            <span>Administración</span>
-          </div>
 
-          <!-- Seguridad y Usuarios -->
-          <div class="elemento-menu elemento-padre" @click="toggleSeguridad">
+          <div class="separador-menu"><span>Administración</span></div>
+
+          <!-- ── Seguridad y Usuarios ── -->
+          <div class="elemento-menu elemento-padre" @click.stop="toggleSeguridad" :aria-expanded="isSeguridadOpen" aria-label="Seguridad y Usuarios">
             <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -208,32 +213,32 @@
             <span class="flecha-submenu" :class="{ abierto: isSeguridadOpen }">›</span>
           </div>
           <div v-if="isSeguridadOpen" class="submenu">
-            <router-link to="/roles" class="elemento-menu elemento-submenu" active-class="activo">Roles</router-link>
-            <router-link to="/permisos" class="elemento-menu elemento-submenu" active-class="activo">Permisos</router-link>
-            <router-link to="/usuarios" class="elemento-menu elemento-submenu" active-class="activo">Usuarios</router-link>
-            <router-link to="/bitacora" class="elemento-menu elemento-submenu" active-class="activo">Bitácora</router-link>
+            <router-link to="/roles"         class="elemento-menu elemento-submenu" active-class="activo">Roles</router-link>
+            <router-link to="/permisos"      class="elemento-menu elemento-submenu" active-class="activo">Permisos</router-link>
+            <router-link to="/usuarios"      class="elemento-menu elemento-submenu" active-class="activo">Usuarios</router-link>
+            <router-link to="/bitacora"      class="elemento-menu elemento-submenu" active-class="activo">Bitácora</router-link>
             <router-link to="/nuevo-usuario" class="elemento-menu elemento-submenu" active-class="activo">Nuevo Usuario</router-link>
           </div>
 
-          <!-- Recursos Humanos -->
-          <div class="elemento-menu elemento-padre" @click="toggleRecursosHumanos">
+          <!-- ── Recursos Humanos ── -->
+          <div class="elemento-menu elemento-padre" @click.stop="toggleRecursosHumanos" :aria-expanded="isRecursosHumanosOpen" aria-label="Recursos Humanos">
             <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
             <span class="etiqueta-menu">Recursos Humanos</span>
             <span class="flecha-submenu" :class="{ abierto: isRecursosHumanosOpen }">›</span>
           </div>
           <div v-if="isRecursosHumanosOpen" class="submenu">
-            <router-link to="/recursos-humanos" class="elemento-menu elemento-submenu" active-class="activo">Principal</router-link>
-            <router-link to="/recursos-humanos/empleados" class="elemento-menu elemento-submenu" active-class="activo">Empleados</router-link>
-            <router-link to="/recursos-humanos/docentes" class="elemento-menu elemento-submenu" active-class="activo">Docentes</router-link>
+            <router-link to="/recursos-humanos"               class="elemento-menu elemento-submenu" active-class="activo">Principal</router-link>
+            <router-link to="/recursos-humanos/empleados"     class="elemento-menu elemento-submenu" active-class="activo">Empleados</router-link>
+            <router-link to="/recursos-humanos/docentes"      class="elemento-menu elemento-submenu" active-class="activo">Docentes</router-link>
             <router-link to="/recursos-humanos/adscripciones" class="elemento-menu elemento-submenu" active-class="activo">Adscripciones</router-link>
-            <router-link to="/recursos-humanos/puestos" class="elemento-menu elemento-submenu" active-class="activo">Puestos</router-link>
+            <router-link to="/recursos-humanos/puestos"       class="elemento-menu elemento-submenu" active-class="activo">Puestos</router-link>
           </div>
 
-          <!-- Personas -->
-          <div class="elemento-menu elemento-padre" @click="togglePersonas">
+          <!-- ── Personas ── -->
+          <div class="elemento-menu elemento-padre" @click.stop="togglePersonas" :aria-expanded="isPersonasOpen" aria-label="Personas">
             <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -242,8 +247,48 @@
             <span class="flecha-submenu" :class="{ abierto: isPersonasOpen }">›</span>
           </div>
           <div v-if="isPersonasOpen" class="submenu">
-            <router-link to="/personas" class="elemento-menu elemento-submenu" active-class="activo">Catálogo</router-link>
+            <router-link to="/personas"       class="elemento-menu elemento-submenu" active-class="activo">Catálogo</router-link>
             <router-link to="/personas/nueva" class="elemento-menu elemento-submenu" active-class="activo">Nueva Persona</router-link>
+          </div>
+
+          <!-- ── Asignación Docente a Grupos ── -->
+          <div class="elemento-menu elemento-padre" @click.stop="toggleAsignacionDocente" :aria-expanded="isAsignacionDocenteOpen" aria-label="Asignación Docente a Grupos">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <span class="etiqueta-menu">Asignación Docente</span>
+            <span class="flecha-submenu" :class="{ abierto: isAsignacionDocenteOpen }">›</span>
+          </div>
+          <div v-if="isAsignacionDocenteOpen" class="submenu">
+            <router-link to="/asignacion-docente"       class="elemento-menu elemento-submenu" active-class="activo">Asignación de Grupos</router-link>
+            <router-link to="/asignacion-docente/carga" class="elemento-menu elemento-submenu" active-class="activo">Carga Académica</router-link>
+          </div>
+
+          <!-- ── Kardex ── -->
+          <div class="elemento-menu elemento-padre" @click.stop="toggleKardex" :aria-expanded="isKardexOpen" aria-label="Kardex">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span class="etiqueta-menu">Kardex</span>
+            <span class="flecha-submenu" :class="{ abierto: isKardexOpen }">›</span>
+          </div>
+          <div v-if="isKardexOpen" class="submenu">
+            <router-link to="/kardex" class="elemento-menu elemento-submenu" active-class="activo">Consulta de Kardex</router-link>
+          </div>
+
+          <!-- ── Historial Académico ── -->
+          <div class="elemento-menu elemento-padre" @click.stop="toggleHistorialAcademico" :aria-expanded="isHistorialAcademicoOpen" aria-label="Historial Académico">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span class="etiqueta-menu">Historial Académico</span>
+            <span class="flecha-submenu" :class="{ abierto: isHistorialAcademicoOpen }">›</span>
+          </div>
+          <div v-if="isHistorialAcademicoOpen" class="submenu">
+            <router-link to="/historial-academico" class="elemento-menu elemento-submenu" active-class="activo">Avance Curricular</router-link>
           </div>
 
         </template>
@@ -251,7 +296,7 @@
       </nav>
     </aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
+    <!-- ══ CONTENIDO PRINCIPAL ══ -->
     <main class="area-contenido">
       <slot :key="$route.fullPath" :busquedaGlobal="busquedaGlobal" />
     </main>
@@ -265,65 +310,87 @@ useKeyboardShortcuts()
 
 import { ref, computed, watch, onMounted } from 'vue'
 
+// ── Estado global ─────────────────────────────────────────────────────
 const busquedaGlobal = ref('')
+const isCollapsed    = ref(false)
 
-const isCollapsed             = ref(false)
-const isServiciosOpen         = ref(true)
-const isPersonasOpen          = ref(false)
-const isGestionAcademicaOpen  = ref(false)
-const isRecursosHumanosOpen   = ref(false)
-const isSeguridadOpen         = ref(false)
-const isEventosOpen           = ref(false)
-const isComiteOpen            = ref(false)
+// ── Estados de submenús ───────────────────────────────────────────────
+const isServiciosOpen          = ref(true)
+const isGestionAcademicaOpen   = ref(false)
+const isEventosOpen            = ref(false)
+const isComiteOpen             = ref(false)
+const isSeguridadOpen          = ref(false)
+const isRecursosHumanosOpen    = ref(false)
+const isPersonasOpen           = ref(false)
+const isAsignacionDocenteOpen  = ref(false)
+const isKardexOpen             = ref(false)
+const isHistorialAcademicoOpen = ref(false)
 
+// ── Encabezado ────────────────────────────────────────────────────────
 const mostrarMenuUsuario    = ref(false)
 const mostrarNotificaciones = ref(false)
 const rolActual             = ref('servicios-escolares')
 const notificaciones        = ref([])
 
-// Persistencia en localStorage
+// ── Persistencia en localStorage ─────────────────────────────────────
 onMounted(() => {
-  const load = (key, ref, parse = true) => {
+  const load = (key, refVar, parse = true) => {
     const val = localStorage.getItem(key)
-    if (val !== null) ref.value = parse ? JSON.parse(val) : val
+    if (val !== null) refVar.value = parse ? JSON.parse(val) : val
   }
-  load('isServiciosOpen',        isServiciosOpen)
-  load('isPersonasOpen',         isPersonasOpen)
-  load('isGestionAcademicaOpen', isGestionAcademicaOpen)
-  load('isRecursosHumanosOpen',  isRecursosHumanosOpen)
-  load('isSeguridadOpen',        isSeguridadOpen)
-  load('isEventosOpen',          isEventosOpen)
-  load('isComiteOpen',           isComiteOpen)
-  load('rolActual',              rolActual, false)
+  load('isServiciosOpen',          isServiciosOpen)
+  load('isGestionAcademicaOpen',   isGestionAcademicaOpen)
+  load('isEventosOpen',            isEventosOpen)
+  load('isComiteOpen',             isComiteOpen)
+  load('isSeguridadOpen',          isSeguridadOpen)
+  load('isRecursosHumanosOpen',    isRecursosHumanosOpen)
+  load('isPersonasOpen',           isPersonasOpen)
+  load('isAsignacionDocenteOpen',  isAsignacionDocenteOpen)
+  load('isKardexOpen',             isKardexOpen)
+  load('isHistorialAcademicoOpen', isHistorialAcademicoOpen)
+  load('rolActual',                rolActual, false)
 })
 
 watch(
-  [isServiciosOpen, isPersonasOpen, isGestionAcademicaOpen, isRecursosHumanosOpen, isSeguridadOpen, isEventosOpen, isComiteOpen, rolActual],
+  [
+    isServiciosOpen, isGestionAcademicaOpen, isEventosOpen,
+    isComiteOpen, isSeguridadOpen, isRecursosHumanosOpen,
+    isPersonasOpen, isAsignacionDocenteOpen, isKardexOpen,
+    isHistorialAcademicoOpen, rolActual
+  ],
   () => {
-    localStorage.setItem('isServiciosOpen',        JSON.stringify(isServiciosOpen.value))
-    localStorage.setItem('isPersonasOpen',         JSON.stringify(isPersonasOpen.value))
-    localStorage.setItem('isGestionAcademicaOpen', JSON.stringify(isGestionAcademicaOpen.value))
-    localStorage.setItem('isRecursosHumanosOpen',  JSON.stringify(isRecursosHumanosOpen.value))
-    localStorage.setItem('isSeguridadOpen',        JSON.stringify(isSeguridadOpen.value))
-    localStorage.setItem('isEventosOpen',          JSON.stringify(isEventosOpen.value))
-    localStorage.setItem('isComiteOpen',           JSON.stringify(isComiteOpen.value))
-    localStorage.setItem('rolActual',              rolActual.value)
+    localStorage.setItem('isServiciosOpen',          JSON.stringify(isServiciosOpen.value))
+    localStorage.setItem('isGestionAcademicaOpen',   JSON.stringify(isGestionAcademicaOpen.value))
+    localStorage.setItem('isEventosOpen',            JSON.stringify(isEventosOpen.value))
+    localStorage.setItem('isComiteOpen',             JSON.stringify(isComiteOpen.value))
+    localStorage.setItem('isSeguridadOpen',          JSON.stringify(isSeguridadOpen.value))
+    localStorage.setItem('isRecursosHumanosOpen',    JSON.stringify(isRecursosHumanosOpen.value))
+    localStorage.setItem('isPersonasOpen',           JSON.stringify(isPersonasOpen.value))
+    localStorage.setItem('isAsignacionDocenteOpen',  JSON.stringify(isAsignacionDocenteOpen.value))
+    localStorage.setItem('isKardexOpen',             JSON.stringify(isKardexOpen.value))
+    localStorage.setItem('isHistorialAcademicoOpen', JSON.stringify(isHistorialAcademicoOpen.value))
+    localStorage.setItem('rolActual',                rolActual.value)
   },
   { deep: true }
 )
 
+// ── Computed ──────────────────────────────────────────────────────────
 const nombreRolActual = computed(() =>
   rolActual.value === 'admin' ? 'Administrador' : 'Servicios Escolares'
 )
 
-const toggleSidebar           = () => { isCollapsed.value = !isCollapsed.value }
-const toggleServicios         = () => { isServiciosOpen.value = !isServiciosOpen.value }
-const togglePersonas          = () => { isPersonasOpen.value = !isPersonasOpen.value }
-const toggleGestionAcademica  = () => { isGestionAcademicaOpen.value = !isGestionAcademicaOpen.value }
-const toggleRecursosHumanos   = () => { isRecursosHumanosOpen.value = !isRecursosHumanosOpen.value }
-const toggleSeguridad         = () => { isSeguridadOpen.value = !isSeguridadOpen.value }
-const toggleEventos           = () => { isEventosOpen.value = !isEventosOpen.value }
-const toggleComite            = () => { isComiteOpen.value = !isComiteOpen.value }
+// ── Toggles ───────────────────────────────────────────────────────────
+const toggleSidebar            = () => { isCollapsed.value = !isCollapsed.value }
+const toggleServicios          = () => { isServiciosOpen.value = !isServiciosOpen.value }
+const toggleGestionAcademica   = () => { isGestionAcademicaOpen.value = !isGestionAcademicaOpen.value }
+const toggleEventos            = () => { isEventosOpen.value = !isEventosOpen.value }
+const toggleComite             = () => { isComiteOpen.value = !isComiteOpen.value }
+const toggleSeguridad          = () => { isSeguridadOpen.value = !isSeguridadOpen.value }
+const toggleRecursosHumanos    = () => { isRecursosHumanosOpen.value = !isRecursosHumanosOpen.value }
+const togglePersonas           = () => { isPersonasOpen.value = !isPersonasOpen.value }
+const toggleAsignacionDocente  = () => { isAsignacionDocenteOpen.value = !isAsignacionDocenteOpen.value }
+const toggleKardex             = () => { isKardexOpen.value = !isKardexOpen.value }
+const toggleHistorialAcademico = () => { isHistorialAcademicoOpen.value = !isHistorialAcademicoOpen.value }
 
 const toggleMenuUsuario = () => {
   mostrarMenuUsuario.value = !mostrarMenuUsuario.value

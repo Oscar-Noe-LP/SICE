@@ -176,6 +176,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
+import { crearPuesto, actualizarPuesto, eliminarPuesto as eliminarPuestoAPI } from '@/api/recursosHumanos'
 
 const puestos         = ref([])
 const cargando        = ref(false)
@@ -206,19 +207,22 @@ const normalizarPuesto = (p) => ({
   descripcion:  p.descripcion || '',
 })
 
-const cargarPuestos = async () => {
-  cargando.value = true
-  try {
-    const res = await fetch('http://localhost:8000/api/puestos')
-    if (!res.ok) throw new Error()
-    puestos.value = (await res.json()).map(normalizarPuesto)
-    console.log('✅ Puestos cargados:', puestos.value.length)
-  } catch {
-    mostrarNotificacion('No se pudo cargar la lista de puestos.', 'error')
-  } finally {
-    cargando.value = false
+import { getPuestos } from '@/api/recursosHumanos'
+
+  const cargarPuestos = async () => {
+    cargando.value = true
+    try {
+      const res = await getPuestos()
+      if (!res.success) throw new Error()
+      puestos.value = res.data.map(normalizarPuesto)
+      console.log('✅ Puestos cargados:', puestos.value.length)
+    } catch (error) {
+      console.error(error)
+      mostrarNotificacion('No se pudo cargar la lista de puestos.', 'error')
+    } finally {
+      cargando.value = false
+    }
   }
-}
 
 onMounted(() => { cargarPuestos() })
 
@@ -263,29 +267,52 @@ const abrirModalEditar = (p) => { puestoEditar.value = { ...p }; showModal.value
 const nuevoPuesto      = () => { puestoEditar.value = { id_puesto: null, nombre_puesto: '', descripcion: '' }; showModal.value = true }
 const cerrarModal      = () => { showModal.value = false }
 
-const guardarPuesto = async () => {
-  if (!puestoEditar.value.nombre_puesto?.trim()) {
-    mostrarNotificacion('El nombre del puesto es obligatorio.', 'error')
-    return
+  const guardarPuesto = async () => {
+    const puesto = puestoEditar.value
+    guardando.value = true
+    try {
+      const datos = {
+        nombre_puesto: puesto.nombre_puesto,
+        descripcion: puesto.descripcion
+      }
+      if (puesto.id_puesto) {
+        const res = await actualizarPuesto(puesto.id_puesto, datos)
+        if (res.success) {
+          mostrarNotificacion('Puesto actualizado', 'exito')
+          cerrarModal()
+          cargarPuestos()
+        }
+      } else {
+        const res = await crearPuesto(datos)
+        if (res.success) {
+          mostrarNotificacion('Puesto creado', 'exito')
+          cerrarModal()
+          cargarPuestos()
+        }
+      }
+    } catch (error) {
+      console.error(error)
+      mostrarNotificacion('Error al guardar', 'error')
+    } finally {
+      guardando.value = false
+    }
   }
-  guardando.value = true
-  const esEdicion = !!puestoEditar.value.id_puesto
-  const payload   = { nombre_puesto: puestoEditar.value.nombre_puesto.trim(), descripcion: puestoEditar.value.descripcion || '' }
-  const url       = esEdicion ? `http://localhost:8000/api/puestos/${puestoEditar.value.id_puesto}` : 'http://localhost:8000/api/puestos'
-  const method    = esEdicion ? 'PUT' : 'POST'
-  try {
-    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(payload) })
-    if (!res.ok) throw new Error()
-    await cargarPuestos()
-    cerrarModal()
-    mostrarNotificacion(esEdicion ? 'Puesto actualizado correctamente.' : 'Puesto creado correctamente.', 'exito')
-    console.log(`✅ Puesto ${esEdicion ? 'actualizado' : 'creado'}`)
-  } catch {
-    mostrarNotificacion('Error al guardar el puesto.', 'error')
-  } finally {
-    guardando.value = false
+
+    const eliminarPuesto = async (id) => {
+    if (!confirm('¿Eliminar puesto?')) return
+    try {
+      const res = await eliminarPuestoAPI(id)
+      if (res.success) {
+        mostrarNotificacion('Puesto eliminado', 'exito')
+        cargarPuestos()
+      } else if (res.error?.includes('empleado')) {
+        mostrarNotificacion('No se puede eliminar: tiene empleados asignados', 'error')
+      }
+    } catch (error) {
+      console.error(error)
+      mostrarNotificacion('Error al eliminar', 'error')
+    }
   }
-}
 
 const navegarTeclado = (e) => {
   const total = paginatedPuestos.value.length
