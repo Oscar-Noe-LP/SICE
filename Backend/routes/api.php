@@ -174,15 +174,34 @@ Route::get('/permisos', [PermisoController::class, 'index']);
 Route::get('/bitacora', [BitacoraController::class, 'index']);
 
 
-// ======================Modulo Eventos ======================
-//lista de eventos para EventosView.vue
+// ====================== Modulo Eventos ======================
 Route::get('/eventos', [EventoController::class, 'index']);
 Route::get('/tipos-evento', [EventoController::class, 'tiposEvento']);
-
-//participantes eventos
 Route::get('/eventos/{id}', [EventoController::class, 'show']);
 Route::get('/eventos/{id}/participantes', [EventoController::class, 'participantes']);
 Route::post('/eventos/{id}/participantes', [EventoController::class, 'registrarParticipante']);
 Route::patch('/eventos/{id}/participantes/{control}/constancia', [EventoController::class, 'emitirConstancia']);
 Route::delete('/eventos/{id}/participantes/{control}', [EventoController::class, 'eliminarParticipante']);
 
+// ====================== MÓDULO DE RECURSOS HUMANOS ======================
+
+use App\Http\Controllers\RH\EmpleadoController;
+use App\Http\Controllers\RH\PuestoController;
+use App\Http\Controllers\RH\AdscripcionController;
+
+Route::get('/empleados', [EmpleadoController::class, 'index']);
+Route::get('/empleados/{id}', [EmpleadoController::class, 'show']);
+Route::get('/empleados/departamentos', [EmpleadoController::class, 'getDepartamentos']);
+
+Route::get('/puestos', [PuestoController::class, 'index']);
+Route::get('/puestos/{id}', [PuestoController::class, 'show']);
+Route::post('/puestos', [PuestoController::class, 'store']);
+Route::put('/puestos/{id}', [PuestoController::class, 'update']);
+Route::delete('/puestos/{id}', [PuestoController::class, 'destroy']);
+
+Route::get('/adscripciones', [AdscripcionController::class, 'index']);
+Route::get('/adscripciones/{id}', [AdscripcionController::class, 'show']);
+Route::post('/adscripciones', [AdscripcionController::class, 'store']);
+Route::put('/adscripciones/{id}', [AdscripcionController::class, 'update']);
+Route::delete('/adscripciones/{id}', [AdscripcionController::class, 'destroy']);
+Route::get('/empleados/{idEmpleado}/adscripcion-activa', [AdscripcionController::class, 'getAdscripcionActiva']);
