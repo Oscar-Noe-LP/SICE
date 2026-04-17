@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -l app/Http/Controllers/Api/FormularioEmpleadoController.php)",
+      "Bash(php artisan tinker '--execute= *)",
+      "Bash(php artisan *)"
+    ]
+  }
+}

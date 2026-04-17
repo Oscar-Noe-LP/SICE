@@ -1,18 +1,9 @@
 # para entornos virtuales de python
 venv/
-__pycache__/
-
-<<<<<<< HEAD
-node_modules/
-<<<<<<< HEAD
 Frontend/node_modules/
-=======
-Frontend/node_modules/
-=======
 Frontend/node_modules/
 node_modules/
-
->>>>>>> 7f12851 (actualizo .gitignore)
->>>>>>> a19e73a (feat: mejora completa de Servicios escolares y  Gestión de Grupos con filtros, CRUD y modal de edición)
-
 .env
+*__pycache__
+
+
