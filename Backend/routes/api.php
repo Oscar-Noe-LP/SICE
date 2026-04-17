@@ -251,3 +251,18 @@ Route::prefix('comite')->group(function () {
     Route::post('/resoluciones', [ComiteAcademicoController::class, 'storeResolucion']);
 });
 
+
+
+// ====================== ASIGNACIÓN DOCENTE A GRUPOS ======================
+use App\Http\Controllers\Docentes\AsignacionDocenteController;
+use App\Http\Controllers\Docentes\CargaDocenteController;  // ← AGREGAR
+
+// --- AsignacionDocenteView (ya existentes) ---
+Route::get('/asignacion-docente/grupos', [AsignacionDocenteController::class, 'grupos']);
+Route::get('/docentes/disponibles', [AsignacionDocenteController::class, 'docentesDisponibles']);
+Route::post('/asignacion-docente', [AsignacionDocenteController::class, 'store']);
+
+// --- CargaDocenteView (NUEVAS) ---
+Route::get('/docentes', [CargaDocenteController::class, 'buscarDocentes']);                    
+Route::get('/carga-docente/{id_docente}', [CargaDocenteController::class, 'cargaPorDocente']); 
+Route::delete('/asignacion-docente/{id}', [CargaDocenteController::class, 'desasignar']);      
