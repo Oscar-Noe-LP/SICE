@@ -235,6 +235,7 @@
             <router-link to="/recursos-humanos/docentes"      class="elemento-menu elemento-submenu" active-class="activo">Docentes</router-link>
             <router-link to="/recursos-humanos/adscripciones" class="elemento-menu elemento-submenu" active-class="activo">Adscripciones</router-link>
             <router-link to="/recursos-humanos/puestos"       class="elemento-menu elemento-submenu" active-class="activo">Puestos</router-link>
+            <router-link to="/recursos-humanos/departamentos"       class="elemento-menu elemento-submenu" active-class="activo">Departamentos</router-link>
           </div>
 
           <!-- ── Personas ── -->

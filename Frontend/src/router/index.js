@@ -147,6 +147,14 @@ const router = createRouter({
       name: 'Puestos',
       component: () => import('@/views/Recursos Humanos/PuestosView.vue')
     },
+  
+     {
+      path: '/recursos-humanos/departamentos',
+      name: 'Puestos',
+      component: () => import('@/views/Recursos Humanos/Departamentosview.vue')
+    },
+
+    
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SEGURIDAD Y USUARIOS
