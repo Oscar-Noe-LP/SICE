@@ -150,7 +150,7 @@ const router = createRouter({
   
      {
       path: '/recursos-humanos/departamentos',
-      name: 'Puestos',
+      name: 'Departamentos',
       component: () => import('@/views/Recursos Humanos/Departamentosview.vue')
     },
 
