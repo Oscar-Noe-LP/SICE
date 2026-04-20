@@ -252,19 +252,19 @@ Route::put('/sesiones/{id}', [ComiteAcademicoController::class, 'updateSesion'])
 Route::get('/resoluciones', [ComiteAcademicoController::class, 'indexResoluciones']);
 Route::post('/resoluciones', [ComiteAcademicoController::class, 'storeResolucion']);
 
-// ====================== ASIGNACIÓN DOCENTE A GRUPOS ======================
- 
+});
 
-// --- AsignacionDocenteView (ya existentes) ---
+// ====================== ASIGNACIÓN DOCENTE A GRUPOS ======================
+
+
 Route::get('/asignacion-docente/grupos', [AsignacionDocenteController::class, 'grupos']);
 Route::get('/docentes/disponibles', [AsignacionDocenteController::class, 'docentesDisponibles']);
 Route::post('/asignacion-docente', [AsignacionDocenteController::class, 'store']);
 
-// --- CargaDocenteView (NUEVAS) ---
-Route::get('/docentes', [CargaDocenteController::class, 'buscarDocentes']);                    
-Route::get('/carga-docente/{id_docente}', [CargaDocenteController::class, 'cargaPorDocente']); 
-Route::delete('/asignacion-docente/{id}', [CargaDocenteController::class, 'desasignar']);      
-});
+// --- CargaDocenteView ---
+Route::get('/docentes', [CargaDocenteController::class, 'buscarDocentes']);
+Route::get('/carga-docente/{id_docente}', [CargaDocenteController::class, 'cargaPorDocente']);
+Route::delete('/asignacion-docente/{id}', [CargaDocenteController::class, 'desasignar']);
 
 
 
