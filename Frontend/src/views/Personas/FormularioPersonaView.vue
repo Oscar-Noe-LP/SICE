@@ -39,9 +39,8 @@
             Identificación
           </h2>
 
-          <!-- CURP -->
-          <div class="fila-campos">
-            <div class="campo campo-curp" :class="{ 'campo-error': errors.curp, 'campo-valido': campoValido('curp') }">
+          <div class="fila-campos curp-row">
+            <div class="campo" :class="{ 'campo-error': errors.curp, 'campo-valido': campoValido('curp') }">
               <label class="etiqueta">
                 CURP <span class="obligatorio">*</span>
                 <span class="etiqueta-hint">18 caracteres alfanuméricos</span>
@@ -56,7 +55,6 @@
                   @input="onCurpInput"
                   @blur="validarCampo('curp')"
                 >
-                <!-- Ícono de estado CURP -->
                 <span v-if="form.curp.length > 0" class="curp-estado-icono">
                   <svg v-if="campoValido('curp')" xmlns="http://www.w3.org/2000/svg" class="icono-check" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -72,7 +70,6 @@
             </div>
           </div>
 
-          <!-- Nombre y apellidos -->
           <div class="fila-campos">
             <div class="campo" :class="{ 'campo-error': errors.nombre, 'campo-valido': campoValido('nombre') }">
               <label class="etiqueta">Nombre <span class="obligatorio">*</span></label>
@@ -244,7 +241,6 @@
           </div>
         </section>
 
-        <!-- Acciones -->
         <div class="form-acciones">
           <button class="btn-cancelar" @click="cancelar" :disabled="isLoading">Cancelar</button>
           <button class="btn-guardar" @click="guardarPersona" :disabled="isLoading">
@@ -275,17 +271,9 @@ const hoyISO     = new Date().toISOString().split('T')[0]
 const esEdicion  = computed(() => !!route.params.id)
 
 const form = reactive({
-  curp:            '',
-  nombre:          '',
-  apellidoPaterno: '',
-  apellidoMaterno: '',
-  fechaNacimiento: '',
-  genero:          '',
-  estadoCivil:     '',
-  nacionalidad:    'Mexicana',
-  correo:          '',
-  telefono:        '',
-  direccion:       ''
+  curp: '', nombre: '', apellidoPaterno: '', apellidoMaterno: '',
+  fechaNacimiento: '', genero: '', estadoCivil: '',
+  nacionalidad: 'Mexicana', correo: '', telefono: '', direccion: ''
 })
 
 const errors       = reactive({})
@@ -293,7 +281,6 @@ const tocados      = reactive({})
 const notification = reactive({ message: '', type: '' })
 const isLoading    = ref(false)
 
-// Patrón CURP oficial (México)
 const CURP_PATTERN = /^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/
 
 const onCurpInput = () => {
@@ -354,9 +341,7 @@ const campoValido = (campo) => tocados[campo] && !errors[campo] && (
 )
 
 const validarFormulario = () => {
-  const requeridos = ['curp', 'nombre', 'apellidoPaterno', 'fechaNacimiento', 'genero']
-  requeridos.forEach(c => validarCampo(c))
-  // Validar opcionales si tienen valor
+  ['curp', 'nombre', 'apellidoPaterno', 'fechaNacimiento', 'genero'].forEach(c => validarCampo(c))
   if (form.correo) validarCampo('correo')
   if (form.telefono) validarCampo('telefono')
   return Object.keys(errors).length === 0
@@ -368,81 +353,47 @@ onMounted(async () => {
       const res  = await fetch(`http://localhost:8000/api/personas/${route.params.id}`)
       const data = await res.json()
       Object.assign(form, {
-        curp:            data.curp            || '',
-        nombre:          data.nombre          || '',
+        curp: data.curp || '', nombre: data.nombre || '',
         apellidoPaterno: data.apellido_paterno || '',
         apellidoMaterno: data.apellido_materno || '',
         fechaNacimiento: data.fecha_nacimiento || '',
-        genero:          data.genero          || '',
-        estadoCivil:     data.estado_civil    || '',
-        nacionalidad:    data.nacionalidad    || '',
-        correo:          data.correo          || '',
-        telefono:        data.telefono        || '',
-        direccion:       data.direccion       || ''
+        genero: data.genero || '', estadoCivil: data.estado_civil || '',
+        nacionalidad: data.nacionalidad || '', correo: data.correo || '',
+        telefono: data.telefono || '', direccion: data.direccion || ''
       })
-    } catch (e) {
-      showNotification('No se pudieron cargar los datos de la persona.', 'error')
-    }
+    } catch { showNotification('No se pudieron cargar los datos de la persona.', 'error') }
   }
 })
 
 const guardarPersona = async () => {
-  if (!validarFormulario()) {
-    showNotification('Corrige los errores marcados antes de continuar.', 'error')
-    return
-  }
-
+  if (!validarFormulario()) { showNotification('Corrige los errores marcados.', 'error'); return }
   isLoading.value = true
-
   const payload = {
-    curp:             form.curp,
-    nombre:           form.nombre.trim(),
+    curp: form.curp, nombre: form.nombre.trim(),
     apellido_paterno: form.apellidoPaterno.trim(),
     apellido_materno: form.apellidoMaterno.trim() || null,
-    fecha_nacimiento: form.fechaNacimiento,
-    genero:           form.genero,
-    estado_civil:     form.estadoCivil || null,
-    nacionalidad:     form.nacionalidad || null,
-    correo:           form.correo || null,
-    telefono:         form.telefono || null,
-    direccion:        form.direccion || null
+    fecha_nacimiento: form.fechaNacimiento, genero: form.genero,
+    estado_civil: form.estadoCivil || null, nacionalidad: form.nacionalidad || null,
+    correo: form.correo || null, telefono: form.telefono || null, direccion: form.direccion || null
   }
-
   try {
-    const url    = esEdicion.value
-      ? `http://localhost:8000/api/personas/${route.params.id}`
-      : 'http://localhost:8000/api/personas'
+    const url    = esEdicion.value ? `http://localhost:8000/api/personas/${route.params.id}` : 'http://localhost:8000/api/personas'
     const method = esEdicion.value ? 'PUT' : 'POST'
-
-    const response = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload)
-    })
+    const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(payload) })
     const data = await response.json()
-
     if (response.ok) {
-      showNotification(
-        esEdicion.value ? 'Persona actualizada correctamente.' : 'Persona registrada correctamente.',
-        'success'
-      )
+      showNotification(esEdicion.value ? 'Persona actualizada correctamente.' : 'Persona registrada correctamente.', 'success')
       setTimeout(() => router.push('/personas'), 1500)
-    } else {
-      throw new Error(JSON.stringify(data))
-    }
+    } else throw new Error(JSON.stringify(data))
   } catch (error) {
     console.error(error)
     showNotification('Ocurrió un error al guardar el registro.', 'error')
-  } finally {
-    isLoading.value = false
-  }
+  } finally { isLoading.value = false }
 }
 
 const cancelar = () => router.push('/personas')
-
 const showNotification = (message, type) => {
-  notification.message = message
-  notification.type    = type
+  notification.message = message; notification.type = type
   setTimeout(() => { notification.message = '' }, 4000)
 }
 </script>
@@ -460,7 +411,10 @@ const showNotification = (message, type) => {
   --verde:      #16A34A;
   --rojo:       #DC2626;
 
+  /* Ocupa todo el ancho disponible del área de contenido */
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   background: var(--fondo);
   font-family: 'Montserrat', sans-serif;
 }
@@ -480,7 +434,8 @@ const showNotification = (message, type) => {
 .toast {
   position: fixed; top: 88px; right: 28px; display: flex; align-items: center; gap: 10px;
   padding: 13px 20px; border-radius: 10px; color: white; font-weight: 500; font-size: 0.93rem;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2); z-index: 9999; font-family: 'Montserrat', sans-serif; max-width: 380px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2); z-index: 9999;
+  font-family: 'Montserrat', sans-serif; max-width: 380px;
 }
 .toast.success { background: #16A34A; }
 .toast.error   { background: #DC2626; }
@@ -488,10 +443,15 @@ const showNotification = (message, type) => {
 .toast-slide-enter-active, .toast-slide-leave-active { transition: all 0.35s ease; }
 .toast-slide-enter-from, .toast-slide-leave-to { opacity: 0; transform: translateX(110%); }
 
-/* Card */
+/* Card: 100% del ancho disponible, sin max-width */
 .form-card {
-  background: #FFF; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  padding: 2rem 2.2rem; width: 100%; max-width: 1000px; margin: 0 auto; border: 1px solid var(--borde);
+  background: #FFF;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  padding: 2rem 2.2rem;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--borde);
 }
 
 /* Secciones */
@@ -503,15 +463,28 @@ const showNotification = (message, type) => {
 }
 .seccion-icono { width: 20px; height: 20px; stroke: var(--azul); flex-shrink: 0; }
 
-/* Campos */
-.fila-campos { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.campo { flex: 1; min-width: 180px; position: relative; }
-.campo-curp { flex: 0 0 100%; }
-.campo-full { flex: 0 0 100%; }
+/* Grid fluido: columnas de mínimo 220px que se adaptan al espacio */
+.fila-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+/* CURP: ocupa toda la fila (1 columna que se expande) */
+.curp-row {
+  grid-template-columns: 1fr;
+}
+
+/* Dirección: ocupa toda la fila */
+.campo-full { grid-column: 1 / -1; }
+
+.campo { min-width: 0; position: relative; }
 
 .etiqueta {
   display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
-  font-weight: 600; font-size: 0.9rem; color: var(--texto); font-family: 'Montserrat', sans-serif;
+  font-weight: 600; font-size: 0.9rem; color: var(--texto);
+  font-family: 'Montserrat', sans-serif; flex-wrap: wrap;
 }
 .etiqueta-hint {
   font-weight: 400; font-size: 0.78rem; color: var(--azul);
@@ -520,8 +493,9 @@ const showNotification = (message, type) => {
 
 .input-campo {
   width: 100%; padding: 10px 14px; font-size: 0.95rem; border: 1.5px solid var(--borde);
-  border-radius: 8px; background: #FFF; color: var(--texto); font-family: 'Montserrat', sans-serif;
-  outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;
+  border-radius: 8px; background: #FFF; color: var(--texto);
+  font-family: 'Montserrat', sans-serif; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box;
 }
 .input-campo:focus { border-color: var(--azul); box-shadow: 0 0 0 3px #DBEAFE; }
 .input-campo::placeholder { color: #9CA3AF; }
@@ -540,28 +514,25 @@ const showNotification = (message, type) => {
 .error-fade-enter-active, .error-fade-leave-active { transition: all 0.25s ease; }
 .error-fade-enter-from, .error-fade-leave-to { opacity: 0; transform: translateY(-4px); }
 
-/* CURP con ícono inline */
+/* CURP wrapper */
 .input-curp-wrapper {
   display: flex; align-items: center; border: 1.5px solid var(--borde); border-radius: 8px;
   overflow: hidden; background: #FFF; transition: border-color 0.2s, box-shadow 0.2s;
 }
 .input-curp-wrapper:focus-within { border-color: var(--azul); box-shadow: 0 0 0 3px #DBEAFE; }
-.input-curp-wrapper.borde-error { border-color: var(--rojo); }
-.input-curp-wrapper.borde-error:focus-within { box-shadow: 0 0 0 3px #FEE2E2; }
+.input-curp-wrapper.borde-error  { border-color: var(--rojo); }
+.input-curp-wrapper.borde-error:focus-within  { box-shadow: 0 0 0 3px #FEE2E2; }
 .input-curp-wrapper.borde-valido { border-color: #16A34A; }
 .input-curp-wrapper.borde-valido:focus-within { box-shadow: 0 0 0 3px #DCFCE7; }
 
 .input-curp {
   border: none !important; box-shadow: none !important; flex: 1;
-  font-family: monospace; letter-spacing: 0.08em; font-size: 1rem; font-weight: 600;
-  text-transform: uppercase;
+  font-family: monospace; letter-spacing: 0.08em; font-size: 1rem; font-weight: 600; text-transform: uppercase;
 }
 .input-curp:focus { box-shadow: none !important; }
 
-.curp-estado-icono {
-  display: flex; align-items: center; padding: 0 12px; flex-shrink: 0;
-}
-.icono-check { width: 20px; height: 20px; stroke: #16A34A; }
+.curp-estado-icono { display: flex; align-items: center; padding: 0 12px; flex-shrink: 0; }
+.icono-check      { width: 20px; height: 20px; stroke: #16A34A; }
 .icono-error-curp { width: 20px; height: 20px; stroke: #DC2626; }
 
 /* Acciones */
@@ -571,29 +542,38 @@ const showNotification = (message, type) => {
 }
 .btn-cancelar {
   padding: 11px 26px; background: #FFF; color: var(--texto); border: 1px solid var(--borde);
-  border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif;
-  font-size: 0.95rem; transition: background 0.15s;
+  border-radius: 8px; font-weight: 600; cursor: pointer;
+  font-family: 'Montserrat', sans-serif; font-size: 0.95rem; transition: background 0.15s;
 }
 .btn-cancelar:hover:not(:disabled) { background: var(--fondo); }
 .btn-cancelar:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-guardar {
-  display: flex; align-items: center; gap: 8px; padding: 11px 28px; background: var(--azul);
-  color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
-  font-family: 'Montserrat', sans-serif; font-size: 0.95rem; transition: background 0.2s;
+  display: flex; align-items: center; gap: 8px; padding: 11px 28px;
+  background: var(--azul); color: white; border: none; border-radius: 8px;
+  font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif;
+  font-size: 0.95rem; transition: background 0.2s;
 }
 .btn-guardar:hover:not(:disabled) { background: var(--azul-hover); }
 .btn-guardar:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .spinner {
-  display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
-  border-top-color: white; border-radius: 50%; animation: girar 0.8s linear infinite; flex-shrink: 0;
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+  border-radius: 50%; animation: girar 0.8s linear infinite; flex-shrink: 0;
 }
 @keyframes girar { to { transform: rotate(360deg); } }
 
-/* Footer */
 .footer-institucional {
   margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--borde);
   display: flex; justify-content: space-between; align-items: center;
   font-size: 0.82rem; color: #9CA3AF; font-family: 'Montserrat', sans-serif;
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 600px) {
+  .form-card { padding: 1.2rem 1rem; }
+  .fila-campos { grid-template-columns: 1fr; }
+  .form-acciones { flex-direction: column; }
+  .btn-cancelar, .btn-guardar { width: 100%; justify-content: center; }
 }
 </style>
