@@ -140,10 +140,15 @@
           <router-link to="/calificaciones"      class="elemento-menu elemento-submenu" active-class="activo">Calificaciones</router-link>
           <router-link to="/inscripcion"         class="elemento-menu elemento-submenu" active-class="activo">Inscripción</router-link>
           <router-link to="/gestion-grupos"      class="elemento-menu elemento-submenu" active-class="activo">Grupos</router-link>
-          <!-- Inscripciones Detalladas -->
-          <div class="submenu-separador">Inscripciones Detalladas</div>
-          <router-link to="/inscripciones"           class="elemento-menu elemento-submenu elemento-submenu-anidado" active-class="activo">Panel General</router-link>
-          <router-link to="/inscripciones/historial" class="elemento-menu elemento-submenu elemento-submenu-anidado" active-class="activo">Historial</router-link>
+          <!-- Inscripciones Detalladas: sub-submenú colapsable -->
+          <div class="elemento-menu elemento-submenu elemento-padre" @click.stop="toggleInscripcionesDetalladas">
+            <span style="flex:1">Inscripciones Detalladas</span>
+            <span class="flecha-submenu" :class="{ abierto: isInscripcionesDetalladasOpen }">›</span>
+          </div>
+          <div v-if="isInscripcionesDetalladasOpen" class="submenu">
+            <router-link to="/inscripciones"           class="elemento-menu elemento-submenu elemento-submenu-anidado" active-class="activo">Panel General</router-link>
+            <router-link to="/inscripciones/historial" class="elemento-menu elemento-submenu elemento-submenu-anidado" active-class="activo">Historial</router-link>
+          </div>
         </div>
 
         <!-- ── Gestión Académica ── -->
@@ -235,7 +240,7 @@
             <router-link to="/recursos-humanos/docentes"      class="elemento-menu elemento-submenu" active-class="activo">Docentes</router-link>
             <router-link to="/recursos-humanos/adscripciones" class="elemento-menu elemento-submenu" active-class="activo">Adscripciones</router-link>
             <router-link to="/recursos-humanos/puestos"       class="elemento-menu elemento-submenu" active-class="activo">Puestos</router-link>
-            <router-link to="/recursos-humanos/departamentos"       class="elemento-menu elemento-submenu" active-class="activo">Departamentos</router-link>
+            <router-link to="/recursos-humanos/departamentos" class="elemento-menu elemento-submenu" active-class="activo">Departamentos</router-link>
           </div>
 
           <!-- ── Personas ── -->
@@ -325,7 +330,8 @@ const isRecursosHumanosOpen    = ref(false)
 const isPersonasOpen           = ref(false)
 const isAsignacionDocenteOpen  = ref(false)
 const isKardexOpen             = ref(false)
-const isHistorialAcademicoOpen = ref(false)
+const isHistorialAcademicoOpen       = ref(false)
+const isInscripcionesDetalladasOpen  = ref(false)
 
 // ── Encabezado ────────────────────────────────────────────────────────
 const mostrarMenuUsuario    = ref(false)
@@ -349,6 +355,7 @@ onMounted(() => {
   load('isAsignacionDocenteOpen',  isAsignacionDocenteOpen)
   load('isKardexOpen',             isKardexOpen)
   load('isHistorialAcademicoOpen', isHistorialAcademicoOpen)
+  load('isInscripcionesDetalladasOpen', isInscripcionesDetalladasOpen)
   load('rolActual',                rolActual, false)
 })
 
@@ -357,7 +364,7 @@ watch(
     isServiciosOpen, isGestionAcademicaOpen, isEventosOpen,
     isComiteOpen, isSeguridadOpen, isRecursosHumanosOpen,
     isPersonasOpen, isAsignacionDocenteOpen, isKardexOpen,
-    isHistorialAcademicoOpen, rolActual
+    isHistorialAcademicoOpen, isInscripcionesDetalladasOpen, rolActual
   ],
   () => {
     localStorage.setItem('isServiciosOpen',          JSON.stringify(isServiciosOpen.value))
@@ -370,6 +377,7 @@ watch(
     localStorage.setItem('isAsignacionDocenteOpen',  JSON.stringify(isAsignacionDocenteOpen.value))
     localStorage.setItem('isKardexOpen',             JSON.stringify(isKardexOpen.value))
     localStorage.setItem('isHistorialAcademicoOpen', JSON.stringify(isHistorialAcademicoOpen.value))
+    localStorage.setItem('isInscripcionesDetalladasOpen', JSON.stringify(isInscripcionesDetalladasOpen.value))
     localStorage.setItem('rolActual',                rolActual.value)
   },
   { deep: true }
@@ -392,6 +400,7 @@ const togglePersonas           = () => { isPersonasOpen.value = !isPersonasOpen.
 const toggleAsignacionDocente  = () => { isAsignacionDocenteOpen.value = !isAsignacionDocenteOpen.value }
 const toggleKardex             = () => { isKardexOpen.value = !isKardexOpen.value }
 const toggleHistorialAcademico = () => { isHistorialAcademicoOpen.value = !isHistorialAcademicoOpen.value }
+const toggleInscripcionesDetalladas = () => { isInscripcionesDetalladasOpen.value = !isInscripcionesDetalladasOpen.value }
 
 const toggleMenuUsuario = () => {
   mostrarMenuUsuario.value = !mostrarMenuUsuario.value
@@ -594,6 +603,7 @@ const establecerRol = (rol) => {
 
 .submenu { background: rgba(0,0,0,0.05); }
 .elemento-submenu { padding-left: 44px; font-size: 0.88rem; font-weight: 400; }
+.elemento-submenu-anidado { padding-left: 60px; font-size: 0.85rem; }
 
 .separador-menu { padding: 10px 20px 4px; margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); }
 .separador-menu span {

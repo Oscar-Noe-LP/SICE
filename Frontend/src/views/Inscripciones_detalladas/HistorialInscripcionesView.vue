@@ -21,15 +21,17 @@
         </div>
       </transition>
 
-      <!-- Buscador: solo con Enter o boton -->
-      <div class="table-container" style="padding:1.6rem 2rem;margin-bottom:1.2rem">
-        <div style="display:flex;align-items:center;gap:8px;font-size:1rem;font-weight:700;color:#1B396A;margin-bottom:6px;font-family:'Montserrat',sans-serif">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#1B396A" stroke-width="2" style="width:20px;height:20px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <!-- Buscador: centrado, sin ícono en el título -->
+      <div class="table-container buscador-wrapper">
+        <!-- ✅ CORRECCIÓN: título sin ícono de lupa -->
+        <div class="buscador-titulo">
           Buscar Alumno
         </div>
         <div style="height:1px;background:#E5E7EB;margin-bottom:1.2rem"></div>
-        <div class="filters-bar" style="margin-bottom:0">
-          <div class="search-group" style="flex:1;max-width:500px">
+
+        <!-- ✅ CORRECCIÓN: filters-bar centrado -->
+        <div class="filters-bar">
+          <div class="search-group">
             <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             <input v-model="busquedaInput" type="text" class="search-input"
                    placeholder="Numero de control del alumno — presiona Enter para buscar"
@@ -43,8 +45,9 @@
           </button>
           <button v-if="alumnoSeleccionado" class="btn-limpiar" @click="limpiarBusqueda"><svg xmlns="http://www.w3.org/2000/svg" class="reset-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>Limpiar</button>
         </div>
+
         <transition name="notif-fade">
-          <div v-if="alumnoSeleccionado" style="display:flex;align-items:center;gap:10px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:8px;padding:10px 14px;margin-top:1rem">
+          <div v-if="alumnoSeleccionado" class="alumno-encontrado">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#16A34A" stroke-width="2" style="width:22px;height:22px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <div>
               <p style="margin:0 0 2px;font-weight:700;font-size:.92rem;color:#1A1A1A;font-family:'Montserrat',sans-serif">{{ alumnoSeleccionado.nombre_alumno }}</p>
@@ -60,7 +63,7 @@
         <p>Ingresa el numero de control y presiona Enter para ver todas sus inscripciones agrupadas por periodo</p>
       </div>
 
-      <!-- Historial agrupado por periodo (viene de grupo.id_periodo -> periodo) -->
+      <!-- Historial agrupado por periodo -->
       <transition name="notif-fade">
         <div v-if="alumnoSeleccionado&&!buscando">
           <div v-if="periodos.length===0" class="table-container">
@@ -71,7 +74,6 @@
           </div>
           <div v-else style="display:flex;flex-direction:column;gap:.75rem">
             <div v-for="per in periodos" :key="per.id_periodo" class="table-container">
-              <!-- Acordeon por periodo -->
               <div @click="togglePeriodo(per.id_periodo)" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;background:#F5F5F5;border-bottom:1px solid #E5E7EB">
                 <div style="display:flex;align-items:center;gap:12px">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#1B396A" stroke-width="2" style="width:20px;height:20px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -94,7 +96,6 @@
                         <td style="font-size:.88rem;color:#6B7280">{{ ins.nombre_aula||'—' }}</td>
                         <td style="font-size:.88rem">{{ ins.fecha_inscripcion }}</td>
                         <td style="text-align:center">
-                          <!-- calificacion viene de AVG(calificacion.calificacion) -->
                           <span v-if="ins.calificacion_final!=null" class="estatus-badge" :style="estiloCalificacion(ins.calificacion_final)">{{ ins.calificacion_final }}</span>
                           <span v-else style="color:#9CA3AF;font-weight:600">—</span>
                         </td>
@@ -135,31 +136,6 @@ const mostrarNotificacion = (m,tipo='exito') => {
   t=setTimeout(()=>{notificacion.value.visible=false},3500)
 }
 
-/*
- * GET /api/alumnos/control/:numero_control
- * Respuesta: { id_alumno, numero_control, nombre_alumno, nombre_carrera }
- *
- * GET /api/inscripciones/historial/:id_alumno
- * El back agrupa por periodo (grupo.id_periodo -> periodo.nombre_periodo)
- * y para cada inscripcion hace JOIN con grupo, materia, docente, aula y calificacion
- *
- * Respuesta (agrupada por periodo, mas reciente primero):
- * [{
- *   id_periodo:    number,
- *   nombre_periodo: string,          <- periodo.nombre_periodo
- *   inscripciones: [{
- *     id_inscripcion:    number,
- *     id_grupo:          number,
- *     clave_grupo:       string,     <- grupo.clave_grupo
- *     nombre_materia:    string,     <- materia.nombre
- *     nombre_docente:    string,     <- persona.nombre del docente (nullable)
- *     nombre_aula:       string,     <- aula.nombre (nullable)
- *     fecha_inscripcion: string,     <- inscripcion.fecha_inscripcion
- *     calificacion_final: number|null, <- AVG(calificacion.calificacion) ponderado por evaluacion.porcentaje
- *     estatus:           string      <- inscripcion.estatus VARCHAR(50)
- *   }]
- * }]
- */
 const buscarAlumno = async () => {
   const q=(busquedaInput.value||'').trim(); if(!q) return
   buscando.value=true; alumnoSeleccionado.value=null; periodos.value=[]; abiertos.value=[]
@@ -174,7 +150,6 @@ const buscarAlumno = async () => {
     periodos.value=data
     if(data.length>0) abiertos.value=[data[0].id_periodo]
     mostrarNotificacion('Historial cargado correctamente','exito')
-    console.log('Historial:',data.length,'periodos')
   } catch {
     mostrarNotificacion(`No se encontro ningún alumno con: ${q}`,'error')
     alumnoSeleccionado.value=null; periodos.value=[]
@@ -183,10 +158,6 @@ const buscarAlumno = async () => {
 
 const limpiarBusqueda = () => { busquedaInput.value=''; alumnoSeleccionado.value=null; periodos.value=[]; abiertos.value=[] }
 
-/*
- * GET /api/inscripciones/historial/:id_alumno/exportar
- * Retorna blob PDF
- */
 const exportarHistorial = async () => {
   if(!alumnoSeleccionado.value) return
   exportando.value=true
@@ -203,10 +174,8 @@ const exportarHistorial = async () => {
 
 const togglePeriodo = id => { const i=abiertos.value.indexOf(id); if(i===-1) abiertos.value.push(id); else abiertos.value.splice(i,1) }
 
-// Estatus VARCHAR(50): "Activo" | "Baja Temporal" | "Baja Definitiva"
 const claseEstatus = e => ({ 'activo':e==='Activo', 'baja-temporal':e==='Baja Temporal', 'baja-definitiva':e==='Baja Definitiva' })
 
-// Escala TecNM: aprobatorio >= 60
 const estiloCalificacion = c => {
   if(c>=90) return 'background:#DCFCE7;color:#16A34A'
   if(c>=70) return 'background:#DBEAFE;color:#1B396A'
@@ -230,8 +199,27 @@ const estiloCalificacion = c => {
 .notif-icono{width:20px;height:20px;flex-shrink:0}
 .notif-fade-enter-active,.notif-fade-leave-active{transition:all .35s ease}
 .notif-fade-enter-from,.notif-fade-leave-to{opacity:0;transform:translateY(-8px)}
-.filters-bar{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
-.search-group{position:relative;flex:0 0 340px;min-width:240px}
+
+/* ✅ Buscador centrado */
+.buscador-wrapper{padding:1.6rem 2rem;margin-bottom:1.2rem}
+.buscador-titulo{
+  font-size:1rem;font-weight:700;color:#1B396A;
+  margin-bottom:6px;font-family:'Montserrat',sans-serif;
+  /* ✅ CORRECCIÓN: sin ícono, solo texto centrado */
+  text-align:center;
+}
+
+/* ✅ CORRECCIÓN: filters-bar centrado */
+.filters-bar{
+  display:flex;
+  align-items:center;
+  justify-content:center;  /* centrado horizontal */
+  gap:.75rem;
+  flex-wrap:wrap;
+  margin-bottom:0;
+}
+
+.search-group{position:relative;width:420px;max-width:100%}
 .search-input{width:100%;padding:10px 14px 10px 42px;border:1px solid #E5E7EB;border-radius:8px;font-size:.93rem;background:#FFF;color:#1A1A1A;font-family:'Montserrat',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;box-sizing:border-box}
 .search-input:focus{border-color:#1B396A;box-shadow:0 0 0 3px #DBEAFE}
 .search-input::placeholder{color:#9CA3AF}
@@ -243,6 +231,15 @@ const estiloCalificacion = c => {
 .btn-limpiar{display:flex;align-items:center;gap:6px;background:#FFF;color:#1A1A1A;border:1px solid #E5E7EB;padding:10px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-size:.92rem;white-space:nowrap;font-family:'Montserrat',sans-serif;transition:background .15s}
 .btn-limpiar:hover{background:#F5F5F5}
 .reset-icon{width:16px;height:16px;stroke:#6B7280}
+
+/* ✅ Alumno encontrado también centrado */
+.alumno-encontrado{
+  display:flex;align-items:center;gap:10px;
+  background:#F0FDF4;border:1px solid #86EFAC;
+  border-radius:8px;padding:10px 14px;margin-top:1rem;
+  max-width:600px;margin-left:auto;margin-right:auto;
+}
+
 .table-container{background:#FFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.05);border:1px solid #E5E7EB}
 .alumnos-table{width:100%;border-collapse:collapse}
 .alumnos-table th{background:#F5F5F5;padding:12px 16px;text-align:left;font-weight:600;font-size:.88rem;color:#1A1A1A;border-bottom:1px solid #E5E7EB;font-family:'Montserrat',sans-serif;white-space:nowrap}

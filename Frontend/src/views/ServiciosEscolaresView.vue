@@ -182,6 +182,9 @@
         </div>
       </div>
 
+      <!-- Spacer que crece y empuja el footer al fondo -->
+      <div class="spacer"></div>
+
       <footer class="pie-pagina">
         © 2026 Tecnológico Nacional de México · Todos los derechos reservados
       </footer>
@@ -213,7 +216,7 @@ const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   timerNotif = setTimeout(() => { notificacion.value.visible = false }, 3500)
 }
 
-const API = `${import.meta.env.VITE_API_URL}/api` 
+const API = `${import.meta.env.VITE_API_URL}/api`
 
 const cargarDatos = async () => {
   cargando.value   = true
@@ -260,11 +263,21 @@ const nuevaInscripcion = () => router.push('/inscripcion')
   --rojo:        #DC2626;
   --amarillo:    #F59E0B;
 
-  /* Corrección: width 100% sin max-width, igual que AlumnosView de Santiago */
   width: 100%;
+  /* ✅ CORRECCIÓN PRINCIPAL: ocupa todo el alto disponible y usa flex column
+     para que el spacer empuje el footer al fondo, eliminando el espacio vacío */
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+
   background: var(--fondo);
   font-family: 'Montserrat', sans-serif;
-  padding-bottom: 2rem;
+  padding-bottom: 0; /* quitamos el padding-bottom fijo */
+}
+
+/* ✅ El spacer crece y ocupa todo el espacio libre entre el contenido y el footer */
+.spacer {
+  flex: 1;
 }
 
 .breadcrumb {
@@ -297,7 +310,6 @@ const nuevaInscripcion = () => router.push('/inscripcion')
 .toast-slide-enter-active, .toast-slide-leave-active { transition: all 0.3s ease; }
 .toast-slide-enter-from, .toast-slide-leave-to { opacity: 0; transform: translateX(100%); }
 
-/* Grid de 4 columnas iguales — minmax(0,1fr) evita que se desborden */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -383,7 +395,6 @@ const nuevaInscripcion = () => router.push('/inscripcion')
 .accesos-seccion { margin-bottom: 2rem; }
 .seccion-titulo  { font-size: 1.05rem; font-weight: 700; color: var(--texto); margin: 0 0 1rem; }
 
-/* Mismo patrón que stats — 4 columnas sin desbordamiento */
 .accesos-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -432,8 +443,10 @@ const nuevaInscripcion = () => router.push('/inscripcion')
 
 .pie-pagina {
   text-align: center; color: #9CA3AF; font-size: 0.82rem;
-  padding-top: 2rem; border-top: 1px solid var(--borde);
-  margin-top: 1rem; font-family: 'Montserrat', sans-serif;
+  padding: 2rem 0;
+  border-top: 1px solid var(--borde);
+  margin-top: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 @media (max-width: 1024px) {
