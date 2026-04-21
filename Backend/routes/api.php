@@ -209,8 +209,13 @@ Route::post('/empleados',                      [FormularioEmpleadoController::cl
 Route::put('/empleados/{id}',                  [FormularioEmpleadoController::class, 'update']);
 Route::post('/empleados/{id}/toggle-docente',  [FormularioEmpleadoController::class, 'toggleDocente']);
 
-// Búsqueda de personas y catálogos para formulario de empleado
-Route::get('/personas',           [FormularioEmpleadoController::class, 'buscarPersona']);
+// Personas
+use App\Http\Controllers\PersonaController;
+
+Route::get('/personas',           [PersonaController::class, 'index']);
+Route::post('/personas',          [PersonaController::class, 'store']);
+Route::get('/personas/{id}',      [PersonaController::class, 'show']);
+Route::put('/personas/{id}',      [PersonaController::class, 'update']);
 Route::get('/empleado-catalogos', [FormularioEmpleadoController::class, 'catalogos']);
 
 // Puestos
