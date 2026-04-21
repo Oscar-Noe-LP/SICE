@@ -181,12 +181,13 @@ const sesiones  = ref([])
 const formModal = ref({ fecha: '', descripcion: '' })
 const errModal  = ref({ fecha: '', descripcion: '' })
 
-const notificacion = ref({ visible: false, mensaje: '', tipo: 'exito' })
+// ── Toast (corregido: era "notificacion") ─────────────────────
+const toast = ref({ visible: false, mensaje: '', tipo: 'exito' })
 let timerNotif = null
 const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   if (timerNotif) clearTimeout(timerNotif)
-  notificacion.value = { visible: true, mensaje, tipo }
-  timerNotif = setTimeout(() => { notificacion.value.visible = false }, 3500)
+  toast.value = { visible: true, mensaje, tipo }
+  timerNotif = setTimeout(() => { toast.value.visible = false }, 3500)
 }
 
 // ── Carga de sesiones ─────────────────────────────────────────
@@ -201,6 +202,7 @@ const cargarSesiones = async () => {
   } catch (error) {
     console.error('Error cargando sesiones:', error)
     errorCarga.value = true
+    mostrarNotificacion('No se pudieron cargar las sesiones.', 'error')
   } finally {
     cargando.value = false
   }
@@ -216,6 +218,7 @@ const abrirModalNueva = () => {
   errModal.value       = { fecha: '', descripcion: '' }
   mostrarModal.value   = true
 }
+
 const abrirModalEditar = (ses) => {
   modoEdicion.value    = true
   sesionEditando.value = ses
@@ -223,44 +226,65 @@ const abrirModalEditar = (ses) => {
   errModal.value       = { fecha: '', descripcion: '' }
   mostrarModal.value   = true
 }
+
 const cerrarModal = () => { mostrarModal.value = false }
 
 // ── Guardar sesión ────────────────────────────────────────────
 const guardarSesion = async () => {
   errModal.value = { fecha: '', descripcion: '' }
-  if (!formModal.value.fecha)               errModal.value.fecha       = 'La fecha es requerida'
-  if (!formModal.value.descripcion.trim())  errModal.value.descripcion = 'La descripción es requerida'
+  if (!formModal.value.fecha)              errModal.value.fecha       = 'La fecha es requerida'
+  if (!formModal.value.descripcion.trim()) errModal.value.descripcion = 'La descripción es requerida'
   if (Object.values(errModal.value).some(e => e)) return
 
   cargando.value = true
   try {
-    const payload = { fecha: formModal.value.fecha, descripcion: formModal.value.descripcion.trim() }
+    const payload = {
+      fecha:       formModal.value.fecha,
+      descripcion: formModal.value.descripcion.trim()
+    }
 
     if (modoEdicion.value && sesionEditando.value) {
+      // PUT /api/comite/sesiones/{id}
       const res = await fetch(`http://localhost:8000/api/comite/sesiones/${sesionEditando.value.id}`, {
-        method: 'PUT',
+        method:  'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body:    JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Error al actualizar')
+      }
+      // Actualiza la fila en la tabla sin recargar
       sesionEditando.value.fecha       = payload.fecha
       sesionEditando.value.descripcion = payload.descripcion
       mostrarNotificacion('Sesión actualizada correctamente')
+
     } else {
+      // POST /api/comite/sesiones
       const res = await fetch('http://localhost:8000/api/comite/sesiones', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body:    JSON.stringify(payload),
       })
-      if (!res.ok) throw new Error()
-      const nueva = await res.json()
-      sesiones.value.unshift({ ...nueva, resoluciones: nueva.resoluciones ?? 0 })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Error al registrar')
+      }
+      const respuesta = await res.json()
+      // El back responde { message, data: { id, fecha, descripcion, resoluciones } }
+      sesiones.value.unshift({
+        id:          respuesta.data?.id          ?? respuesta.id,
+        fecha:       respuesta.data?.fecha       ?? payload.fecha,
+        descripcion: respuesta.data?.descripcion ?? payload.descripcion,
+        resoluciones: 0
+      })
       mostrarNotificacion('Sesión registrada correctamente')
     }
+
     cerrarModal()
   } catch (error) {
     console.error('Error guardando sesión:', error)
-    mostrarNotificacion('No se pudo guardar la sesión.', 'error')
+    mostrarNotificacion(error.message || 'No se pudo guardar la sesión.', 'error')
   } finally {
     cargando.value = false
   }
@@ -270,11 +294,11 @@ const guardarSesion = async () => {
 const formatearFechaLarga = (f) => {
   if (!f) return '—'
   const [a, m, d] = f.split('-')
-  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
-  return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${a}`
+  const meses = ['enero','febrero','marzo','abril','mayo','junio',
+                 'julio','agosto','septiembre','octubre','noviembre','diciembre']
+  return `${parseInt(d)} de ${meses[parseInt(m) - 1]} de ${a}`
 }
 </script>
-
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
