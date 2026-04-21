@@ -267,6 +267,7 @@
 </template>
 
 
+
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -383,15 +384,22 @@ const alumnoEditar  = ref({})
 
 const abrirModalEditar = (alumno) => {
   console.log('🟡 Alumno clickeado para editar:', alumno)
+
   alumnoEditar.value = {
     id_alumno: alumno.id_alumno || alumno.id,
     noControl: alumno.numero_control || alumno.noControl || '',
-    nombre:    alumno.nombre || alumno.persona?.nombre_completo || alumno.persona?.nombre || '',
+    nombre: alumno.nombre || alumno.persona?.nombre_completo || alumno.persona?.nombre || '',
+
+    
     id_carrera: alumno.id_carrera,
-    carrera:   alumno.carrera?.nombre_carrera || alumno.carrera || '',
-    semestre:  alumno.semestre_actual || alumno.semestre || 1,
-    estatus:   alumno.estatus || 'Activo'
+
+
+    carrera: alumno.carrera?.nombre_carrera || alumno.carrera || '',
+
+    semestre: alumno.semestre_actual || alumno.semestre || 1,
+    estatus: alumno.estatus || 'Activo'
   }
+
   console.log('🟢 Datos preparados para editar:', alumnoEditar.value)
   showModal.value = true
 }
@@ -407,11 +415,13 @@ const guardarCambios = async () => {
     return
   }
 
+
+
   const payload = {
-    nombre:          alumnoEditar.value.nombre,
-    id_carrera:      getIdCarrera(alumnoEditar.value.carrera),
+    nombre: alumnoEditar.value.nombre,
+    id_carrera: alumnoEditar.value.id_carrera,
     semestre_actual: parseInt(alumnoEditar.value.semestre),
-    estatus:         alumnoEditar.value.estatus === 'Activo' ? 1 : 0
+    estatus: alumnoEditar.value.estatus
   }
 
   guardando.value = true
@@ -430,7 +440,8 @@ const guardarCambios = async () => {
       cerrarModal()
       mostrarNotificacion('Alumno actualizado correctamente.', 'exito')
     } else {
-      throw new Error(JSON.stringify(data))
+      console.error('❌ ERROR DELETE DETALLE:', data.detalle)
+      throw new Error(data.error)
     }
   } catch (error) {
     console.error('❌ ERROR:', error)
@@ -555,6 +566,7 @@ const navegarTeclado = (e) => {
   }
 }
 </script>
+
 
 
 <style scoped>
