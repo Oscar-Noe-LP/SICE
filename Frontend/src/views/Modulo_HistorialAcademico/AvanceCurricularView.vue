@@ -215,6 +215,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+const API = `${import.meta.env.VITE_API_URL}/api`
+
 const router = useRouter()
 const route  = useRoute()
 
@@ -253,7 +255,7 @@ const consultarAvance = async () => {
   acreditadasSet.value = new Set()
 
   try {
-    const res = await fetch(`http://localhost:8000/api/kardex/${nc}/avance-curricular`)
+    const res = await fetch(`${API}/kardex/${nc}/avance-curricular`)
     if (res.status === 404) { errorAlumno.value = true; return }
     if (!res.ok) throw new Error('Error en la respuesta del servidor')
     const data = await res.json()

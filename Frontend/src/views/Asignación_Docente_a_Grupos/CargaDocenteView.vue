@@ -320,6 +320,9 @@
 import { ref, computed, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+// ── URL base del backend (variable de entorno) ──────────────────────
+const API_URL = import.meta.env.VITE_API_URL
+
 // ── Estado principal ────────────────────────────────────────────────
 const docentes         = ref([])
 const gruposAsignados  = ref([])
@@ -349,13 +352,9 @@ const mostrarNotificacion = (mensaje, tipo = 'exito') => {
 }
 
 // ── Total de horas calculado desde los grupos ───────────────────────
-// Cada grupo aporta las horas según su horario (hora_fin - hora_inicio por días en semana)
-// Por ahora suma 1 hora por grupo como placeholder hasta que el backend devuelva las horas reales
 const totalHoras = computed(() => {
   if (gruposAsignados.value.length === 0) return 0
   return gruposAsignados.value.reduce((total, g) => {
-    // Si el backend devuelve horas_semana directamente, usar ese campo
-    // return total + (g.horas_semana || 1)
     const horasPorGrupo = calcularHorasGrupo(g.hora_inicio, g.hora_fin)
     return total + horasPorGrupo
   }, 0)
@@ -371,19 +370,17 @@ const calcularHorasGrupo = (inicio, fin) => {
 }
 
 // ── Carga de lista de docentes (para búsqueda) ──────────────────────
-// Endpoint: GET http://localhost:8000/api/docentes
-// Estructura esperada:
-// { id_docente, nombre, numero_empleado, especialidad, grado_academico }
+// Endpoint: GET /api/docentes
 const cargarDocentes = async (query = '') => {
   cargandoBusqueda.value = true
   try {
     const url = query
-      ? `http://localhost:8000/api/docentes?q=${encodeURIComponent(query)}`
-      : 'http://localhost:8000/api/docentes'
+      ? `${API_URL}/api/docentes?q=${encodeURIComponent(query)}`
+      : `${API_URL}/api/docentes`
     const response = await fetch(url)
     if (!response.ok) throw new Error('Error del servidor')
     const data = await response.json()
-    docentes.value  = data
+    docentes.value    = data
     sugerencias.value = data
     console.log('✅ Docentes cargados:', data.length, 'resultados')
   } catch (error) {
@@ -395,15 +392,12 @@ const cargarDocentes = async (query = '') => {
 }
 
 // ── Carga de grupos por docente ──────────────────────────────────────
-// Endpoint: GET http://localhost:8000/api/carga-docente/{id_docente}
-// Estructura esperada por registro:
-// { id_asignacion, id_grupo, clave_grupo, materia, carrera, semestre,
-//   dia, hora_inicio, hora_fin, capacidad, inscritos, periodo }
+// Endpoint: GET /api/carga-docente/{id_docente}
 const cargarGruposPorDocente = async (idDocente) => {
   cargandoGrupos.value = true
   gruposAsignados.value = []
   try {
-    const response = await fetch(`http://localhost:8000/api/carga-docente/${idDocente}`)
+    const response = await fetch(`${API_URL}/api/carga-docente/${idDocente}`)
     if (!response.ok) throw new Error('Error del servidor')
     const data = await response.json()
     gruposAsignados.value = data
@@ -417,7 +411,7 @@ const cargarGruposPorDocente = async (idDocente) => {
 }
 
 // ── Desasignar docente de un grupo ───────────────────────────────────
-// Endpoint: DELETE http://localhost:8000/api/asignacion-docente/{id_asignacion}
+// Endpoint: DELETE /api/asignacion-docente/{id_asignacion}
 const confirmarDesasignacion = async () => {
   if (!grupoDesasignar.value) return
 
@@ -426,7 +420,7 @@ const confirmarDesasignacion = async () => {
 
   try {
     console.log('🔵 Desasignando grupo:', grupoDesasignar.value.clave_grupo)
-    const response = await fetch(`http://localhost:8000/api/asignacion-docente/${id}`, {
+    const response = await fetch(`${API_URL}/api/asignacion-docente/${id}`, {
       method:  'DELETE',
       headers: { 'Accept': 'application/json' }
     })

@@ -452,6 +452,8 @@ import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 import { getEvaluaciones, guardarEvaluaciones, eliminarEvaluacion as eliminarEvaluacionApi } from '../api/evaluaciones'
 
+const API = `${import.meta.env.VITE_API_URL}/api`
+
 const eliminarEvaluacion = async (index) => {
   const item = criterios.value[index]
   if (!confirm('¿Deseas eliminar esta evaluación? Esta acción no se puede deshacer.')) return

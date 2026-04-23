@@ -490,6 +490,9 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+// ── URL base del backend (variable de entorno) ──────────────────────
+const API_URL = import.meta.env.VITE_API_URL
+
 // ── Estado principal ────────────────────────────────────────────────
 const grupos          = ref([])
 const docentes        = ref([])
@@ -542,14 +545,10 @@ const kpis = ref({ sinDocente: 0, conDocente: 0, docentesDisponibles: 0 })
 const gruposSinDocente = computed(() => kpis.value.sinDocente)
 
 // ── Carga de grupos desde backend ────────────────────────────────────
-// Endpoint: GET http://localhost:8000/api/asignacion-docente/grupos
-// Estructura esperada por registro:
-// { id_grupo, clave_grupo, materia, carrera, semestre, dia, hora_inicio,
-//   hora_fin, capacidad, inscritos, estado, docente, periodo }
 const cargarGrupos = async () => {
   cargando.value = true
   try {
-    const response = await fetch('http://localhost:8000/api/asignacion-docente/grupos')
+    const response = await fetch(`${API_URL}/api/asignacion-docente/grupos`)
     if (!response.ok) throw new Error('Error del servidor')
     const data = await response.json()
     grupos.value = data
@@ -564,13 +563,10 @@ const cargarGrupos = async () => {
 }
 
 // ── Carga de docentes disponibles ────────────────────────────────────
-// Endpoint: GET http://localhost:8000/api/docentes/disponibles
-// Estructura esperada:
-// { id_docente, nombre, numero_empleado, carga_actual, horarios: [] }
 const cargarDocentes = async () => {
   cargandoDocentes.value = true
   try {
-    const response = await fetch('http://localhost:8000/api/docentes/disponibles')
+    const response = await fetch(`${API_URL}/api/docentes/disponibles`)
     if (!response.ok) throw new Error('Error del servidor')
     const data = await response.json()
     docentes.value = data
@@ -595,8 +591,6 @@ onMounted(() => {
 })
 
 // ── Detección de conflicto de horario ────────────────────────────────
-// Verifica si el docente seleccionado ya tiene un grupo
-// en el mismo día y horario que el grupo a asignar
 const verificarConflicto = (docente) => {
   if (!docente.horarios || docente.horarios.length === 0) {
     conflictoHorario.value = false
@@ -627,8 +621,6 @@ const horariosSeSuperponen = (ini1, fin1, ini2, fin2) => {
 }
 
 // ── Guardar asignación ───────────────────────────────────────────────
-// Endpoint: POST http://localhost:8000/api/asignacion-docente
-// Payload: { id_grupo, id_docente }
 const guardarAsignacion = async () => {
   if (!docenteSeleccionado.value) {
     errorAsignacion.value = 'Selecciona un docente antes de guardar.'
@@ -644,7 +636,7 @@ const guardarAsignacion = async () => {
   guardando.value = true
   try {
     console.log('🔵 Guardando asignación:', payload)
-    const response = await fetch('http://localhost:8000/api/asignacion-docente', {
+    const response = await fetch(`${API_URL}/api/asignacion-docente`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body:    JSON.stringify(payload)

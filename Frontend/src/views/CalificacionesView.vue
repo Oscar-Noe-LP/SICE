@@ -438,6 +438,9 @@ background: colorNota(Number(mat.promedio))
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 import { getCalificacionesGrupo, guardarCalificaciones } from '../api/calificaciones'
+
+const API = `${import.meta.env.VITE_API_URL}/api`
+
 // ── Estado ──
 const cargando = ref(false)
 const alumnos = ref([])

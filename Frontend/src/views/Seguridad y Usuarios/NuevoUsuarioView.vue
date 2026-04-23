@@ -321,6 +321,9 @@ import MainLayout from '@/layouts/MainLayout.vue'
 
 const router = useRouter()
 
+// ── URL base del backend (variable de entorno) ──────────────────────
+const API_URL = import.meta.env.VITE_API_URL
+
 // ==================== FORMULARIO ====================
 const form = reactive({
   nombre_usuario: '',
@@ -338,7 +341,7 @@ const isLoading = ref(false)
 const verContrasena = ref(false)
 const verConfirmar = ref(false)
 
-// Sugerencia nombre de usuario 
+// Sugerencia nombre de usuario
 const sugerenciaNombreUsuario = ref('')
 
 // ==================== PERSONA ====================
@@ -352,19 +355,18 @@ const rolesDisponibles = ref([])
 const rolesSeleccionados = ref({})
 
 // ==================== CARGAR ROLES ====================
+// Endpoint: GET /api/roles-simple
 const cargarRoles = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/roles-simple')
+    const response = await fetch(`${API_URL}/api/roles-simple`)
     if (!response.ok) throw new Error('Error al cargar roles')
-    
+
     const data = await response.json()
     rolesDisponibles.value = data
 
     // Inicializar checkboxes
     const obj = {}
-    data.forEach(rol => {
-      obj[rol.nombre] = false
-    })
+    data.forEach(rol => { obj[rol.nombre] = false })
     rolesSeleccionados.value = obj
 
   } catch (error) {
@@ -373,6 +375,7 @@ const cargarRoles = async () => {
 }
 
 // ==================== BÚSQUEDA DE PERSONA ====================
+// Endpoint: GET /api/personas/buscar?q=...
 const buscarPersona = async () => {
   const q = busquedaPersona.value.trim()
   if (q.length < 2) {
@@ -382,7 +385,7 @@ const buscarPersona = async () => {
 
   buscandoPersona.value = true
   try {
-    const response = await fetch(`http://localhost:8000/api/personas/buscar?q=${encodeURIComponent(q)}`)
+    const response = await fetch(`${API_URL}/api/personas/buscar?q=${encodeURIComponent(q)}`)
     if (response.ok) {
       sugerenciasPersona.value = await response.json()
     } else {
@@ -448,20 +451,18 @@ const validarCampo = (campo) => {
   }
 }
 
-const campoValido = (campo) => {
-  return tocados[campo] && !errors[campo]
-}
+const campoValido = (campo) => tocados[campo] && !errors[campo]
 
 const validarFormulario = () => {
   validarCampo('persona')
   validarCampo('nombre_usuario')
   validarCampo('contrasena')
   validarCampo('confirmar')
-
   return Object.keys(errors).length === 0 && totalRolesSeleccionados.value > 0
 }
 
 // ==================== GUARDAR ====================
+// Endpoint: POST /api/usuarios
 const guardarUsuario = async () => {
   if (!validarFormulario()) {
     showNotification('Corrige los errores antes de guardar', 'error')
@@ -474,18 +475,18 @@ const guardarUsuario = async () => {
     .filter(key => rolesSeleccionados.value[key])
 
   const payload = {
-    id_persona: personaSeleccionada.value?.id_persona,
+    id_persona:     personaSeleccionada.value?.id_persona,
     nombre_usuario: form.nombre_usuario.trim(),
-    contrasena: form.contrasena,
-    estatus: form.estatus,
-    roles: rolesActivos
+    contrasena:     form.contrasena,
+    estatus:        form.estatus,
+    roles:          rolesActivos
   }
 
   try {
-    const response = await fetch('http://localhost:8000/api/usuarios', {
-      method: 'POST',
+    const response = await fetch(`${API_URL}/api/usuarios`, {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body:    JSON.stringify(payload)
     })
 
     const data = await response.json()
@@ -531,7 +532,6 @@ onMounted(() => {
   cargarRoles()
 })
 </script>
-
 
 
 

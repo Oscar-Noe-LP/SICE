@@ -282,6 +282,8 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+const API = `${import.meta.env.VITE_API_URL}/api`
+
 const router = useRouter()
 
 // ── Estado ──────────────────────────────────────────────────
@@ -311,7 +313,7 @@ const consultarKardex = async () => {
   kardex.value      = { semestres: [] }
 
   try {
-    const res = await fetch(`http://localhost:8000/api/kardex/${nc}`)
+    const res = await fetch(`${API}/kardex/${nc}`)
     if (res.status === 404) {
       errorAlumno.value = true
       return

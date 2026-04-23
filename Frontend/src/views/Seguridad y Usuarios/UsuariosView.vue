@@ -418,34 +418,37 @@
 import { ref, computed, onMounted } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
-const usuarios = ref([])
-const rolesDisponibles = ref([])   // ← Roles desde BD
+// ── URL base del backend (variable de entorno) ──────────────────────
+const API_URL = import.meta.env.VITE_API_URL
 
-const cargando = ref(false)
+const usuarios        = ref([])
+const rolesDisponibles = ref([])
+
+const cargando        = ref(false)
 const cargandoBusqueda = ref(false)
-const guardando = ref(false)
-const guardandoPass = ref(false)
+const guardando       = ref(false)
+const guardandoPass   = ref(false)
 
-const busqueda = ref('')
-const filtroEstatus = ref('')
+const busqueda       = ref('')
+const filtroEstatus  = ref('')
 const filasPorPagina = ref(10)
-const currentPage = ref(1)
-const filaActiva = ref(-1)
-const tablaRef = ref(null)
+const currentPage    = ref(1)
+const filaActiva     = ref(-1)
+const tablaRef       = ref(null)
 
 // Modales
-const showModalVer = ref(false)
-const showModal = ref(false)
+const showModalVer       = ref(false)
+const showModal          = ref(false)
 const showModalContrasena = ref(false)
 
-const usuarioVer = ref({})
+const usuarioVer    = ref({})
 const usuarioEditar = ref({})
-const erroresModal = ref({})
-const datosContrasena = ref({ nueva: '', confirmar: '' })
+const erroresModal  = ref({})
+const datosContrasena  = ref({ nueva: '', confirmar: '' })
 const erroresContrasena = ref({})
 
-const verContrasena = ref(false)
-const verNuevaPass = ref(false)
+const verContrasena    = ref(false)
+const verNuevaPass     = ref(false)
 const verConfirmarPass = ref(false)
 
 const rolesSeleccionados = ref({})
@@ -458,11 +461,12 @@ const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   setTimeout(() => { notificacion.value.visible = false }, 3500)
 }
 
-// ==================== CARGAR DATOS ====================
+// ── Cargar usuarios ───────────────────────────────────────────────────
+// Endpoint: GET /api/usuarios
 const cargarUsuarios = async () => {
   cargando.value = true
   try {
-    const res = await fetch('http://localhost:8000/api/usuarios')
+    const res = await fetch(`${API_URL}/api/usuarios`)
     if (!res.ok) throw new Error('Error del servidor')
     usuarios.value = await res.json()
   } catch (e) {
@@ -473,9 +477,11 @@ const cargarUsuarios = async () => {
   }
 }
 
+// ── Cargar roles disponibles ──────────────────────────────────────────
+// Endpoint: GET /api/roles-simple
 const cargarRoles = async () => {
   try {
-    const res = await fetch('http://localhost:8000/api/roles-simple')
+    const res = await fetch(`${API_URL}/api/roles-simple`)
     if (res.ok) {
       rolesDisponibles.value = await res.json()
     } else {
@@ -488,30 +494,25 @@ const cargarRoles = async () => {
 
 onMounted(() => {
   cargarUsuarios()
-  cargarRoles()          
+  cargarRoles()
 })
 
-// ==================== MODALES ====================
+// ── Modales ───────────────────────────────────────────────────────────
 const abrirModalNuevo = () => {
-  usuarioEditar.value = { 
-    nombre_usuario: '', 
-    contrasena: '', 
-    estatus: 'Activo' 
-  }
-  rolesSeleccionados.value = {}   
+  usuarioEditar.value = { nombre_usuario: '', contrasena: '', estatus: 'Activo' }
+  rolesSeleccionados.value = {}
   erroresModal.value = {}
   showModal.value = true
 }
 
 const abrirModalEditar = (usuario) => {
   usuarioEditar.value = {
-    id_usuario: usuario.id_usuario,
+    id_usuario:     usuario.id_usuario,
     nombre_usuario: usuario.nombre_usuario,
-    estatus: usuario.estatus || 'Activo'
+    estatus:        usuario.estatus || 'Activo'
   }
   erroresModal.value = {}
 
-  
   rolesSeleccionados.value = {}
   rolesDisponibles.value.forEach(rol => {
     rolesSeleccionados.value[rol.nombre] = (usuario.roles || []).includes(rol.nombre)
@@ -525,19 +526,20 @@ const abrirModalVer = (usuario) => {
   showModalVer.value = true
 }
 
-const cerrarModal = () => showModal.value = false
-const cerrarModalVer = () => showModalVer.value = false
-const cerrarModalContrasena = () => showModalContrasena.value = false
+const cerrarModal           = () => { showModal.value = false }
+const cerrarModalVer        = () => { showModalVer.value = false }
+const cerrarModalContrasena = () => { showModalContrasena.value = false }
 
 const abrirModalContrasena = () => {
-  datosContrasena.value = { nueva: '', confirmar: '' }
+  datosContrasena.value  = { nueva: '', confirmar: '' }
   erroresContrasena.value = {}
-  verNuevaPass.value = false
+  verNuevaPass.value     = false
   verConfirmarPass.value = false
   showModalContrasena.value = true
 }
 
-// ==================== GUARDAR USUARIO ====================
+// ── Guardar usuario ───────────────────────────────────────────────────
+// Endpoints: POST /api/usuarios  |  PUT /api/usuarios/{id}
 const guardarUsuario = async () => {
   if (!usuarioEditar.value.nombre_usuario?.trim()) {
     mostrarNotificacion('El nombre de usuario es obligatorio', 'error')
@@ -545,17 +547,17 @@ const guardarUsuario = async () => {
   }
 
   const esEdicion = !!usuarioEditar.value.id_usuario
-  const url = esEdicion 
-    ? `http://localhost:8000/api/usuarios/${usuarioEditar.value.id_usuario}`
-    : 'http://localhost:8000/api/usuarios'
+  const url = esEdicion
+    ? `${API_URL}/api/usuarios/${usuarioEditar.value.id_usuario}`
+    : `${API_URL}/api/usuarios`
 
   const rolesActivos = Object.keys(rolesSeleccionados.value)
     .filter(key => rolesSeleccionados.value[key])
 
   const payload = {
     nombre_usuario: usuarioEditar.value.nombre_usuario.trim(),
-    estatus: usuarioEditar.value.estatus,
-    roles: rolesActivos
+    estatus:        usuarioEditar.value.estatus,
+    roles:          rolesActivos
   }
 
   if (!esEdicion && usuarioEditar.value.contrasena) {
@@ -563,18 +565,20 @@ const guardarUsuario = async () => {
   }
 
   guardando.value = true
-
   try {
     const response = await fetch(url, {
-      method: esEdicion ? 'PUT' : 'POST',
+      method:  esEdicion ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body:    JSON.stringify(payload)
     })
 
     if (response.ok) {
       await cargarUsuarios()
       cerrarModal()
-      mostrarNotificacion(esEdicion ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente', 'exito')
+      mostrarNotificacion(
+        esEdicion ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente',
+        'exito'
+      )
     } else {
       const data = await response.json().catch(() => ({}))
       mostrarNotificacion(data.error || 'Error al guardar', 'error')
@@ -587,7 +591,8 @@ const guardarUsuario = async () => {
   }
 }
 
-// ==================== CAMBIAR CONTRASEÑA ====================
+// ── Cambiar contraseña ────────────────────────────────────────────────
+// Endpoint: PUT /api/usuarios/{id}/contrasena
 const guardarContrasena = async () => {
   if (!datosContrasena.value.nueva || datosContrasena.value.nueva.length < 8) {
     mostrarNotificacion('La contraseña debe tener al menos 8 caracteres', 'error')
@@ -602,12 +607,11 @@ const guardarContrasena = async () => {
   if (!id) return
 
   guardandoPass.value = true
-
   try {
-    const response = await fetch(`http://localhost:8000/api/usuarios/${id}/contrasena`, {
-      method: 'PUT',
+    const response = await fetch(`${API_URL}/api/usuarios/${id}/contrasena`, {
+      method:  'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contrasena: datosContrasena.value.nueva })
+      body:    JSON.stringify({ contrasena: datosContrasena.value.nueva })
     })
 
     if (response.ok) {
@@ -624,14 +628,14 @@ const guardarContrasena = async () => {
   }
 }
 
-// ==================== HELPERS ====================
-const claseEstatus = (estatus) => String(estatus || '').toLowerCase()
-const inicialUsuario = (nombre) => nombre ? nombre.charAt(0).toUpperCase() : '?'
+// ── Helpers ───────────────────────────────────────────────────────────
+const claseEstatus   = (estatus) => String(estatus || '').toLowerCase()
+const inicialUsuario = (nombre)  => nombre ? nombre.charAt(0).toUpperCase() : '?'
 
-// ==================== FILTROS Y PAGINACIÓN ====================
+// ── Filtros y paginación ──────────────────────────────────────────────
 const usuariosFiltrados = computed(() => {
   return usuarios.value.filter(u => {
-    const coincideBusqueda = !busqueda.value || 
+    const coincideBusqueda = !busqueda.value ||
       (u.nombre_usuario || '').toLowerCase().includes(busqueda.value.toLowerCase()) ||
       (u.nombre_completo || '').toLowerCase().includes(busqueda.value.toLowerCase())
 
@@ -641,47 +645,68 @@ const usuariosFiltrados = computed(() => {
   })
 })
 
-const totalPages = computed(() => Math.ceil(usuariosFiltrados.value.length / filasPorPagina.value) || 1)
-
+const totalPages = computed(() =>
+  Math.ceil(usuariosFiltrados.value.length / filasPorPagina.value) || 1
+)
 const paginatedUsuarios = computed(() => {
   const start = (currentPage.value - 1) * filasPorPagina.value
   return usuariosFiltrados.value.slice(start, start + filasPorPagina.value)
 })
-
 const visiblePages = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
+  const total = totalPages.value, current = currentPage.value
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
   return [1, current - 1, current, current + 1, total].filter(p => p >= 1 && p <= total)
 })
 
-const goToPage = (page) => currentPage.value = page
+const goToPage = (page) => { currentPage.value = page }
 const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
 const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
 
 const resetFiltros = () => {
-  busqueda.value = ''
+  busqueda.value      = ''
   filtroEstatus.value = ''
-  currentPage.value = 1
+  currentPage.value   = 1
 }
 
-// Navegación por teclado
+// ── Navegación por teclado ────────────────────────────────────────────
 const navegarTeclado = (e) => {
   const total = paginatedUsuarios.value.length
   if (total === 0) return
+  if (e.key === 'ArrowDown') { e.preventDefault(); filaActiva.value = Math.min(filaActiva.value + 1, total - 1) }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); filaActiva.value = Math.max(filaActiva.value - 1, 0) }
+  else if (e.key === 'Enter' && filaActiva.value >= 0) { e.preventDefault(); abrirModalVer(paginatedUsuarios.value[filaActiva.value]) }
+}
 
-  if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    filaActiva.value = Math.min(filaActiva.value + 1, total - 1)
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    filaActiva.value = Math.max(filaActiva.value - 1, 0)
-  } else if (e.key === 'Enter' && filaActiva.value >= 0) {
-    e.preventDefault()
-    abrirModalVer(paginatedUsuarios.value[filaActiva.value])
+// ── Validaciones inline (para los inputs del modal) ───────────────────
+const validarCampoModal = (campo) => {
+  if (campo === 'nombre_usuario') {
+    if (!usuarioEditar.value.nombre_usuario?.trim())
+      erroresModal.value.nombre_usuario = 'Obligatorio'
+    else
+      delete erroresModal.value.nombre_usuario
+  }
+  if (campo === 'contrasena') {
+    if (!usuarioEditar.value.contrasena || usuarioEditar.value.contrasena.length < 8)
+      erroresModal.value.contrasena = 'Mínimo 8 caracteres'
+    else
+      delete erroresModal.value.contrasena
   }
 }
 
+const validarContrasena = (campo) => {
+  if (campo === 'nueva') {
+    if (!datosContrasena.value.nueva || datosContrasena.value.nueva.length < 8)
+      erroresContrasena.value.nueva = 'Mínimo 8 caracteres'
+    else
+      delete erroresContrasena.value.nueva
+  }
+  if (campo === 'confirmar') {
+    if (datosContrasena.value.confirmar !== datosContrasena.value.nueva)
+      erroresContrasena.value.confirmar = 'No coinciden'
+    else
+      delete erroresContrasena.value.confirmar
+  }
+}
 </script>
 
 

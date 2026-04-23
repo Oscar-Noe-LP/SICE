@@ -318,20 +318,23 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+// ── URL base del backend (variable de entorno) ──────────────────────
+const API_URL = import.meta.env.VITE_API_URL
+
 // ── Estado principal ────────────────────────────────────────────────
-const roles = ref([])
-const cargando = ref(false)
+const roles            = ref([])
+const cargando         = ref(false)
 const cargandoBusqueda = ref(false)
-const guardando = ref(false)
+const guardando        = ref(false)
 const guardandoPermisos = ref(false)
-const filaActiva = ref(-1)
-const tablaRef = ref(null)
+const filaActiva       = ref(-1)
+const tablaRef         = ref(null)
 
 // ── Filtros y paginación ────────────────────────────────────────────
-const busquedaRol = ref('')
-const filtroEstatus = ref('')
+const busquedaRol    = ref('')
+const filtroEstatus  = ref('')
 const filasPorPagina = ref(10)
-const currentPage = ref(1)
+const currentPage    = ref(1)
 
 // ── Notificación ────────────────────────────────────────────────────
 const notificacion = ref({ visible: false, mensaje: '', tipo: 'exito' })
@@ -341,44 +344,40 @@ const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   setTimeout(() => { notificacion.value.visible = false }, 3500)
 }
 
-// ── Módulos y permisos (estáticos por ahora) ───────────────────────
-const modulosPermisos = ref([])
+// ── Módulos y permisos ───────────────────────────────────────────────
+const modulosPermisos      = ref([])
+const permisosSeleccionados = ref({})
+
+// Endpoint: GET /api/permisos
 const cargarPermisos = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/permisos')
+    const response = await fetch(`${API_URL}/api/permisos`)
     const data = await response.json()
 
-    // Agrupar por módulo
     const agrupados = {}
-
     data.forEach(p => {
       if (!agrupados[p.modulo]) {
-        agrupados[p.modulo] = {
-          nombre: p.modulo,
-          permisos: []
-        }
+        agrupados[p.modulo] = { nombre: p.modulo, permisos: [] }
       }
-
       agrupados[p.modulo].permisos.push({
-        id: p.id_permiso,
-        nombre: p.nombre,
+        id:          p.id_permiso,
+        nombre:      p.nombre,
         descripcion: p.descripcion
       })
     })
 
     modulosPermisos.value = Object.values(agrupados)
-
   } catch (error) {
     console.error('Error cargando permisos:', error)
   }
 }
-const permisosSeleccionados = ref({})
 
-// ── Cargar roles ────────────────────────────────────────────────────
+// ── Cargar roles ─────────────────────────────────────────────────────
+// Endpoint: GET /api/roles
 const cargarRoles = async () => {
   cargando.value = true
   try {
-    const response = await fetch('http://localhost:8000/api/roles')
+    const response = await fetch(`${API_URL}/api/roles`)
     if (!response.ok) throw new Error('Error del servidor')
     roles.value = await response.json()
     console.log('✅ Roles cargados:', roles.value.length, 'registros')
@@ -395,13 +394,13 @@ onMounted(() => {
   cargarPermisos()
 })
 
-// ── Modales ─────────────────────────────────────────────────────────
-const showModalVer = ref(false)
-const showModal = ref(false)
+// ── Modales ──────────────────────────────────────────────────────────
+const showModalVer     = ref(false)
+const showModal        = ref(false)
 const showModalPermisos = ref(false)
 
-const rolVer = ref({})
-const rolEditar = ref({})
+const rolVer      = ref({})
+const rolEditar   = ref({})
 const rolPermisos = ref({})
 const erroresModal = ref({})
 
@@ -409,7 +408,6 @@ const abrirModalVer = (rol) => {
   rolVer.value = { ...rol }
   showModalVer.value = true
 }
-
 const cerrarModalVer = () => { showModalVer.value = false }
 
 const abrirModalNuevo = () => {
@@ -423,18 +421,16 @@ const abrirModalEditar = (rol) => {
   erroresModal.value = {}
   showModal.value = true
 }
-
 const cerrarModal = () => { showModal.value = false }
 
+// Endpoint: GET /api/roles/{id}/permisos
 const abrirModalPermisos = async (rol) => {
   rolPermisos.value = { ...rol }
-
   try {
-    const res = await fetch(`http://localhost:8000/api/roles/${rol.id_rol}/permisos`)
+    const res = await fetch(`${API_URL}/api/roles/${rol.id_rol}/permisos`)
     const data = await res.json()
 
     const estado = {}
-
     modulosPermisos.value.forEach(modulo => {
       modulo.permisos.forEach(permiso => {
         estado[permiso.id] = data.permisos.includes(permiso.id)
@@ -443,16 +439,15 @@ const abrirModalPermisos = async (rol) => {
 
     permisosSeleccionados.value = estado
     showModalPermisos.value = true
-
   } catch (error) {
     console.error(error)
     mostrarNotificacion('Error al cargar permisos', 'error')
   }
 }
-
 const cerrarModalPermisos = () => { showModalPermisos.value = false }
 
-// ── Validación y Guardar Rol ────────────────────────────────────────
+// ── Guardar Rol ───────────────────────────────────────────────────────
+// Endpoint: POST /api/roles  |  PUT /api/roles/{id}
 const validarModal = () => {
   erroresModal.value = {}
   if (!rolEditar.value.nombre?.trim()) {
@@ -465,29 +460,32 @@ const guardarRol = async () => {
   if (!validarModal()) return
 
   const esEdicion = !!rolEditar.value.id_rol
-  const url = esEdicion 
-    ? `http://localhost:8000/api/roles/${rolEditar.value.id_rol}` 
-    : 'http://localhost:8000/api/roles'
+  const url    = esEdicion
+    ? `${API_URL}/api/roles/${rolEditar.value.id_rol}`
+    : `${API_URL}/api/roles`
   const metodo = esEdicion ? 'PUT' : 'POST'
 
   const payload = {
-    nombre: rolEditar.value.nombre.trim(),
+    nombre:      rolEditar.value.nombre.trim(),
     descripcion: rolEditar.value.descripcion?.trim() || null,
-    estatus: rolEditar.value.estatus
+    estatus:     rolEditar.value.estatus
   }
 
   guardando.value = true
   try {
     const response = await fetch(url, {
-      method: metodo,
+      method:  metodo,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body:    JSON.stringify(payload)
     })
 
     if (response.ok) {
       await cargarRoles()
       cerrarModal()
-      mostrarNotificacion(esEdicion ? 'Rol actualizado correctamente.' : 'Rol creado correctamente.', 'exito')
+      mostrarNotificacion(
+        esEdicion ? 'Rol actualizado correctamente.' : 'Rol creado correctamente.',
+        'exito'
+      )
     } else {
       const data = await response.json()
       mostrarNotificacion(data.error || 'Error al guardar el rol', 'error')
@@ -500,13 +498,16 @@ const guardarRol = async () => {
   }
 }
 
+// Endpoint: DELETE /api/roles/{id}
 const eliminarRol = async () => {
   if (!rolEditar.value.id_rol) return
   if (!confirm('¿Estás seguro de eliminar este rol?')) return
 
   guardando.value = true
   try {
-    const response = await fetch(`http://localhost:8000/api/roles/${rolEditar.value.id_rol}`, { method: 'DELETE' })
+    const response = await fetch(`${API_URL}/api/roles/${rolEditar.value.id_rol}`, {
+      method: 'DELETE'
+    })
     if (response.ok) {
       await cargarRoles()
       cerrarModal()
@@ -521,6 +522,7 @@ const eliminarRol = async () => {
   }
 }
 
+// Endpoint: PUT /api/roles/{id}/permisos
 const guardarPermisos = async () => {
   const id = rolPermisos.value.id_rol
   if (!id) return
@@ -531,10 +533,10 @@ const guardarPermisos = async () => {
 
   guardandoPermisos.value = true
   try {
-    const response = await fetch(`http://localhost:8000/api/roles/${id}/permisos`, {
-      method: 'PUT',
+    const response = await fetch(`${API_URL}/api/roles/${id}/permisos`, {
+      method:  'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ permisos: permisosActivos })
+      body:    JSON.stringify({ permisos: permisosActivos })
     })
 
     if (response.ok) {
@@ -550,7 +552,7 @@ const guardarPermisos = async () => {
   }
 }
 
-// ── Helpers seguros ─────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────
 const claseEstatus = (estatus) => {
   if (!estatus) return 'inactivo'
   return String(estatus).toLowerCase()
@@ -561,64 +563,54 @@ const normalize = (text) => {
   return String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
-// ── Computed: Filtros y Paginación ──────────────────────────────────
+// ── Filtrado y paginación ─────────────────────────────────────────────
 const rolesFiltrados = computed(() => {
   return roles.value.filter(rol => {
-    const coincideBusqueda = !busquedaRol.value || 
+    const coincideBusqueda = !busquedaRol.value ||
       normalize(rol.nombre).includes(normalize(busquedaRol.value)) ||
       normalize(rol.descripcion).includes(normalize(busquedaRol.value))
 
-    const coincideEstatus = !filtroEstatus.value || 
+    const coincideEstatus = !filtroEstatus.value ||
       normalize(rol.estatus) === normalize(filtroEstatus.value)
 
     return coincideBusqueda && coincideEstatus
   })
 })
 
-const totalPages = computed(() => Math.ceil(rolesFiltrados.value.length / filasPorPagina.value) || 1)
-
+const totalPages = computed(() =>
+  Math.ceil(rolesFiltrados.value.length / filasPorPagina.value) || 1
+)
 const paginatedRoles = computed(() => {
   const start = (currentPage.value - 1) * filasPorPagina.value
   return rolesFiltrados.value.slice(start, start + filasPorPagina.value)
 })
-
 const visiblePages = computed(() => {
-  const total = totalPages.value
-  const current = currentPage.value
+  const total = totalPages.value, current = currentPage.value
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
   const pages = new Set([1, total, current, current - 1, current + 1].filter(p => p >= 1 && p <= total))
   return [...pages].sort((a, b) => a - b)
 })
 
-const goToPage = (page) => { currentPage.value = page; filaActiva.value = -1 }
-const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
-const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
+const goToPage  = (page) => { currentPage.value = page; filaActiva.value = -1 }
+const prevPage  = () => { if (currentPage.value > 1) currentPage.value-- }
+const nextPage  = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
 
 const resetFiltros = () => {
-  busquedaRol.value = ''
+  busquedaRol.value   = ''
   filtroEstatus.value = ''
-  currentPage.value = 1
-  filaActiva.value = -1
+  currentPage.value   = 1
+  filaActiva.value    = -1
 }
 
-// ── Navegación por teclado ──────────────────────────────────────────
+// ── Navegación por teclado ────────────────────────────────────────────
 const navegarTeclado = (e) => {
   const total = paginatedRoles.value.length
   if (total === 0) return
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    filaActiva.value = Math.min(filaActiva.value + 1, total - 1)
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    filaActiva.value = Math.max(filaActiva.value - 1, 0)
-  } else if (e.key === 'Enter' && filaActiva.value >= 0) {
-    e.preventDefault()
-    abrirModalVer(paginatedRoles.value[filaActiva.value])
-  }
+  if (e.key === 'ArrowDown') { e.preventDefault(); filaActiva.value = Math.min(filaActiva.value + 1, total - 1) }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); filaActiva.value = Math.max(filaActiva.value - 1, 0) }
+  else if (e.key === 'Enter' && filaActiva.value >= 0) { e.preventDefault(); abrirModalVer(paginatedRoles.value[filaActiva.value]) }
 }
 
-// Watch para búsqueda
 watch(busquedaRol, () => {
   cargandoBusqueda.value = true
   setTimeout(() => {
@@ -626,7 +618,6 @@ watch(busquedaRol, () => {
     currentPage.value = 1
   }, 300)
 })
-
 </script>
 
 

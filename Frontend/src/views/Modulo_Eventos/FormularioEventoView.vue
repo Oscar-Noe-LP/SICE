@@ -88,7 +88,7 @@ import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 const router = useRouter()
 const route = useRoute()
-const API = 'http://localhost:8000/api'
+const API = `${import.meta.env.VITE_API_URL}/api`
 
 const modoEdicion = computed(() => !!route.params.id)
 const cargando = ref(false)

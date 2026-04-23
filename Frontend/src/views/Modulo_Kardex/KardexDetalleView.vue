@@ -232,6 +232,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+const API = `${import.meta.env.VITE_API_URL}/api`
+
 const router = useRouter()
 const route  = useRoute()
 
@@ -256,7 +258,7 @@ const cargarDatos = async () => {
   cargando.value   = true
   errorCarga.value = false
   try {
-    const res = await fetch(`http://localhost:8000/api/kardex/${route.params.no_control}`)
+    const res = await fetch(`${API}/kardex/${route.params.no_control}`)
     if (!res.ok) throw new Error('Error en la respuesta del servidor')
     const data = await res.json()
 

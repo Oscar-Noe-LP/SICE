@@ -289,18 +289,21 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+// ── URL base del backend (variable de entorno) ──────────────────────
+const API_URL = import.meta.env.VITE_API_URL
+
 // ── Estado principal ────────────────────────────────────────────────
 const bitacora   = ref([])
 const cargando   = ref(false)
 const filaActiva = ref(-1)
 const tablaRef   = ref(null)
-const ordenAsc   = ref(false)  // Por defecto más recientes primero
+const ordenAsc   = ref(false)
 
-// ── Paginación — default 20 filas para bitácora ─────────────────────
+// ── Paginación ─────────────────────────────────────────────────────
 const filasPorPagina = ref(20)
 const currentPage    = ref(1)
 
-// ── Fecha de hoy para limitar los date pickers ──────────────────────
+// ── Fecha de hoy ────────────────────────────────────────────────────
 const hoyISO = new Date().toISOString().split('T')[0]
 
 // ── Filtros ─────────────────────────────────────────────────────────
@@ -312,8 +315,6 @@ const filtros = ref({
   fechaHasta: ''
 })
 
-// ── Módulos disponibles para el filtro
-// Cuando el backend conecte, poblar dinámicamente desde los registros
 const modulosDisponibles = computed(() => {
   const set = new Set(bitacora.value.map(r => r.modulo).filter(Boolean))
   return [...set].sort()
@@ -340,14 +341,11 @@ const abrirDetalle = (registro) => {
 const cerrarModal = () => { showModal.value = false }
 
 // ── Carga de bitácora desde backend ─────────────────────────────────
-// Endpoint esperado: GET http://localhost:8000/api/bitacora
-// Estructura esperada por registro:
-// { id_bitacora, fecha_hora, usuario, accion, modulo, descripcion, ip? }
-// Los registros deben venir ordenados por fecha_hora DESC desde el backend.
+// Endpoint: GET /api/bitacora
 const cargarBitacora = async () => {
   cargando.value = true
   try {
-    const response = await fetch('http://localhost:8000/api/bitacora')
+    const response = await fetch(`${API_URL}/api/bitacora`)
     if (!response.ok) throw new Error('Error del servidor')
     const data = await response.json()
     bitacora.value = data
@@ -362,7 +360,6 @@ const cargarBitacora = async () => {
 
 onMounted(() => { cargarBitacora() })
 
-// Resetear página al cambiar filtros de texto
 watch(() => filtros.value.usuario, () => { currentPage.value = 1 })
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -388,7 +385,6 @@ const formatearHora = (fechaHora) => {
   return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 }
 
-// Clase CSS del badge según el tipo de acción
 const claseAccion = (accion) => {
   if (!accion) return ''
   const a = normalize(accion)
@@ -399,7 +395,6 @@ const claseAccion = (accion) => {
   return 'accion-default'
 }
 
-// Clase para el header del modal según acción
 const claseHeaderModal = (accion) => {
   const a = normalize(accion || '')
   if (a === 'eliminación' || a === 'eliminacion') return 'header-rojo'
@@ -438,7 +433,6 @@ const registrosFiltrados = computed(() => {
     )
   }
 
-  // Ordenar por fecha — más recientes primero por defecto
   lista.sort((a, b) => {
     const da = new Date(a.fecha_hora), db = new Date(b.fecha_hora)
     return ordenAsc.value ? da - db : db - da
@@ -485,7 +479,6 @@ const resetFiltros = () => {
 }
 
 // ── Exportar a CSV ────────────────────────────────────────────────────
-// Exporta los registros actualmente filtrados
 const exportarCSV = () => {
   const cabeceras = ['Fecha y Hora', 'Usuario', 'Acción', 'Módulo', 'Descripción']
   const filas = registrosFiltrados.value.map(r => [

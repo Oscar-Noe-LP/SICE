@@ -198,6 +198,9 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+// ── URL base del backend (variable de entorno) ──────────────────────
+const API_URL = import.meta.env.VITE_API_URL
+
 // ── Estado principal ────────────────────────────────────────────────
 const permisos         = ref([])
 const cargando         = ref(false)
@@ -231,13 +234,12 @@ const abrirModalVer = (permiso) => {
 const cerrarModalVer = () => { showModalVer.value = false }
 
 // ── Carga de permisos desde backend ────────────────────────────────
-// Cuando el backend esté listo, este endpoint devolverá el listado
-// completo de permisos con la estructura:
-// { id_permiso, nombre, descripcion, modulo, clave }
+// Endpoint: GET /api/permisos
+// Estructura esperada: { id_permiso, nombre, descripcion, modulo, clave }
 const cargarPermisos = async () => {
   cargando.value = true
   try {
-    const response = await fetch('http://localhost:8000/api/permisos')
+    const response = await fetch(`${API_URL}/api/permisos`)
     if (!response.ok) throw new Error('Error del servidor')
     const data = await response.json()
     permisos.value = data
@@ -269,7 +271,6 @@ const normalize = (text) => {
   return text.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 }
 
-// Asigna una clase de color al badge del módulo según su nombre
 const claseModulo = (modulo) => {
   if (!modulo) return ''
   const m = normalize(modulo)
@@ -296,43 +297,30 @@ const permisosFiltrados = computed(() => {
 const totalPages = computed(() =>
   Math.ceil(permisosFiltrados.value.length / filasPorPagina.value) || 1
 )
-
 const paginatedPermisos = computed(() => {
   const start = (currentPage.value - 1) * filasPorPagina.value
   return permisosFiltrados.value.slice(start, start + filasPorPagina.value)
 })
-
 const visiblePages = computed(() => {
-  const total   = totalPages.value
-  const current = currentPage.value
+  const total = totalPages.value, current = currentPage.value
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
   const pages = new Set([1, total, current, current - 1, current + 1].filter(p => p >= 1 && p <= total))
   return [...pages].sort((a, b) => a - b)
 })
 
-const goToPage  = (page) => { currentPage.value = page; filaActiva.value = -1 }
-const prevPage  = () => { if (currentPage.value > 1) currentPage.value-- }
-const nextPage  = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
+const goToPage = (page) => { currentPage.value = page; filaActiva.value = -1 }
+const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
 
-// ── Navegación por teclado en la tabla ──────────────────────────────
+// ── Navegación por teclado ───────────────────────────────────────────
 const navegarTeclado = (e) => {
   const total = paginatedPermisos.value.length
   if (total === 0) return
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault()
-    filaActiva.value = Math.min(filaActiva.value + 1, total - 1)
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault()
-    filaActiva.value = Math.max(filaActiva.value - 1, 0)
-  } else if (e.key === 'Enter' && filaActiva.value >= 0) {
-    e.preventDefault()
-    abrirModalVer(paginatedPermisos.value[filaActiva.value])
-  } else if (e.key === 'PageDown') {
-    e.preventDefault(); nextPage()
-  } else if (e.key === 'PageUp') {
-    e.preventDefault(); prevPage()
-  }
+  if (e.key === 'ArrowDown') { e.preventDefault(); filaActiva.value = Math.min(filaActiva.value + 1, total - 1) }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); filaActiva.value = Math.max(filaActiva.value - 1, 0) }
+  else if (e.key === 'Enter' && filaActiva.value >= 0) { e.preventDefault(); abrirModalVer(paginatedPermisos.value[filaActiva.value]) }
+  else if (e.key === 'PageDown') { e.preventDefault(); nextPage() }
+  else if (e.key === 'PageUp')   { e.preventDefault(); prevPage() }
 }
 </script>
 

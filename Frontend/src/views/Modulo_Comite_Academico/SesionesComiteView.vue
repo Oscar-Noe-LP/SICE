@@ -169,6 +169,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
+const API = `${import.meta.env.VITE_API_URL}/api`
+
 const router = useRouter()
 
 const cargando       = ref(false)
@@ -195,7 +197,7 @@ const cargarSesiones = async () => {
   cargando.value   = true
   errorCarga.value = false
   try {
-    const res = await fetch('http://localhost:8000/api/comite/sesiones')
+    const res = await fetch(`${API}/comite/sesiones`)
     if (!res.ok) throw new Error('Error en la respuesta del servidor')
     const data = await res.json()
     sesiones.value = Array.isArray(data) ? data : data.data ?? []
@@ -245,7 +247,7 @@ const guardarSesion = async () => {
 
     if (modoEdicion.value && sesionEditando.value) {
       // PUT /api/comite/sesiones/{id}
-      const res = await fetch(`http://localhost:8000/api/comite/sesiones/${sesionEditando.value.id}`, {
+      const res = await fetch(`${API}/comite/sesiones/${sesionEditando.value.id}`, {
         method:  'PUT',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(payload),
@@ -261,7 +263,7 @@ const guardarSesion = async () => {
 
     } else {
       // POST /api/comite/sesiones
-      const res = await fetch('http://localhost:8000/api/comite/sesiones', {
+      const res = await fetch(`${API}/comite/sesiones`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(payload),
