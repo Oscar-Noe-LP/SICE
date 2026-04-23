@@ -61,7 +61,7 @@ class ServiciosEscolaresController extends Controller
             $resultado[$key]['p2'] = $d->calificacion;
             $resultado[$key]['id_evaluacion_parcial_2'] = $d->id_evaluacion;
         }
-        if ($d->evaluacion === 'Proyecto') {
+        if ($d->evaluacion !== 'Parcial 1' && $d->evaluacion !== 'Parcial 2') {
             $resultado[$key]['proy'] = $d->calificacion;
             $resultado[$key]['id_evaluacion_proyecto'] = $d->id_evaluacion;
         }

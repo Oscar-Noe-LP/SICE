@@ -239,9 +239,9 @@ tabindex="0"
 <input
 v-model="alumno.p1"
 type="number"
-step="0.1"
+step="0.01"
 min="0"
-max="10"
+max="100"
 class="input-nota"
 :class="claseNota(alumno.p1)"
 @focus="filaActiva = index"
@@ -254,9 +254,9 @@ class="input-nota"
 <input
 v-model="alumno.p2"
 type="number"
-step="0.1"
+step="0.01"
 min="0"
-max="10"
+max="100"
 class="input-nota"
 :class="claseNota(alumno.p2)"
 data-campo="p2"
@@ -269,9 +269,9 @@ data-campo="p2"
 <input
 v-model="alumno.proy"
 type="number"
-step="0.1"
+step="0.01"
 min="0"
-max="10"
+max="100"
 class="input-nota"
 :class="claseNota(alumno.proy)"
 @focus="filaActiva = index"
@@ -279,15 +279,15 @@ class="input-nota"
 </div>
 </td>
 <td class="centrado">
-<div class="final-chip" :class="esNC(alumno) ? 'promedio-sin-calificar' : clasePromedio(calcularFinal(alumno))">
-{{ esNC(alumno) ? '–' : calcularFinal(alumno) }}
+<div class="final-chip" :class="calcularFinal(alumno) === null ? 'promedio-sin-calificar' : clasePromedio(calcularFinal(alumno))">
+{{ calcularFinal(alumno) ?? '–' }}
 </div>
 </td>
 <td class="centrado">
-<span v-if="esNC(alumno)" class="badge-estado sin-calificar">Sin calificar</span>
-<span v-else-if="Number(calcularFinal(alumno)) >= 9" class="badge-estado excelente">Excelente</span>
-<span v-else-if="Number(calcularFinal(alumno)) >= 8" class="badge-estado bien">Bien</span>
-<span v-else-if="Number(calcularFinal(alumno)) >= 6" class="badge-estado regular">Regular</span>
+<span v-if="calcularFinal(alumno) === null" class="badge-estado sin-calificar">Sin calificar</span>
+<span v-else-if="Number(calcularFinal(alumno)) >= 90" class="badge-estado excelente">Excelente</span>
+<span v-else-if="Number(calcularFinal(alumno)) >= 80" class="badge-estado bien">Bien</span>
+<span v-else-if="Number(calcularFinal(alumno)) >= 60" class="badge-estado regular">Regular</span>
 <span v-else class="badge-estado reprobado">Reprobado</span>
 </td>
 <td class="centrado">
@@ -499,20 +499,26 @@ const mostrandoDesde = computed(() => alumnosFiltrados.value.length === 0 ? 0 : 
 const mostrandoHasta = computed(() => Math.min(paginaActual.value * itemsPorPagina.value, alumnosFiltrados.value.length))
 
 const promedioGeneral = computed(() => {
-if (!alumnos.value.length) return '0.0'
-const suma = alumnos.value.reduce((acc, a) => acc + Number(calcularFinal(a)), 0)
-return (suma / alumnos.value.length).toFixed(1)
+const completos = alumnos.value.filter(a => calcularFinal(a) !== null)
+if (!completos.length) return '0.0'
+const suma = completos.reduce((acc, a) => acc + Number(calcularFinal(a)), 0)
+return (suma / completos.length).toFixed(1)
 })
 const totalReprobados = computed(() =>
-alumnos.value.filter(a => Number(calcularFinal(a)) < 60 && !esNC(a)).length
+alumnos.value.filter(a => {
+const f = calcularFinal(a)
+return f !== null && Number(f) < 60
+}).length
 )
 const totalNC = computed(() =>
 alumnos.value.filter(a => esNC(a)).length
 )
 
 // ── Helpers ──
-const calcularFinal = (a) =>
-(Number(a.p1) * 0.3 + Number(a.p2) * 0.3 + Number(a.proy) * 0.4).toFixed(1)
+const calcularFinal = (a) => {
+if (a.p1 === null || a.p2 === null || a.proy === null) return null
+return (Number(a.p1) * 0.3 + Number(a.p2) * 0.3 + Number(a.proy) * 0.4).toFixed(1)
+}
 const esNC = (a) => {
 const todasCero = !Number(a.p1) && !Number(a.p2) && !Number(a.proy)
 return todasCero
