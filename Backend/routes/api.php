@@ -271,7 +271,7 @@ Route::get('/docentes', [CargaDocenteController::class, 'buscarDocentes']);
 Route::get('/carga-docente/{id_docente}', [CargaDocenteController::class, 'cargaPorDocente']);
 Route::delete('/asignacion-docente/{id}', [CargaDocenteController::class, 'desasignar']);
 
-// ====================== MÓDULO DE INSCRIPCIÓN ======================
+// ====================== MÓDULO DE INSCRIPCIÓN DETALLADA ======================
 
 Route::prefix('form')->group(function () {
     Route::get('/inscripciones', [InscripcionController::class, 'index']);
