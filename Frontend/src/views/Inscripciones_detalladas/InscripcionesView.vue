@@ -17,7 +17,7 @@
         </div>
       </transition>
 
-      <!-- KPIs: basados en inscripcion.estatus VARCHAR(50) -->
+      <!-- KPIs basados en inscripcion.estatus VARCHAR(50) -->
       <div class="stats-grid">
         <div class="stat-card stat-azul">
           <div class="stat-ico-wrap"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2" style="width:22px;height:22px"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
@@ -43,7 +43,6 @@
         <button class="btn-reintentar" @click="cargarDatos">Reintentar</button>
       </div>
 
-      <!-- Filtros: busqueda solo con Enter o boton Buscar -->
       <div class="filters-bar">
         <div class="search-group">
           <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -54,17 +53,17 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px;stroke:#fff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
           Buscar
         </button>
-        <!-- Periodo llega a traves de grupo.id_periodo -> periodo.nombre_periodo -->
+        <!-- GET /api/form/periodos -> [{ id_periodo, nombre_periodo }] -->
         <select v-model="filtroPeriodo" class="filter-select" @change="currentPage=1">
           <option value="">Periodo</option>
           <option v-for="p in periodosDisponibles" :key="p.id_periodo" :value="p.id_periodo">{{ p.nombre_periodo }}</option>
         </select>
-        <!-- Carrera del alumno: alumno.id_carrera -> carrera.nombre -->
+        <!-- GET /api/form/carreras -> [{ id_carrera, nombre }] -->
         <select v-model="filtroCarrera" class="filter-select" @change="currentPage=1">
           <option value="">Carrera</option>
           <option v-for="c in carrerasDisponibles" :key="c.id_carrera" :value="c.id_carrera">{{ c.nombre }}</option>
         </select>
-        <!-- Estatus = inscripcion.estatus VARCHAR(50) -->
+        <!-- inscripcion.estatus VARCHAR(50) -->
         <select v-model="filtroEstatus" class="filter-select" @change="currentPage=1">
           <option value="">Estatus</option>
           <option value="Activo">Activo</option>
@@ -108,6 +107,7 @@
         <div class="paginacion-centro">Pagina {{ currentPage }} de {{ totalPages }}</div>
         <div class="paginacion-derecha"><button class="btn-pag" @click="prevPage" :disabled="currentPage===1">&#8249;</button><button v-for="p in visiblePages" :key="p" class="btn-pag" :class="{activo:p===currentPage}" @click="goToPage(p)">{{ p }}</button><button class="btn-pag" @click="nextPage" :disabled="currentPage===totalPages">&#8250;</button></div>
       </div>
+
       <footer class="pie-pagina">© 2026 Tecnologico Nacional de Mexico · Todos los derechos reservados</footer>
     </div>
 
@@ -137,7 +137,6 @@
         <div class="modal-header"><h3>{{ form.id_inscripcion ? 'Editar Inscripcion' : 'Nueva Inscripcion' }}</h3><button @click="cerrarModal" class="btn-cerrar-modal">×</button></div>
         <div class="modal-body">
 
-          <!-- Alumno: solo editable en creacion, no se puede cambiar en edicion -->
           <div class="form-grupo">
             <label>Numero de Control *</label>
             <div v-if="form.id_inscripcion" class="modal-input deshabilitado">{{ form.numero_control }}</div>
@@ -156,7 +155,7 @@
             </div>
           </transition>
 
-          <!-- Grupo: FK grupo.id_grupo — trae materia+periodo+aula. Solo en creacion -->
+          <!-- GET /api/form/grupos/disponibles -->
           <div class="form-grupo">
             <label>Grupo *</label>
             <div v-if="form.id_inscripcion" class="modal-input deshabilitado">{{ grupoActual }}</div>
@@ -167,7 +166,6 @@
             <p v-if="errores.id_grupo" class="error-campo">{{ errores.id_grupo }}</p>
           </div>
 
-          <!-- Fecha: inscripcion.fecha_inscripcion DATE — solo en creacion -->
           <div class="form-grupo">
             <label>Fecha de Inscripcion *</label>
             <input v-if="!form.id_inscripcion" v-model="form.fecha_inscripcion" type="date" class="modal-input"/>
@@ -175,7 +173,7 @@
             <p v-if="errores.fecha" class="error-campo">{{ errores.fecha }}</p>
           </div>
 
-          <!-- Estatus: inscripcion.estatus VARCHAR(50) — UNICO campo editable en edicion -->
+          <!-- inscripcion.estatus VARCHAR(50) — unico campo editable en edicion -->
           <div class="form-grupo">
             <label>Estatus *</label>
             <select v-model="form.estatus" class="modal-select">
@@ -188,8 +186,8 @@
           <div v-if="form.id_inscripcion" style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px 14px;font-size:.85rem;color:#92400E;font-family:'Montserrat',sans-serif">
             En edicion solo puedes modificar el estatus. El alumno y el grupo no cambian.
           </div>
-
         </div>
+
         <div class="modal-footer">
           <button class="btn-secundario" @click="cerrarModal" :disabled="guardando">Cancelar</button>
           <button v-if="form.id_inscripcion" class="btn-eliminar" @click="pedirConfirmarEliminar" :disabled="guardando"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;stroke:#fff"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>Eliminar</button>
@@ -217,8 +215,8 @@
 import { ref, computed, onMounted } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
-// Variable de entorno segun estandarizacion del proyecto
-const API = `${import.meta.env.VITE_API_URL}/api`
+// ✅ Base correcta: todos los endpoints del módulo de inscripciones usan /api/form
+const API = `${import.meta.env.VITE_API_URL}/api/form`
 
 const inscripciones       = ref([])
 const gruposDisponibles   = ref([])
@@ -233,7 +231,7 @@ const buscandoAlumno      = ref(false)
 const alumnoEncontrado    = ref(null)
 const grupoActual         = ref('')
 
-// KPIs contando inscripcion.estatus
+// KPIs: SELECT estatus, COUNT(*) FROM inscripcion GROUP BY estatus
 const kpis = ref({ totalInscritos: 0, activos: 0, bajaTemporal: 0, bajaDefinitiva: 0 })
 
 const busquedaInput  = ref('')
@@ -251,7 +249,7 @@ const inscripcionVer       = ref(null)
 const inscripcionAEliminar = ref(null)
 const errores = ref({ id_grupo: '', fecha: '' })
 
-// Tabla inscripcion: id_inscripcion, id_alumno, id_grupo, fecha_inscripcion, estatus VARCHAR(50)
+// Campos tabla inscripcion: id_inscripcion, id_alumno, id_grupo, fecha_inscripcion, estatus VARCHAR(50)
 const formVacio = () => ({
   id_inscripcion:    null,
   numero_control:    '',
@@ -271,22 +269,28 @@ const mostrarNotificacion = (m, t='exito') => {
 }
 
 /*
- * GET /api/inscripciones
- * JOIN: inscripcion -> alumno -> persona, carrera
- *                  -> grupo  -> materia, periodo, docente(persona), aula
- * Respuesta:
- * [{ id_inscripcion, id_alumno, id_grupo, numero_control, nombre_alumno,
- *    id_carrera, nombre_carrera, clave_grupo, nombre_materia,
- *    id_periodo, nombre_periodo, nombre_docente, nombre_aula,
- *    fecha_inscripcion, estatus }]
+ * GET /api/form/inscripciones
+ * JOIN: inscripcion -> alumno(numero_control) -> persona(nombre+apellidos) -> carrera(nombre)
+ *                  -> grupo(clave_grupo)      -> materia(nombre)
+ *                                             -> periodo(nombre_periodo)
+ *                                             -> docente -> empleado -> persona(nombre)
+ *                                             -> aula(nombre)
+ * Respuesta: [{
+ *   id_inscripcion, id_alumno, id_grupo,
+ *   numero_control, nombre_alumno,
+ *   id_carrera, nombre_carrera,
+ *   clave_grupo, nombre_materia,
+ *   id_periodo, nombre_periodo,
+ *   nombre_docente, nombre_aula,
+ *   fecha_inscripcion, estatus
+ * }]
  */
 const cargarInscripciones = async () => {
   cargando.value=true; errorCarga.value=false
   try {
     const res = await fetch(`${API}/inscripciones`)
-    if (!res.ok) throw new Error(`Error ${res.status}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     inscripciones.value = await res.json()
-    console.log('Inscripciones:', inscripciones.value.length)
   } catch (err) {
     console.error('cargarInscripciones:', err)
     errorCarga.value=true
@@ -295,124 +299,152 @@ const cargarInscripciones = async () => {
 }
 
 /*
- * GET /api/inscripciones/kpis   <- DEBE ir ANTES de /{id} en routes/api.php
+ * GET /api/form/kpis
  * Respuesta: { totalInscritos, activos, bajaTemporal, bajaDefinitiva }
- * Se obtiene con: SELECT estatus, COUNT(*) FROM inscripcion GROUP BY estatus
+ * Query: SELECT estatus, COUNT(*) FROM inscripcion GROUP BY estatus
  */
 const cargarKpis = async () => {
   cargandoKpis.value=true
   try {
-    const res = await fetch(`${API}/inscripciones/kpis`)
+    const res = await fetch(`${API}/kpis`)
     if (res.ok) kpis.value = await res.json()
   } catch { console.error('kpis') }
   finally { cargandoKpis.value=false }
 }
 
 /*
- * GET /api/grupos/disponibles
- * Solo grupos con estatus=true y cupo disponible (grupo.capacidad > inscritos activos)
+ * GET /api/form/grupos/disponibles
+ * Solo grupos con estatus=true y capacidad > COUNT(inscripciones activas)
  * Respuesta: [{ id_grupo, clave_grupo, nombre_materia, nombre_periodo }]
  */
 const cargarGrupos = async () => {
-  try { const r=await fetch(`${API}/grupos/disponibles`); if(r.ok) gruposDisponibles.value=await r.json() }
-  catch { console.error('grupos') }
+  try {
+    const r = await fetch(`${API}/grupos/disponibles`)
+    if (r.ok) gruposDisponibles.value = await r.json()
+  } catch { console.error('grupos') }
 }
 
 /*
- * GET /api/periodos -> [{ id_periodo, nombre_periodo }]
- * GET /api/carreras -> [{ id_carrera, nombre }]
+ * GET /api/form/periodos  -> [{ id_periodo, nombre_periodo }]
+ *   FROM periodo WHERE estatus = true
+ * GET /api/form/carreras  -> [{ id_carrera, nombre }]
+ *   FROM carrera WHERE estatus = true
  */
 const cargarFiltros = async () => {
   try {
-    const [rP,rC] = await Promise.all([fetch(`${API}/periodos`), fetch(`${API}/carreras`)])
-    if (rP.ok) periodosDisponibles.value=await rP.json()
-    if (rC.ok) carrerasDisponibles.value=await rC.json()
+    const [rP, rC] = await Promise.all([
+      fetch(`${API}/periodos`),
+      fetch(`${API}/carreras`)
+    ])
+    if (rP.ok) periodosDisponibles.value = await rP.json()
+    if (rC.ok) carrerasDisponibles.value = await rC.json()
   } catch { console.error('filtros') }
 }
 
-const cargarDatos = () => { cargarInscripciones(); cargarKpis(); cargarGrupos(); cargarFiltros() }
+const cargarDatos = () => {
+  cargarInscripciones()
+  cargarKpis()
+  cargarGrupos()
+  cargarFiltros()
+}
 onMounted(cargarDatos)
 
 /*
- * GET /api/alumnos/control/:numero_control
+ * GET /api/form/alumnos/control/:numero_control
+ * JOIN: alumno -> persona (nombre + apellido_paterno + apellido_materno) -> carrera(nombre)
  * Respuesta: { id_alumno, numero_control, nombre_alumno, nombre_carrera, id_carrera }
- * nombre_alumno = persona.nombre + apellido_paterno + apellido_materno
  */
 const buscarAlumno = async () => {
-  const nc=(form.value.numero_control||'').trim(); if(!nc) return
+  const nc = (form.value.numero_control || '').trim()
+  if (!nc) return
   buscandoAlumno.value=true; alumnoEncontrado.value=null; form.value.id_alumno=null
   try {
-    const res=await fetch(`${API}/alumnos/control/${nc}`)
-    if(!res.ok) throw new Error()
-    const d=await res.json()
-    alumnoEncontrado.value=d; form.value.id_alumno=d.id_alumno
-    mostrarNotificacion('Alumno encontrado','exito')
-  } catch { mostrarNotificacion(`No se encontro el No. de Control ${nc}`,'error') }
-  finally { buscandoAlumno.value=false }
+    const res = await fetch(`${API}/alumnos/control/${encodeURIComponent(nc)}`)
+    if (!res.ok) throw new Error()
+    const d = await res.json()
+    alumnoEncontrado.value = d
+    form.value.id_alumno = d.id_alumno
+    mostrarNotificacion('Alumno encontrado', 'exito')
+  } catch {
+    mostrarNotificacion(`No se encontro el No. de Control ${nc}`, 'error')
+  } finally { buscandoAlumno.value=false }
 }
 
 /*
- * POST /api/inscripciones
+ * POST /api/form/inscripciones
  * Body: { id_alumno, id_grupo, fecha_inscripcion, estatus }
- * El back valida UNIQUE(id_alumno, id_grupo)
+ * Valida UNIQUE(id_alumno, id_grupo) en BD
  *
- * PUT /api/inscripciones/:id_inscripcion
- * Body: { estatus }  <- solo el estatus es editable
+ * PUT /api/form/inscripciones/:id_inscripcion
+ * Body: { estatus }  <- unico campo editable (alumno e id_grupo no cambian)
  */
 const guardar = async () => {
-  errores.value={ id_grupo:'', fecha:'' }
+  errores.value = { id_grupo:'', fecha:'' }
   if (!form.value.id_inscripcion) {
     if (!form.value.id_alumno)         { mostrarNotificacion('Busca un alumno primero.','error'); return }
     if (!form.value.id_grupo)          { errores.value.id_grupo='Selecciona un grupo.'; mostrarNotificacion('El grupo es requerido.','error'); return }
     if (!form.value.fecha_inscripcion) { errores.value.fecha='La fecha es requerida.'; mostrarNotificacion('La fecha es requerida.','error'); return }
   }
   guardando.value=true
-  const esEd=!!form.value.id_inscripcion
+  const esEd = !!form.value.id_inscripcion
   try {
     const url  = esEd ? `${API}/inscripciones/${form.value.id_inscripcion}` : `${API}/inscripciones`
     const meth = esEd ? 'PUT' : 'POST'
     const body = esEd
       ? { estatus: form.value.estatus }
-      : { id_alumno:form.value.id_alumno, id_grupo:form.value.id_grupo, fecha_inscripcion:form.value.fecha_inscripcion, estatus:form.value.estatus }
-    console.log(meth, url, body)
-    const res=await fetch(url,{method:meth,headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(body)})
-    const data=await res.json()
-    if(!res.ok) throw new Error(JSON.stringify(data))
-    await cargarInscripciones(); await cargarKpis()
+      : { id_alumno: form.value.id_alumno, id_grupo: form.value.id_grupo, fecha_inscripcion: form.value.fecha_inscripcion, estatus: form.value.estatus }
+    const res = await fetch(url, { method:meth, headers:{ 'Content-Type':'application/json', 'Accept':'application/json' }, body: JSON.stringify(body) })
+    const data = await res.json()
+    if (!res.ok) throw new Error(JSON.stringify(data))
+    await cargarInscripciones()
+    await cargarKpis()
     cerrarModal()
-    mostrarNotificacion(esEd?'Inscripcion actualizada.':'Inscripcion creada.','exito')
-  } catch(e) { console.error(e); mostrarNotificacion('Error al guardar. El alumno puede ya estar inscrito en ese grupo.','error') }
-  finally { guardando.value=false }
+    mostrarNotificacion(esEd ? 'Inscripcion actualizada.' : 'Inscripcion creada.', 'exito')
+  } catch(e) {
+    console.error(e)
+    mostrarNotificacion('Error al guardar. El alumno puede ya estar inscrito en ese grupo.', 'error')
+  } finally { guardando.value=false }
 }
 
 /*
- * DELETE /api/inscripciones/:id_inscripcion
+ * DELETE /api/form/inscripciones/:id_inscripcion
  * Respuesta: { message: "Eliminado correctamente" }
  */
 const pedirConfirmarEliminar = () => {
-  inscripcionAEliminar.value={ ...form.value, nombre_alumno:alumnoEncontrado.value?.nombre_alumno||form.value.numero_control }
-  showModal.value=false; showModalEliminar.value=true
+  inscripcionAEliminar.value = {
+    ...form.value,
+    nombre_alumno: alumnoEncontrado.value?.nombre_alumno || form.value.numero_control
+  }
+  showModal.value=false
+  showModalEliminar.value=true
 }
+
 const confirmarEliminar = async () => {
   guardando.value=true
   try {
-    const res=await fetch(`${API}/inscripciones/${inscripcionAEliminar.value.id_inscripcion}`,{method:'DELETE',headers:{'Accept':'application/json'}})
-    const data=await res.json()
-    if(!res.ok) throw new Error(JSON.stringify(data))
-    await cargarInscripciones(); await cargarKpis()
+    const res = await fetch(`${API}/inscripciones/${inscripcionAEliminar.value.id_inscripcion}`, {
+      method: 'DELETE',
+      headers: { 'Accept': 'application/json' }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(JSON.stringify(data))
+    await cargarInscripciones()
+    await cargarKpis()
     showModalEliminar.value=false
-    mostrarNotificacion('Inscripcion eliminada.','exito')
-  } catch(e) { console.error(e); mostrarNotificacion('Error al eliminar.','error') }
-  finally { guardando.value=false }
+    mostrarNotificacion('Inscripcion eliminada.', 'exito')
+  } catch(e) {
+    console.error(e)
+    mostrarNotificacion('Error al eliminar.', 'error')
+  } finally { guardando.value=false }
 }
 
 const abrirModalNueva  = () => { form.value=formVacio(); alumnoEncontrado.value=null; grupoActual.value=''; errores.value={id_grupo:'',fecha:''}; showModal.value=true }
 const abrirModalVer    = (ins) => { inscripcionVer.value=ins; showModalVer.value=true }
 const abrirModalEditar = (ins) => {
-  form.value={ id_inscripcion:ins.id_inscripcion, numero_control:ins.numero_control, id_alumno:ins.id_alumno, id_grupo:ins.id_grupo, fecha_inscripcion:ins.fecha_inscripcion, estatus:ins.estatus }
-  alumnoEncontrado.value={ nombre_alumno:ins.nombre_alumno, nombre_carrera:ins.nombre_carrera }
-  grupoActual.value=`${ins.clave_grupo} — ${ins.nombre_materia} | ${ins.nombre_periodo}`
-  errores.value={id_grupo:'',fecha:''}
+  form.value = { id_inscripcion:ins.id_inscripcion, numero_control:ins.numero_control, id_alumno:ins.id_alumno, id_grupo:ins.id_grupo, fecha_inscripcion:ins.fecha_inscripcion, estatus:ins.estatus }
+  alumnoEncontrado.value = { nombre_alumno:ins.nombre_alumno, nombre_carrera:ins.nombre_carrera }
+  grupoActual.value = `${ins.clave_grupo} — ${ins.nombre_materia} | ${ins.nombre_periodo}`
+  errores.value = { id_grupo:'', fecha:'' }
   showModal.value=true
 }
 const cerrarModal = () => { showModal.value=false }
@@ -422,22 +454,21 @@ const aplicarBusqueda = () => { if(!busquedaInput.value.trim()) return; busqueda
 const limpiarBusqueda = () => { busquedaInput.value=''; busquedaActiva.value=''; currentPage.value=1 }
 
 const inscripcionesFiltradas = computed(() => inscripciones.value.filter(i => {
-  const q=normalize(busquedaActiva.value)
-  return (!q||normalize(i.numero_control).includes(q)||normalize(i.nombre_alumno).includes(q))
-      && (!filtroPeriodo.value||i.id_periodo==filtroPeriodo.value)
-      && (!filtroCarrera.value||i.id_carrera==filtroCarrera.value)
-      && (!filtroEstatus.value||i.estatus===filtroEstatus.value)
+  const q = normalize(busquedaActiva.value)
+  return (!q || normalize(i.numero_control).includes(q) || normalize(i.nombre_alumno).includes(q))
+      && (!filtroPeriodo.value || i.id_periodo == filtroPeriodo.value)
+      && (!filtroCarrera.value || i.id_carrera == filtroCarrera.value)
+      && (!filtroEstatus.value || i.estatus === filtroEstatus.value)
 }))
 
-const totalPages = computed(()=>Math.ceil(inscripcionesFiltradas.value.length/filasPorPagina.value)||1)
-const inscripcionesPaginadas = computed(()=>{ const s=(currentPage.value-1)*filasPorPagina.value; return inscripcionesFiltradas.value.slice(s,s+filasPorPagina.value) })
-const visiblePages = computed(()=>{ const t=totalPages.value,c=currentPage.value; if(t<=7) return Array.from({length:t},(_,i)=>i+1); const p=new Set([1,t,c,c-1,c+1].filter(x=>x>=1&&x<=t)); return [...p].sort((a,b)=>a-b) })
+const totalPages         = computed(() => Math.ceil(inscripcionesFiltradas.value.length / filasPorPagina.value) || 1)
+const inscripcionesPaginadas = computed(() => { const s=(currentPage.value-1)*filasPorPagina.value; return inscripcionesFiltradas.value.slice(s, s+filasPorPagina.value) })
+const visiblePages       = computed(() => { const t=totalPages.value,c=currentPage.value; if(t<=7) return Array.from({length:t},(_,i)=>i+1); const p=new Set([1,t,c,c-1,c+1].filter(x=>x>=1&&x<=t)); return [...p].sort((a,b)=>a-b) })
 const goToPage  = p => { currentPage.value=p; filaActiva.value=-1 }
 const prevPage  = () => { if(currentPage.value>1) currentPage.value-- }
 const nextPage  = () => { if(currentPage.value<totalPages.value) currentPage.value++ }
 const resetFiltros = () => { limpiarBusqueda(); filtroPeriodo.value=''; filtroCarrera.value=''; filtroEstatus.value=''; filaActiva.value=-1 }
 
-// Estatus VARCHAR(50): "Activo" | "Baja Temporal" | "Baja Definitiva"
 const claseEstatus = e => ({ 'activo':e==='Activo', 'baja-temporal':e==='Baja Temporal', 'baja-definitiva':e==='Baja Definitiva' })
 </script>
 

@@ -119,7 +119,8 @@
 import { ref } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
-const API = `${import.meta.env.VITE_API_URL}/api`
+// ✅ CORREGIDO: era /api, ahora es /api/form
+const API = `${import.meta.env.VITE_API_URL}/api/form`
 
 const busquedaInput      = ref('')
 const buscando           = ref(false)
