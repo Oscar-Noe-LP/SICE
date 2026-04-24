@@ -204,12 +204,10 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
-const API = `${import.meta.env.VITE_API_URL}/api`
-
 const router = useRouter()
 
-//const API_COMITE = 'http://127.0.0.1:8000/api/comite'
-//const API_PERSONAS = 'http://127.0.0.1:8000/api/personas'
+const API_COMITE = 'http://127.0.0.1:8000/api/comite'
+const API_PERSONAS = 'http://127.0.0.1:8000/api/personas'
 
 const cargando = ref(false)
 const errorCarga = ref(false)
@@ -254,7 +252,7 @@ const cargarTipos = async () => {
   errorCarga.value = false
 
   try {
-    const res = await fetch(`${API}/tipos-solicitud`)
+    const res = await fetch(`${API_COMITE}/tipos-solicitud`)
     if (!res.ok) throw new Error('No se pudieron cargar los tipos')
 
     const data = await res.json()
@@ -386,7 +384,7 @@ const guardar = async () => {
       descripcion: form.value.descripcion.trim()
     }
 
-    const res = await fetch(`${API}/solicitudes`, {
+    const res = await fetch(`${API_COMITE}/solicitudes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
