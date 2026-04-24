@@ -162,8 +162,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
-const API = `${import.meta.env.VITE_API_URL}/api`
-
 const router = useRouter()
 
 const cargando       = ref(false)
@@ -178,7 +176,7 @@ const solicitudes    = ref([])
 // ── Carga inicial ─────────────────────────────────────────────
 const cargarTipos = async () => {
   try {
-    const res = await fetch(`${API}/comite/tipos-solicitud`)
+    const res = await fetch('http://localhost:8000/api/comite/tipos-solicitud')
     if (!res.ok) throw new Error()
     tiposSolicitud.value = await res.json()
   } catch {
@@ -190,7 +188,7 @@ const cargarSolicitudes = async () => {
   cargando.value   = true
   errorCarga.value = false
   try {
-    const res = await fetch(`${API}/comite/solicitudes`)
+    const res = await fetch('http://localhost:8000/api/comite/solicitudes')
     if (!res.ok) throw new Error('Error en la respuesta del servidor')
     const data = await res.json()
     solicitudes.value = Array.isArray(data) ? data : data.data ?? []
@@ -227,7 +225,7 @@ const filtrar = async () => {
     if (busqueda.value)      params.append('q',       busqueda.value)
     if (filtroTipo.value)    params.append('tipo',    filtroTipo.value)
     if (filtroEstatus.value) params.append('estatus', filtroEstatus.value)
-    const url = `${API}/comite/solicitudes` + (params.toString() ? '?' + params : '')
+    const url = 'http://localhost:8000/api/comite/solicitudes' + (params.toString() ? '?' + params : '')
     const res = await fetch(url)
     if (!res.ok) throw new Error('Error en la respuesta del servidor')
     const data = await res.json()
