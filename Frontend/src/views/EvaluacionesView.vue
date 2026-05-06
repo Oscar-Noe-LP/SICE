@@ -1,7 +1,8 @@
-<!-- ============================================= -->
-<!-- src/views/EvaluacionesView.vue               -->
-<!-- Vista de Evaluaciones - Versión mejorada     -->
-<!-- ============================================= -->
+<!-- ============================================================ -->
+<!-- src/views/EvaluacionesView.vue                              -->
+<!-- Vista de Evaluaciones — Refactorizada (SICE)               -->
+<!-- Sin mapeos hardcoded · Catálogos dinámicos · IDs directos  -->
+<!-- ============================================================ -->
 
 <template>
   <MainLayout v-slot="{ busquedaGlobal }">
@@ -11,7 +12,7 @@
       <div v-if="busquedaGlobal && sincronizarBusquedaGlobal(busquedaGlobal)" style="display:none"></div>
 
       <!-- Barra de carga global -->
-      <div class="barra-carga" :class="{ activa: cargando }">
+      <div class="barra-carga" :class="{ activa: cargando || cargandoCatalogos }">
         <div class="barra-progreso"></div>
       </div>
 
@@ -29,6 +30,15 @@
           <h1 class="titulo-pagina">Evaluaciones</h1>
           <p class="subtitulo">Configura los criterios y porcentajes de evaluación por materia y grupo</p>
         </div>
+      </div>
+
+      <!-- ── ALERTA DE ERROR EN CATÁLOGOS ── -->
+      <div v-if="errorCatalogos" class="alerta-error-catalogos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        No se pudieron cargar algunos catálogos: {{ errorCatalogos }}.
+        <button @click="reintentarCatalogos" class="btn-reintentar">Reintentar</button>
       </div>
 
       <!-- ── ESTADÍSTICAS GENERALES ── -->
@@ -188,23 +198,27 @@
           />
         </div>
 
-        <select v-model="filtroPeriodo" class="filtro-select">
+        <!--
+          CATÁLOGOS DINÁMICOS
+          Los <option> se pueblan con los datos del backend.
+          v-model guarda el id directamente — sin transformaciones.
+        -->
+        <select v-model="filtroPeriodoId" class="filtro-select" :disabled="cargandoCatalogos">
           <option value="">Todos los periodos</option>
-          <option>Ago/Dic 2024</option>
-          <option>Ene/Jun 2025</option>
-        </select>
-        <select v-model="filtroMateria" class="filtro-select">
-          <option value="">Todas las materias</option>
-          <option>Algoritmos y Programación</option>
-          <option>Cálculo Diferencial</option>
-        </select>
-        <select v-model="filtroGrupo" class="filtro-select">
-          <option value="">Todos los grupos</option>
-          <option>IS-601-A</option>
-          <option>IS-601-B</option>
+          <option v-for="p in periodos" :key="p.id" :value="p.id">{{ p.nombre }}</option>
         </select>
 
-        <button @click="buscar" class="btn-buscar" :disabled="cargando">
+        <select v-model="filtroMateriaId" class="filtro-select" :disabled="cargandoCatalogos">
+          <option value="">Todas las materias</option>
+          <option v-for="m in materias" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+        </select>
+
+        <select v-model="filtroGrupoId" class="filtro-select" :disabled="cargandoCatalogos">
+          <option value="">Todos los grupos</option>
+          <option v-for="g in grupos" :key="g.id" :value="g.id">{{ g.nombre }}</option>
+        </select>
+
+        <button @click="buscar" class="btn-buscar" :disabled="cargando || cargandoCatalogos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
@@ -241,7 +255,7 @@
             <tbody>
               <tr
                 v-for="(item, index) in criteriosFiltrados"
-                :key="index"
+                :key="item.id_evaluacion ?? index"
                 :class="{ 'fila-activa': filaActiva === index }"
                 @click="filaActiva = index"
                 :ref="el => { if (el) filasRef[index] = el }"
@@ -372,7 +386,7 @@
         </div>
       </div>
 
-      <!-- Atajo de teclado -->
+      <!-- Atajos de teclado -->
       <div class="atajos-info">
         <span>⌨ Atajos: <kbd>↑ ↓</kbd> navegar filas · <kbd>Enter</kbd> guardar fila · <kbd>Ctrl+S</kbd> guardar todo</span>
       </div>
@@ -405,6 +419,19 @@
               @keyup.enter="guardarNuevaEvaluacion"
             />
           </div>
+
+          <!--
+            Tipo de evaluación desde catálogo dinámico.
+            Se envía tiposEval.id directamente al guardar.
+          -->
+          <div class="campo-form" v-if="tiposEval.length">
+            <label>Tipo de evaluación</label>
+            <select v-model="nuevoTipoEvalId" class="input-modal">
+              <option value="">Selecciona un tipo...</option>
+              <option v-for="t in tiposEval" :key="t.id" :value="t.id">{{ t.nombre }}</option>
+            </select>
+          </div>
+
           <div class="campo-form">
             <label>Porcentaje que representa (%)</label>
             <input
@@ -449,88 +476,77 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
+import { useCatalogos } from '@/composables/useCatalogos'
 import { getEvaluaciones, guardarEvaluaciones, eliminarEvaluacion as eliminarEvaluacionApi } from '../api/evaluaciones'
 
-const API = `${import.meta.env.VITE_API_URL}/api`
+const route = useRoute()
 
-const eliminarEvaluacion = async (index) => {
-  const item = criterios.value[index]
-  if (!confirm('¿Deseas eliminar esta evaluación? Esta acción no se puede deshacer.')) return
-  cargando.value = true
-  try {
-    if (item.id_evaluacion) {
-      await eliminarEvaluacionApi(item.id_evaluacion)
-    }
-    criterios.value.splice(index, 1)
-    mostrarToast('Evaluación eliminada')
-  } catch {
-    mostrarToast('No se pudo eliminar. Intenta de nuevo.', 'error')
-  } finally {
-    cargando.value = false
-  }
-}
+// ── Catálogos dinámicos ─────────────────────────────────────
+// Todos vienen del backend; el frontend nunca asigna IDs.
+const {
+  periodos,
+  materias,
+  grupos,
+  tiposEval,
+  cargandoCatalogos,
+  errorCatalogos,
+  cargarCatalogos,
+} = useCatalogos()
 
-// ── Estado general ──
-const cargando = ref(false)
-const criterios = ref([])
-const filtroPeriodo = ref('Ago/Dic 2024')
-const filtroMateria = ref('Algoritmos y Programación')
-const filtroGrupo = ref('')
+// ── Estado general ──────────────────────────────────────────
+const cargando        = ref(false)
+const criterios       = ref([])
 const busquedaControl = ref('')
 
-// Sincroniza la búsqueda global del header (MainLayout) con el campo de búsqueda
-const sincronizarBusquedaGlobal = (valorGlobal) => {
-  if (valorGlobal && valorGlobal.trim()) {
-    busquedaControl.value = valorGlobal.trim()
-  }
-}
+// Filtros guardan el id del catálogo directamente (sin mapeos)
+const filtroPeriodoId = ref('')
+const filtroMateriaId = ref('')
+const filtroGrupoId   = ref('')
+
 const filaActiva = ref(null)
-const filasRef = ref([])
+const filasRef   = ref([])
 
-// ── Modal ──
-const mostrarModal = ref(false)
-const modoEdicion = ref(false)
-const itemEditando = ref(null)
-const nuevoNombre = ref('')
+// ── Modal ───────────────────────────────────────────────────
+const mostrarModal    = ref(false)
+const modoEdicion     = ref(false)
+const itemEditando    = ref(null)
+const nuevoNombre     = ref('')
 const nuevoPorcentaje = ref(0)
-const inputNombre = ref(null)
+const nuevoTipoEvalId = ref('')   // id directo del catálogo
+const inputNombre     = ref(null)
 
-// ── Toast ──
+// ── Toast ───────────────────────────────────────────────────
 const toast = ref({ visible: false, mensaje: '', tipo: 'exito' })
 
-// ── Datos de materia actual ──
+// ── Datos de materia actual (vienen del API junto con criterios) ──
 const materiaActual = ref({
-  nombre: 'Algoritmos y Programación',
-  aula: 'A-201',
-  periodo: 'Ago/Dic 2024',
-  docente: 'Mtro. Juan Morales'
+  nombre:  '',
+  aula:    '',
+  periodo: '',
+  docente: '',
 })
 
-// ── Estadísticas generales (simuladas / se sustituyen con datos reales) ──
+// ── Estadísticas (se rellenan con la respuesta del API) ─────
 const estadisticas = ref({
-  totalAlumnos: 32,
-  promedioGeneral: '7.8',
-  reprobados: 5
+  totalAlumnos:    0,
+  promedioGeneral: '—',
+  reprobados:      0,
 })
 
-// ── Distribución de calificaciones ──
-const distribucionCalifs = ref([
-  { etiqueta: '< 6 (Reprobado)', cantidad: 5, porcentaje: 15, color: '#DC2626' },
-  { etiqueta: '6 – 6.9',         cantidad: 7, porcentaje: 21, color: '#F59E0B' },
-  { etiqueta: '7 – 7.9',         cantidad: 10, porcentaje: 31, color: '#F59E0B' },
-  { etiqueta: '8 – 8.9',         cantidad: 6, porcentaje: 18, color: '#1B396A' },
-  { etiqueta: '9 – 10',          cantidad: 4, porcentaje: 12, color: '#16A34A' },
-])
+// ── Distribución de calificaciones (viene del API) ──────────
+const distribucionCalifs = ref([])
 
-// ── Lista de materias con indicadores ──
-const materiasList = ref([
-  { nombre: 'Algoritmos y Programación', grupo: 'IS-601-A', promedio: '7.8', reprobados: 5, alumnos: 32, avance: 78 },
-  { nombre: 'Cálculo Diferencial', grupo: 'IS-601-A', promedio: '6.9', reprobados: 9, alumnos: 32, avance: 69 },
-  { nombre: 'Fundamentos de BD', grupo: 'IS-602-B', promedio: '8.4', reprobados: 2, alumnos: 28, avance: 84 },
-])
+// ── Lista de materias con indicadores (viene del API) ───────
+const materiasList = ref([])
 
-// ── Computed ──
+// ── Sincronizar búsqueda global del header ──────────────────
+const sincronizarBusquedaGlobal = (valorGlobal) => {
+  if (valorGlobal?.trim()) busquedaControl.value = valorGlobal.trim()
+}
+
+// ── Computed ────────────────────────────────────────────────
 const totalPorcentaje = computed(() =>
   criterios.value.reduce((sum, c) => sum + Number(c.porcentaje || 0), 0)
 )
@@ -544,17 +560,17 @@ const criteriosFiltrados = computed(() => {
 
 const statusClass = computed(() => {
   if (totalPorcentaje.value === 100) return 'status-ok'
-  if (totalPorcentaje.value > 100) return 'status-error'
+  if (totalPorcentaje.value > 100)  return 'status-error'
   return 'status-pendiente'
 })
 
 const statusMensaje = computed(() => {
   if (totalPorcentaje.value === 100) return 'El total es correcto'
-  if (totalPorcentaje.value > 100) return `Excede en ${totalPorcentaje.value - 100}%`
+  if (totalPorcentaje.value > 100)  return `Excede en ${totalPorcentaje.value - 100}%`
   return `Faltan ${100 - totalPorcentaje.value}% por asignar`
 })
 
-// ── Helpers ──
+// ── Helpers ─────────────────────────────────────────────────
 const colorNivel = (avance) => {
   if (avance >= 90) return '#16A34A'
   if (avance >= 70) return '#1B396A'
@@ -574,33 +590,6 @@ const mostrarToast = (mensaje, tipo = 'exito') => {
   setTimeout(() => { toast.value.visible = false }, 3500)
 }
 
-// ── Ciclo de vida ──
-import { useRoute } from 'vue-router'
-const route = useRoute()
-
-onMounted(async () => {
-  cargando.value = true
-  try {
-    const grupoId = route.params.id || 1
-    criterios.value = await getEvaluaciones(grupoId)
-  } catch (error) {
-    console.log('Error:', error) // ← agrega esto
-    criterios.value = [
-      { nombre: 'Parcial 1', porcentaje: 30 },
-      { nombre: 'Parcial 2', porcentaje: 30 },
-      { nombre: 'Proyecto Final', porcentaje: 40 },
-    ]
-  } finally {
-    cargando.value = false
-  }
-  window.addEventListener('keydown', atajoGlobal)
-})
-
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', atajoGlobal)
-})
-
 const atajoGlobal = (e) => {
   if (e.ctrlKey && e.key === 's') {
     e.preventDefault()
@@ -608,7 +597,52 @@ const atajoGlobal = (e) => {
   }
 }
 
-// ── Navegación por teclado en tabla ──
+// ── Ciclo de vida ────────────────────────────────────────────
+onMounted(async () => {
+  cargando.value = true
+  try {
+    // Carga catálogos y datos de la vista en paralelo
+    const grupoId = route.params.id || null
+    await Promise.all([
+      cargarCatalogos(['periodos', 'materias', 'grupos', 'tiposEval']),
+      cargarDatosVista(grupoId),
+    ])
+  } finally {
+    cargando.value = false
+  }
+  window.addEventListener('keydown', atajoGlobal)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', atajoGlobal)
+})
+
+// ── Carga principal de datos de la vista ─────────────────────
+async function cargarDatosVista(grupoId) {
+  try {
+    const data = await getEvaluaciones(grupoId)
+    // El API devuelve el objeto completo; extraemos lo que necesitamos
+    criterios.value       = data.criterios       ?? data
+    materiaActual.value   = data.materia          ?? materiaActual.value
+    estadisticas.value    = data.estadisticas     ?? estadisticas.value
+    distribucionCalifs.value = data.distribucion  ?? distribucionCalifs.value
+    materiasList.value    = data.materias         ?? materiasList.value
+  } catch (error) {
+    console.error('[EvaluacionesView] Error al cargar datos:', error)
+    // Fallback mínimo para no romper la UI
+    criterios.value = [
+      { nombre: 'Parcial 1',      porcentaje: 30 },
+      { nombre: 'Parcial 2',      porcentaje: 30 },
+      { nombre: 'Proyecto Final', porcentaje: 40 },
+    ]
+  }
+}
+
+// ── Reintentar carga de catálogos ────────────────────────────
+const reintentarCatalogos = () =>
+  cargarCatalogos(['periodos', 'materias', 'grupos', 'tiposEval'])
+
+// ── Navegación por teclado ───────────────────────────────────
 const navegarTeclado = (e) => {
   const max = criteriosFiltrados.value.length - 1
   if (e.key === 'ArrowDown') {
@@ -622,12 +656,16 @@ const navegarTeclado = (e) => {
   }
 }
 
-// ── Buscar ──
+// ── Buscar ───────────────────────────────────────────────────
+// Envía los ids directamente al API; sin mapeos intermedios.
 const buscar = async () => {
   cargando.value = true
   try {
-    await new Promise(r => setTimeout(r, 500)) // simula latencia
-    criterios.value = await getEvaluaciones(1)
+    criterios.value = await getEvaluaciones({
+      grupoId:   filtroGrupoId.value   || undefined,
+      periodoId: filtroPeriodoId.value || undefined,
+      materiaId: filtroMateriaId.value || undefined,
+    })
     mostrarToast('Búsqueda completada')
   } catch {
     mostrarToast('Error al buscar. Intenta de nuevo.', 'error')
@@ -636,10 +674,11 @@ const buscar = async () => {
   }
 }
 
-// ── Guardar fila ──
+// ── Guardar fila ─────────────────────────────────────────────
 const guardarFila = async (item) => {
   cargando.value = true
   try {
+    // item.id_evaluacion viene del backend — no se genera en el frontend
     await guardarEvaluaciones(item)
     mostrarToast(`Evaluación "${item.nombre}" guardada correctamente`)
   } catch {
@@ -649,7 +688,7 @@ const guardarFila = async (item) => {
   }
 }
 
-// ── Guardar todo ──
+// ── Guardar todo ─────────────────────────────────────────────
 const guardarTodo = async () => {
   cargando.value = true
   try {
@@ -662,22 +701,43 @@ const guardarTodo = async () => {
   }
 }
 
-// ── Modal ──
+// ── Eliminar ─────────────────────────────────────────────────
+const eliminarEvaluacion = async (index) => {
+  const item = criterios.value[index]
+  if (!confirm('¿Deseas eliminar esta evaluación? Esta acción no se puede deshacer.')) return
+  cargando.value = true
+  try {
+    if (item.id_evaluacion) {
+      // Envía el id que asignó el backend; nunca uno generado aquí
+      await eliminarEvaluacionApi(item.id_evaluacion)
+    }
+    criterios.value.splice(index, 1)
+    mostrarToast('Evaluación eliminada')
+  } catch {
+    mostrarToast('No se pudo eliminar. Intenta de nuevo.', 'error')
+  } finally {
+    cargando.value = false
+  }
+}
+
+// ── Modal ─────────────────────────────────────────────────────
 const abrirModalNueva = () => {
-  nuevoNombre.value = ''
+  nuevoNombre.value     = ''
   nuevoPorcentaje.value = 0
-  modoEdicion.value = false
-  itemEditando.value = null
-  mostrarModal.value = true
+  nuevoTipoEvalId.value = ''
+  modoEdicion.value     = false
+  itemEditando.value    = null
+  mostrarModal.value    = true
   nextTick(() => inputNombre.value?.focus())
 }
 
 const editarEvaluacion = (item) => {
-  nuevoNombre.value = item.nombre
+  nuevoNombre.value     = item.nombre
   nuevoPorcentaje.value = item.porcentaje
-  modoEdicion.value = true
-  itemEditando.value = item
-  mostrarModal.value = true
+  nuevoTipoEvalId.value = item.id_tipo_evaluacion ?? ''
+  modoEdicion.value     = true
+  itemEditando.value    = item
+  mostrarModal.value    = true
   nextTick(() => inputNombre.value?.focus())
 }
 
@@ -688,13 +748,22 @@ const guardarNuevaEvaluacion = async () => {
   cargando.value = true
   try {
     if (modoEdicion.value && itemEditando.value) {
-      itemEditando.value.nombre = nuevoNombre.value.trim()
-      itemEditando.value.porcentaje = Number(nuevoPorcentaje.value) || 0
+      // Actualizar — solo propiedades que el usuario puede cambiar
+      itemEditando.value.nombre            = nuevoNombre.value.trim()
+      itemEditando.value.porcentaje        = Number(nuevoPorcentaje.value) || 0
+      itemEditando.value.id_tipo_evaluacion = nuevoTipoEvalId.value || null
       await guardarEvaluaciones(itemEditando.value)
       mostrarToast(`Evaluación "${itemEditando.value.nombre}" actualizada`)
     } else {
-      await guardarEvaluaciones({ nombre: nuevoNombre.value.trim(), porcentaje: Number(nuevoPorcentaje.value) || 0 })
-      criterios.value = await getEvaluaciones(1)
+      // Crear — el id_evaluacion lo asigna el backend en la respuesta
+      const payload = {
+        nombre:             nuevoNombre.value.trim(),
+        porcentaje:         Number(nuevoPorcentaje.value) || 0,
+        id_tipo_evaluacion: nuevoTipoEvalId.value || null,
+      }
+      await guardarEvaluaciones(payload)
+      // Recargar desde el backend para obtener el nuevo id
+      await cargarDatosVista(route.params.id || null)
       mostrarToast('Nueva evaluación agregada')
     }
     cerrarModal()
@@ -705,9 +774,7 @@ const guardarNuevaEvaluacion = async () => {
   }
 }
 
-
-
-// ── Reporte ──
+// ── Reporte ───────────────────────────────────────────────────
 const generarReporte = async () => {
   cargando.value = true
   try {
@@ -719,7 +786,6 @@ const generarReporte = async () => {
 }
 </script>
 
-
 <style scoped>
 /* Fuente: Montserrat (cargada por MainLayout.vue)
    Paleta alineada con MainLayout:
@@ -729,23 +795,30 @@ const generarReporte = async () => {
    z-index: header 1000, barra-carga 1001, modal 2000, toast 3000 */
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-/* PALETA OFICIAL: Fondo #F5F5F5 | Cards #FFFFFF border #E5E7EB shadow 0 4px 12px rgba(0,0,0,.05)
-   Texto: #1A1A1A / #6B7280 / #9CA3AF(disabled)
-   Acción: #1B396A hover #1D4ED8 fondo suave #DBEAFE
-   Éxito: #16A34A/#DCFCE7  Error: #DC2626/#FEF2F2  Warn: #F5960B/#FEF3C7  Info: #2563EB/#DBEAFE */
-
+/* PALETA OFICIAL */
 .evaluaciones-page {
-  /* MainLayout provee: background #F5F5F5, padding 2rem, font Montserrat,
-     margin-top 74px (header), margin-left 260px (sidebar). */
   width: 100%;
   font-family: 'Montserrat', sans-serif;
   padding-bottom: 2rem;
   position: relative;
 }
 
+/* ALERTA CATÁLOGOS */
+.alerta-error-catalogos {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA;
+  border-radius: 10px; padding: 0.8rem 1.2rem; margin-bottom: 1rem;
+  font-size: 0.875rem; font-weight: 600;
+}
+.btn-reintentar {
+  margin-left: auto; background: #DC2626; color: #fff;
+  border: none; border-radius: 6px; padding: 4px 12px;
+  font-size: 0.8rem; font-weight: 700; cursor: pointer;
+}
+.btn-reintentar:hover { background: #b91c1c; }
+
 /* BARRA DE CARGA */
 .barra-carga {
-  /* top:74px para quedar justo debajo del header fijo de MainLayout */
   position: fixed; top: 74px; left: 0; right: 0;
   height: 3px; z-index: 1001;
   opacity: 0; pointer-events: none; transition: opacity 0.2s;
@@ -769,14 +842,8 @@ const generarReporte = async () => {
 }
 .breadcrumb .sep    { color: #E5E7EB; }
 .breadcrumb .activo { color: #1B396A; font-weight: 600; }
-/* Breadcrumb links coherentes con rutas de MainLayout */
-.breadcrumb-link {
-  color: #6B7280;
-  text-decoration: none;
-  transition: color 0.15s;
-}
+.breadcrumb-link { color: #6B7280; text-decoration: none; transition: color 0.15s; }
 .breadcrumb-link:hover { color: #1B396A; }
-
 
 /* ENCABEZADO */
 .encabezado-seccion { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
@@ -801,8 +868,8 @@ const generarReporte = async () => {
 .stat-card.verde   .stat-icono { background: #DCFCE7; color: #16A34A; }
 .stat-card.rojo    .stat-icono { background: #FEF2F2; color: #DC2626; }
 .stat-card.naranja .stat-icono { background: #FEF3C7; color: #F5960B; }
-.stat-datos   { display: flex; flex-direction: column; }
-.stat-numero  { font-size: 1.8rem; font-weight: 800; color: #1A1A1A; line-height: 1; }
+.stat-datos    { display: flex; flex-direction: column; }
+.stat-numero   { font-size: 1.8rem; font-weight: 800; color: #1A1A1A; line-height: 1; }
 .stat-etiqueta { font-size: 0.78rem; color: #6B7280; font-weight: 600; margin-top: 2px; }
 
 /* MATERIA + PROGRESO */
@@ -814,6 +881,7 @@ const generarReporte = async () => {
 }
 .materia-badge  { background: #1B396A; color: #FFFFFF; font-weight: 800; font-size: 0.85rem; padding: 0.6rem 0.8rem; border-radius: 8px; flex-shrink: 0; }
 .materia-nombre { font-size: 1.15rem; font-weight: 800; color: #1A1A1A; margin: 0 0 0.3rem; }
+.materia-info   { flex: 1; }
 .materia-meta   { display: flex; gap: 1.2rem; flex-wrap: wrap; font-size: 0.82rem; color: #6B7280; }
 .btn-nueva-eval {
   margin-left: auto; background: #1B396A; color: #FFFFFF;
@@ -834,7 +902,7 @@ const generarReporte = async () => {
 .progreso-texto {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;
 }
-.progreso-numero         { display: block; font-size: 1.8rem; font-weight: 800; color: #1B396A; line-height: 1; }
+.progreso-numero          { display: block; font-size: 1.8rem; font-weight: 800; color: #1B396A; line-height: 1; }
 .progreso-numero.completo { color: #16A34A; }
 .progreso-numero.excedido { color: #DC2626; }
 .progreso-label  { font-size: 0.72rem; color: #6B7280; }
@@ -848,7 +916,7 @@ const generarReporte = async () => {
   background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.4rem 1.6rem; margin-bottom: 1.5rem;
 }
-.seccion-titulo     { font-size: 1rem; font-weight: 800; color: #1A1A1A; margin: 0 0 1.2rem; }
+.seccion-titulo         { font-size: 1rem; font-weight: 800; color: #1A1A1A; margin: 0 0 1.2rem; }
 .seccion-titulo.sin-margen { margin: 0; }
 .distribucion-barras {
   display: flex; gap: 1.5rem; align-items: flex-end; height: 120px; padding-bottom: 0.5rem;
@@ -858,14 +926,14 @@ const generarReporte = async () => {
   width: 100%; height: 90px; background: #F5F5F5; border: 1px solid #E5E7EB;
   border-radius: 6px; display: flex; align-items: flex-end; overflow: hidden;
 }
-.barra-fill    { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.8s ease; min-height: 4px; }
+.barra-fill     { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.8s ease; min-height: 4px; }
 .barra-cantidad { font-size: 0.85rem; font-weight: 800; color: #1A1A1A; }
 .barra-etiqueta { font-size: 0.7rem; color: #6B7280; text-align: center; }
 .distribucion-leyenda {
   display: flex; gap: 1rem; flex-wrap: wrap;
   margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #E5E7EB;
 }
-.leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #6B7280; }
+.leyenda-item  { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #6B7280; }
 .leyenda-color { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 
 /* FILTROS */
@@ -890,7 +958,8 @@ const generarReporte = async () => {
   padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 8px;
   font-size: 0.875rem; font-family: inherit; color: #1A1A1A; background: #F5F5F5; outline: none;
 }
-.filtro-select:focus { border-color: #1B396A; }
+.filtro-select:focus    { border-color: #1B396A; }
+.filtro-select:disabled { opacity: 0.55; cursor: wait; }
 .btn-buscar {
   background: #1B396A; color: #FFFFFF; padding: 10px 1.2rem; border-radius: 10px;
   font-weight: 500; font-size: 0.875rem; display: flex; align-items: center; gap: 6px;
@@ -950,9 +1019,9 @@ const generarReporte = async () => {
 .pct-signo { color: #6B7280; font-size: 0.85rem; }
 
 .mini-barra-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 100px; }
-.mini-barra { width: 100%; height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
+.mini-barra      { width: 100%; height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
 .mini-barra-fill { height: 100%; background: #1B396A; border-radius: 4px; transition: width 0.4s ease; }
-.mini-pct { font-size: 0.75rem; font-weight: 700; color: #1B396A; }
+.mini-pct        { font-size: 0.75rem; font-weight: 700; color: #1B396A; }
 
 .acciones-fila { display: flex; gap: 6px; justify-content: center; }
 .btn-accion {
@@ -999,15 +1068,15 @@ const generarReporte = async () => {
   background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.2rem 1.4rem;
 }
-.mat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
-.mat-nombre { font-size: 0.9rem; font-weight: 800; color: #1A1A1A; }
-.mat-grupo  { background: #DBEAFE; color: #1B396A; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-.mat-stats  { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
-.mat-stat   { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.mat-header  { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+.mat-nombre  { font-size: 0.9rem; font-weight: 800; color: #1A1A1A; }
+.mat-grupo   { background: #DBEAFE; color: #1B396A; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+.mat-stats   { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+.mat-stat    { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .mat-stat-valor           { font-size: 1.3rem; font-weight: 800; color: #1A1A1A; }
 .mat-stat-valor.reprobado { color: #DC2626; }
 .mat-stat-label           { font-size: 0.72rem; color: #6B7280; font-weight: 600; }
-.mat-nivel  { display: flex; flex-direction: column; gap: 4px; }
+.mat-nivel   { display: flex; flex-direction: column; gap: 4px; }
 .nivel-barra { height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden; }
 .nivel-fill  { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
 .nivel-texto { font-size: 0.75rem; color: #6B7280; }
@@ -1021,7 +1090,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   position: fixed; inset: 0; background: rgba(0,0,0,0.55);
   display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(3px);
 }
-.modal-caja { background: #FFFFFF; width: 460px; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); }
+.modal-caja     { background: #FFFFFF; width: 460px; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); }
 .modal-cabecera { background: #1B396A; color: #FFFFFF; padding: 1.1rem 1.6rem; display: flex; justify-content: space-between; align-items: center; }
 .modal-cabecera h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
 .btn-cerrar {
@@ -1037,7 +1106,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   font-size: 0.95rem; font-family: inherit; color: #1A1A1A; outline: none;
   transition: border-color 0.2s; box-sizing: border-box; background: #FFFFFF;
 }
-.input-modal:focus      { border-color: #1B396A; background: #DBEAFE; }
+.input-modal:focus       { border-color: #1B396A; background: #DBEAFE; }
 .input-modal::placeholder { color: #9CA3AF; }
 .campo-ayuda { font-size: 0.78rem; color: #6B7280; margin-top: 4px; display: block; }
 .modal-pie {
@@ -1081,12 +1150,12 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
 
 /* RESPONSIVE */
 @media (max-width: 1024px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .materias-grid { grid-template-columns: repeat(2, 1fr); }
-  .materia-progreso-row { grid-template-columns: 1fr; }
+  .stats-grid            { grid-template-columns: repeat(2, 1fr); }
+  .materias-grid         { grid-template-columns: repeat(2, 1fr); }
+  .materia-progreso-row  { grid-template-columns: 1fr; }
 }
 @media (max-width: 640px) {
-  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .stats-grid    { grid-template-columns: 1fr 1fr; }
   .materias-grid { grid-template-columns: 1fr; }
 }
 </style>
