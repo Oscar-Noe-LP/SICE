@@ -16,7 +16,9 @@ class Bitacora extends Model
         'id_modulo',
         'accion',
         'fecha_hora',
-        'direccion_ip'
+        'direccion_ip',
+        'datos_anteriores',
+        'datos_nuevos'
     ];
 
     // Relaciones (opcional pero útil)

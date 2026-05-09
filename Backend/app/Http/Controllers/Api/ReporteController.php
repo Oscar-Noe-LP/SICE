@@ -79,8 +79,8 @@ class ReporteController extends Controller
                     'm.nombre as materia',
                     'g.clave_grupo',
                     'pe.nombre_periodo as periodo',
-                    'cal.calificacion_final',
-                    DB::raw("CASE WHEN cal.calificacion_final >= 70 THEN 'Aprobado' ELSE 'Reprobado' END as resultado")
+                    'cal.calificacion as calificacion_final',
+                    DB::raw("CASE WHEN cal.calificacion >= 70 THEN 'Aprobado' ELSE 'Reprobado' END as resultado")
                 )
                 ->orderBy('pe.id_periodo', 'desc')
                 ->orderBy('m.nombre');

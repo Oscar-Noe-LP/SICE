@@ -47,11 +47,11 @@ class KardexController extends Controller
                     'm.creditos',
                     'pe.nombre_periodo as periodo',
                     'pe.id_periodo',
-                    'cal.calificacion_final',
+                    'cal.calificacion as calificacion_final',
                     'i.estatus as estatus_inscripcion',
                     DB::raw("CASE
-                        WHEN cal.calificacion_final IS NULL THEN 'pendiente'
-                        WHEN cal.calificacion_final >= 70 THEN 'acreditada'
+                        WHEN cal.calificacion IS NULL THEN 'pendiente'
+                        WHEN cal.calificacion >= 70 THEN 'acreditada'
                         ELSE 'reprobada'
                     END as estado")
                 )

@@ -47,7 +47,7 @@ class SeguimientoController extends Controller
                 ->join('grupo as g', 'i.id_grupo', '=', 'g.id_grupo')
                 ->leftJoin('calificacion as cal', 'cal.id_inscripcion', '=', 'i.id_inscripcion')
                 ->where('i.id_alumno', $id_alumno)
-                ->select('g.id_materia', 'cal.calificacion_final', 'i.estatus')
+                ->select('g.id_materia', DB::raw('cal.calificacion as calificacion_final'), 'i.estatus')
                 ->get()
                 ->keyBy('id_materia');
 

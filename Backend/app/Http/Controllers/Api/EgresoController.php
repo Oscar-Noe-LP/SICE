@@ -77,7 +77,7 @@ class EgresoController extends Controller
                 ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
                 ->join('calificacion as cal', 'cal.id_inscripcion', '=', 'i.id_inscripcion')
                 ->where('i.id_alumno', $request->id_alumno)
-                ->where('cal.calificacion_final', '>=', 70)
+                ->where('cal.calificacion', '>=', 70)
                 ->sum('m.creditos');
 
             DB::table('alumno')->where('id_alumno', $request->id_alumno)->update([

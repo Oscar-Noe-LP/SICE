@@ -17,6 +17,8 @@ class Grupo extends Model
         'id_aula',
         'clave_grupo',
         'capacidad',
-        'estatus'
+        'estatus',
+        'acta_cerrada',
+        'fecha_cierre_acta'
     ];
 }

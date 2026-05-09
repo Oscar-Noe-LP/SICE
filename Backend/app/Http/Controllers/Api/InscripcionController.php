@@ -144,7 +144,7 @@ class InscripcionController extends Controller
                         ->join('calificacion as cal', 'cal.id_inscripcion', '=', 'i.id_inscripcion')
                         ->where('i.id_alumno', $request->id_alumno)
                         ->where('g.id_materia', $idPre)
-                        ->where('cal.calificacion_final', '>=', 70)
+                        ->where('cal.calificacion', '>=', 70)
                         ->exists();
 
                     if (!$aprobado) {
@@ -214,7 +214,7 @@ class InscripcionController extends Controller
                 ->join('calificacion as cal', 'cal.id_inscripcion', '=', 'i.id_inscripcion')
                 ->where('i.id_alumno', $request->id_alumno)
                 ->where('g.id_materia', $idMateria)
-                ->where('cal.calificacion_final', '>=', 70)
+                ->where('cal.calificacion', '>=', 70)
                 ->exists();
 
             if ($yaAprobada) {
