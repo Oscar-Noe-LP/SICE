@@ -72,8 +72,13 @@ class AdmisionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Alumno no encontrado'], 404);
             }
 
+            $idEstatus = DB::table('estatus_alumno')
+                ->where('nombre', $request->estatus)
+                ->value('id_estatus_alumno');
+
             DB::table('alumno')->where('id_alumno', $id)->update([
-                'estatus' => $request->estatus,
+                'estatus'           => $request->estatus,
+                'id_estatus_alumno' => $idEstatus,  // sync FK
             ]);
 
             return response()->json([
