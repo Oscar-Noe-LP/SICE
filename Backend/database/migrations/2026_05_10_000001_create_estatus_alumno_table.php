@@ -9,23 +9,25 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('estatus_alumno', function (Blueprint $table) {
-            $table->id('id_estatus_alumno');
-            $table->string('nombre', 50)->unique();
-        });
+        if (!Schema::hasTable('estatus_alumno')) {
+            Schema::create('estatus_alumno', function (Blueprint $table) {
+                $table->id('id_estatus_alumno');
+                $table->string('nombre', 50)->unique();
+            });
+        }
 
-        // Insertar valores por defecto
-        DB::table('estatus_alumno')->insert([
-            ['nombre' => 'Activo'],
-            ['nombre' => 'Baja Temporal'],
-            ['nombre' => 'Baja Definitiva'],
-            ['nombre' => 'Titulado'],
-            ['nombre' => 'Egresado'],
-            ['nombre' => 'Aspirante'],
-            ['nombre' => 'Preinscrito'],
-            ['nombre' => 'Admitido'],
-            ['nombre' => 'Proceso de Egreso'],
-        ]);
+        // Insertar valores por defecto (idempotente)
+        $valores = [
+            'Activo', 'Baja Temporal', 'Baja Definitiva',
+            'Titulado', 'Egresado', 'Aspirante',
+            'Preinscrito', 'Admitido', 'Proceso de Egreso',
+        ];
+        foreach ($valores as $v) {
+            DB::table('estatus_alumno')->updateOrInsert(
+                ['nombre' => $v],
+                ['nombre' => $v]
+            );
+        }
     }
 
     public function down(): void
