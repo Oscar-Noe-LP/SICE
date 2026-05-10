@@ -125,9 +125,6 @@ const mostrarFiltros = ref(false)
 const tiposSolicitud = ref([])
 const solicitudes    = ref([])
 
-<<<<<<< HEAD
-const cargarTipos = async () => { try { const res = await fetch('http://localhost:8000/api/comite/tipos-solicitud'); if (!res.ok) throw new Error(); tiposSolicitud.value = await res.json() } catch {} }
-=======
 // ── Carga inicial ─────────────────────────────────────────────
 const BASE = `${import.meta.env.VITE_API_URL}/api`
 
@@ -141,7 +138,6 @@ const cargarTipos = async () => {
   }
 }
 
->>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
 const cargarSolicitudes = async () => {
   cargando.value = true; errorCarga.value = false
   try {
