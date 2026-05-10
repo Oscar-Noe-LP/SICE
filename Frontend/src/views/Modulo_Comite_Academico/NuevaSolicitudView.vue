@@ -206,8 +206,8 @@ import MainLayout from '@/layouts/MainLayout.vue'
 
 const router = useRouter()
 
-const API_COMITE = 'http://127.0.0.1:8000/api/comite'
-const API_PERSONAS = 'http://127.0.0.1:8000/api/personas'
+const API_COMITE = `${import.meta.env.VITE_API_URL}/api/comite`
+const API_PERSONAS = `${import.meta.env.VITE_API_URL}/api/personas`
 
 const cargando = ref(false)
 const errorCarga = ref(false)

@@ -73,7 +73,12 @@ const errorCarga = ref(false)
 const kpis = ref({ pendientes: 0, resueltas: 0, sesiones: 0 })
 const solicitudesPendientes = ref([])
 const sesionesRecientes = ref([])
+<<<<<<< HEAD
 const API_BASE = 'http://127.0.0.1:8000/api/comite'
+=======
+
+const API_BASE = `${import.meta.env.VITE_API_URL}/api/comite`
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
 
 const cargarDatos = async () => {
   cargando.value = true; errorCarga.value = false

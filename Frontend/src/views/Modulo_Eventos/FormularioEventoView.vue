@@ -91,7 +91,7 @@ const router = useRouter()
 const route  = useRoute()
 
 // Bug 1 corregido: VITE_API_URL undefined, igual que EventosView
-const API = 'http://localhost:8000/api'
+const API = `${import.meta.env.VITE_API_URL}/api`
 
 const modoEdicion = computed(() => !!route.params.id)
 const cargando    = ref(false)

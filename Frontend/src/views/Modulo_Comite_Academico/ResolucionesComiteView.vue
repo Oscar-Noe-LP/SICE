@@ -132,17 +132,84 @@ const formModal = ref({ sesion_id: '', solicitud_id: '', decision: '' }); const 
 const toast = ref({ visible: false, mensaje: '', tipo: 'exito' }); let timerNotif = null
 const mostrarNotificacion = (m, t='exito') => { clearTimeout(timerNotif); toast.value={visible:true,mensaje:m,tipo:t}; timerNotif=setTimeout(()=>toast.value.visible=false,3500) }
 
+<<<<<<< HEAD
 const cargarTipos = async () => { try { const r=await fetch('http://localhost:8000/api/comite/tipos-solicitud'); if(!r.ok) throw new Error(); tiposSolicitud.value=await r.json() } catch {} }
 const cargarSesiones = async () => { try { const r=await fetch('http://localhost:8000/api/comite/sesiones'); if(!r.ok) throw new Error(); const d=await r.json(); sesiones.value=Array.isArray(d)?d:d.data??[] } catch {} }
 const cargarSolicitudesSinResolucion = async () => { try { const r=await fetch('http://localhost:8000/api/comite/solicitudes?sin_resolucion=1'); if(!r.ok) throw new Error(); const d=await r.json(); solicitudesSinRes.value=Array.isArray(d)?d:d.data??[] } catch {} }
+=======
+const tiposSolicitud    = ref([])
+const sesiones          = ref([])
+const solicitudesSinRes = ref([])
+const resoluciones      = ref([])
+
+const formModal = ref({ sesion_id: '', solicitud_id: '', decision: '' })
+const errModal  = ref({ sesion_id: '', solicitud_id: '', decision: '' })
+
+const BASE = `${import.meta.env.VITE_API_URL}/api`
+
+// ── Toast (corregido: era "notificacion") ─────────────────────
+const toast = ref({ visible: false, mensaje: '', tipo: 'exito' })
+let timerNotif = null
+const mostrarNotificacion = (mensaje, tipo = 'exito') => {
+  if (timerNotif) clearTimeout(timerNotif)
+  toast.value = { visible: true, mensaje, tipo }
+  timerNotif = setTimeout(() => { toast.value.visible = false }, 3500)
+}
+
+// ── Carga inicial ─────────────────────────────────────────────
+const cargarTipos = async () => {
+  try {
+    const res = await fetch(`${BASE}/comite/tipos-solicitud`)
+    if (!res.ok) throw new Error()
+    tiposSolicitud.value = await res.json()
+  } catch { /* silencioso */ }
+}
+
+const cargarSesiones = async () => {
+  try {
+    const res = await fetch(`${BASE}/comite/sesiones`)
+    if (!res.ok) throw new Error()
+    const data = await res.json()
+    sesiones.value = Array.isArray(data) ? data : data.data ?? []
+  } catch { /* silencioso */ }
+}
+
+const cargarSolicitudesSinResolucion = async () => {
+  try {
+    const res = await fetch(`${BASE}/comite/solicitudes?sin_resolucion=1`)
+    if (!res.ok) throw new Error()
+    const data = await res.json()
+    solicitudesSinRes.value = Array.isArray(data) ? data : data.data ?? []
+  } catch { /* silencioso */ }
+}
+
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
 const cargarResoluciones = async () => {
   cargando.value=true; errorCarga.value=false
   try {
+<<<<<<< HEAD
     const p=new URLSearchParams(); if(filtroSesion.value)p.append('sesion_id',filtroSesion.value); if(filtroTipo.value)p.append('tipo',filtroTipo.value)
     const res=await fetch('http://localhost:8000/api/comite/resoluciones'+(p.toString()?'?'+p:''))
     if(!res.ok) throw new Error(); const data=await res.json(); resoluciones.value=Array.isArray(data)?data:data.data??[]
   } catch(e) { console.error(e); errorCarga.value=true; mostrarNotificacion('Error cargando resoluciones','error') }
   finally { cargando.value=false }
+=======
+    const params = new URLSearchParams()
+    if (filtroSesion.value) params.append('sesion_id', filtroSesion.value)
+    if (filtroTipo.value)   params.append('tipo',      filtroTipo.value)
+    const url = `${BASE}/comite/resoluciones` + (params.toString() ? '?' + params : '')
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('Error en la respuesta del servidor')
+    const data = await res.json()
+    resoluciones.value = Array.isArray(data) ? data : data.data ?? []
+  } catch (error) {
+    console.error('Error cargando resoluciones:', error)
+    errorCarga.value = true
+    mostrarNotificacion('No se pudieron cargar las resoluciones.', 'error')
+  } finally {
+    cargando.value = false
+  }
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
 }
 onMounted(() => {
   if(route.query.sesion) filtroSesion.value=route.query.sesion
@@ -171,11 +238,30 @@ const limpiarFiltros = () => { filtroSesion.value=''; filtroTipo.value=''; reini
 const filtrar = async () => {
   cargando.value=true; errorCarga.value=false
   try {
+<<<<<<< HEAD
     const p=new URLSearchParams(); if(busqueda.value)p.append('q',busqueda.value); if(filtroSesion.value)p.append('sesion_id',filtroSesion.value); if(filtroTipo.value)p.append('tipo',filtroTipo.value)
     const res=await fetch('http://localhost:8000/api/comite/resoluciones'+(p.toString()?'?'+p:''))
     if(!res.ok) throw new Error(); const d=await res.json(); resoluciones.value=Array.isArray(d)?d:d.data??[]
   } catch(e) { console.error(e); errorCarga.value=true; mostrarNotificacion('Error al filtrar','error') }
   finally { cargando.value=false }
+=======
+    const params = new URLSearchParams()
+    if (busqueda.value)     params.append('q',         busqueda.value)
+    if (filtroSesion.value) params.append('sesion_id', filtroSesion.value)
+    if (filtroTipo.value)   params.append('tipo',      filtroTipo.value)
+    const url = `${BASE}/comite/resoluciones` + (params.toString() ? '?' + params : '')
+    const res = await fetch(url)
+    if (!res.ok) throw new Error()
+    const data = await res.json()
+    resoluciones.value = Array.isArray(data) ? data : data.data ?? []
+  } catch (error) {
+    console.error('Error filtrando resoluciones:', error)
+    errorCarga.value = true
+    mostrarNotificacion('Error al filtrar resoluciones.', 'error')
+  } finally {
+    cargando.value = false
+  }
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
 }
 
 const abrirModalNueva = () => { formModal.value={sesion_id:'',solicitud_id:'',decision:''}; errModal.value={sesion_id:'',solicitud_id:'',decision:''}; mostrarModal.value=true }
@@ -188,9 +274,30 @@ const guardarResolucion = async () => {
   if(Object.values(errModal.value).some(e=>e)) return
   cargando.value=true
   try {
+<<<<<<< HEAD
     const res=await fetch('http://localhost:8000/api/comite/resoluciones', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id_sesion:Number(formModal.value.sesion_id), id_solicitud:Number(formModal.value.solicitud_id), decision:formModal.value.decision.trim()}) })
     if(!res.ok) throw new Error((await res.json().catch(()=>({}))).message||'Error del servidor')
     mostrarNotificacion('Resolución registrada correctamente'); cerrarModal()
+=======
+    // POST /api/comite/resoluciones
+    // Corregido: el back espera id_sesion e id_solicitud
+    const res = await fetch(`${BASE}/comite/resoluciones`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id_sesion:    Number(formModal.value.sesion_id),
+        id_solicitud: Number(formModal.value.solicitud_id),
+        decision:     formModal.value.decision.trim(),
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.message || 'Error del servidor')
+    }
+    mostrarNotificacion('Resolución registrada correctamente')
+    cerrarModal()
+    // Recargar listas para reflejar el nuevo estado
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
     await Promise.all([cargarResoluciones(), cargarSolicitudesSinResolucion()])
   } catch(e) { console.error(e); mostrarNotificacion(e.message,'error') }
   finally { cargando.value=false }

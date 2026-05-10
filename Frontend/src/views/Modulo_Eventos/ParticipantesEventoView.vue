@@ -144,7 +144,7 @@ const router = useRouter()
 const route  = useRoute()
 
 // Bug 1 corregido: VITE_API_URL undefined
-const API = 'http://localhost:8000/api'
+const API = `${import.meta.env.VITE_API_URL}/api`
 
 const cargando             = ref(false)
 const mostrarModalRegistro = ref(false)

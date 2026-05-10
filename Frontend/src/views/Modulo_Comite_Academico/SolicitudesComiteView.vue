@@ -125,11 +125,27 @@ const mostrarFiltros = ref(false)
 const tiposSolicitud = ref([])
 const solicitudes    = ref([])
 
+<<<<<<< HEAD
 const cargarTipos = async () => { try { const res = await fetch('http://localhost:8000/api/comite/tipos-solicitud'); if (!res.ok) throw new Error(); tiposSolicitud.value = await res.json() } catch {} }
+=======
+// ── Carga inicial ─────────────────────────────────────────────
+const BASE = `${import.meta.env.VITE_API_URL}/api`
+
+const cargarTipos = async () => {
+  try {
+    const res = await fetch(`${BASE}/comite/tipos-solicitud`)
+    if (!res.ok) throw new Error()
+    tiposSolicitud.value = await res.json()
+  } catch {
+    // Sin tipos el selector queda vacío
+  }
+}
+
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
 const cargarSolicitudes = async () => {
   cargando.value = true; errorCarga.value = false
   try {
-    const res = await fetch('http://localhost:8000/api/comite/solicitudes')
+    const res = await fetch(`${BASE}/comite/solicitudes`)
     if (!res.ok) throw new Error('Error en la respuesta del servidor')
     const data = await res.json(); solicitudes.value = Array.isArray(data) ? data : data.data ?? []
   } catch (error) { console.error('Error cargando solicitudes:', error); errorCarga.value = true }
@@ -166,7 +182,7 @@ const filtrarBackend = async () => {
     if (busqueda.value) params.append('q', busqueda.value)
     if (filtroTipo.value) params.append('tipo', filtroTipo.value)
     if (filtroEstatus.value) params.append('estatus', filtroEstatus.value)
-    const url = 'http://localhost:8000/api/comite/solicitudes' + (params.toString() ? '?' + params : '')
+    const url = `${BASE}/comite/solicitudes` + (params.toString() ? '?' + params : '')
     const res = await fetch(url)
     if (!res.ok) throw new Error('Error en la respuesta del servidor')
     const data = await res.json(); solicitudes.value = Array.isArray(data) ? data : data.data ?? []

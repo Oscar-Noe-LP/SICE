@@ -547,13 +547,13 @@ const alumnosFiltrados = computed(() => {
 
     // Comparamos por ID numérico para no depender del texto del nombre
     const coincideCarrera = !filtroCarreraId.value ||
-      (alumno.id_carrera || alumno.carrera?.id_carrera) === filtroCarreraId.value
+      Number(alumno.id_carrera || alumno.carrera?.id_carrera) === Number(filtroCarreraId.value)
 
     const coincideSemestre = !filtroSemestre.value ||
       String(alumno.semestre_actual || alumno.semestre) === String(filtroSemestre.value)
 
     const coincideEstatus = !filtroEstatusId.value ||
-      (alumno.id_estatus_alumno) === filtroEstatusId.value
+      Number(alumno.id_estatus_alumno) === Number(filtroEstatusId.value)
 
     return coincideGlobal && coincideLocal && coincideCarrera && coincideSemestre && coincideEstatus
   })

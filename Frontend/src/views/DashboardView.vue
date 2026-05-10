@@ -77,21 +77,50 @@
 
       <div class="fila-inferior">
         <div class="panel-card">
-          <h3 class="panel-titulo">Actividad reciente</h3>
-          <div class="lista-actividad">
+          <div class="bitacora-header">
+            <h3 class="panel-titulo">Actividad reciente</h3>
+            <router-link to="/bitacora" class="btn-ver-bitacora">
+              Ver todo →
+            </router-link>
+          </div>
+
+          <div v-if="cargandoBitacora" class="bitacora-cargando">
+            <div class="spinner-bitacora"></div>
+            <span>Cargando actividad...</span>
+          </div>
+
+          <div v-else-if="errorBitacora" class="estado-vacio-grafica">
+            <p>No se pudo cargar la actividad reciente</p>
+          </div>
+
+          <div v-else-if="bitacoraReciente.length === 0" class="estado-vacio-grafica">
+            <p>Sin actividad reciente</p>
+          </div>
+
+          <div v-else class="lista-bitacora">
             <div
-              v-for="(act, i) in filtrarActividad(recentActivity, busquedaGlobal)"
-              :key="i"
-              class="item-actividad"
+              v-for="(item, i) in bitacoraReciente"
+              :key="item.id_bitacora || i"
+              class="item-bitacora"
             >
-              <div class="punto-actividad"></div>
-              <div class="info-actividad">
-                <p class="desc-actividad">{{ act.descripcion }}</p>
-                <p class="tiempo-actividad">{{ act.tiempo }}</p>
+              <!-- Avatar inicial del usuario -->
+              <div class="avatar-bitacora">
+                {{ item.usuario ? item.usuario.charAt(0).toUpperCase() : '?' }}
               </div>
-            </div>
-            <div v-if="filtrarActividad(recentActivity, busquedaGlobal).length === 0" class="estado-vacio-grafica">
-              <p>{{ busquedaGlobal ? 'Sin coincidencias en actividad reciente' : 'Sin actividad reciente' }}</p>
+
+              <div class="info-bitacora">
+                <div class="bitacora-fila-superior">
+                  <span class="bitacora-usuario">{{ item.usuario }}</span>
+                  <span class="accion-badge-mini" :class="claseAccion(item.accion)">
+                    {{ item.accion }}
+                  </span>
+                </div>
+                <p class="bitacora-desc">{{ item.descripcion }}</p>
+                <div class="bitacora-fila-inferior">
+                  <span class="bitacora-modulo">{{ item.modulo }}</span>
+                  <span class="bitacora-tiempo">{{ tiempoRelativo(item.fecha_hora) }}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -138,7 +167,7 @@ import MainLayout from '@/layouts/MainLayout.vue'
 const router = useRouter()
 const cargando = ref(true)
 const error = ref(null)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL
 
 const fechaHoy = computed(() => {
   return new Date().toLocaleDateString('es-MX', {
@@ -197,6 +226,39 @@ const kpis = ref([
 const carreraData = ref([])
 const semestreData = ref([])
 const recentActivity = ref([])
+
+// ── Bitácora reciente ─────────────────────────────────────────────
+const bitacoraReciente   = ref([])
+const cargandoBitacora   = ref(false)
+const errorBitacora      = ref(false)
+
+const cargarBitacoraReciente = async () => {
+  cargandoBitacora.value = true
+  errorBitacora.value    = false
+  try {
+    const res = await fetch(`${API_URL}/api/bitacora?limit=10`, {
+      headers: { Accept: 'application/json' }
+    })
+    if (!res.ok) throw new Error('Error al cargar bitácora')
+    const data = await res.json()
+    bitacoraReciente.value = data
+  } catch (err) {
+    console.error('❌ Error bitácora reciente:', err)
+    errorBitacora.value = true
+  } finally {
+    cargandoBitacora.value = false
+  }
+}
+
+const claseAccion = (accion) => {
+  if (!accion) return 'accion-default'
+  const a = accion.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  if (a === 'login')      return 'accion-login'
+  if (a.includes('creac')) return 'accion-creacion'
+  if (a.includes('edic'))  return 'accion-edicion'
+  if (a.includes('elimin')) return 'accion-eliminacion'
+  return 'accion-default'
+}
 
 const maxSemestre = computed(() =>
   semestreData.value.reduce((max, s) => Math.max(max, Number(s.cantidad) || 0), 1)
@@ -292,7 +354,10 @@ const cargarDashboard = async () => {
   }
 }
 
-onMounted(cargarDashboard)
+onMounted(() => {
+  cargarDashboard()
+  cargarBitacoraReciente()
+})
 
 const nuevaInscripcion = () => router.push('/inscripcion')
 const irAAlumnos = () => router.push('/alumnos')
@@ -624,4 +689,127 @@ const irACalificaciones = () => router.push('/calificaciones')
     grid-template-columns: 1fr;
   }
 }
+
+/* ══ Bitácora reciente ══ */
+.bitacora-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.bitacora-header .panel-titulo { margin-bottom: 0; }
+
+.btn-ver-bitacora {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1B396A;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.btn-ver-bitacora:hover { color: #1D4ED8; }
+
+.bitacora-cargando {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1.5rem 0;
+  color: #6B7280;
+  font-size: 0.88rem;
+}
+.spinner-bitacora {
+  width: 18px; height: 18px;
+  border: 2px solid #E5E7EB;
+  border-top-color: #1B396A;
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+
+.lista-bitacora {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.item-bitacora {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.item-bitacora:hover { background: #F8FAFC; }
+
+.avatar-bitacora {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: #1B396A;
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.info-bitacora { flex: 1; min-width: 0; }
+
+.bitacora-fila-superior {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.bitacora-usuario {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1A1A1A;
+}
+.bitacora-desc {
+  margin: 0 0 3px;
+  font-size: 0.82rem;
+  color: #6B7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bitacora-fila-inferior {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.bitacora-modulo {
+  font-size: 0.78rem;
+  color: #9CA3AF;
+  font-weight: 500;
+}
+.bitacora-tiempo {
+  font-size: 0.78rem;
+  color: #9CA3AF;
+  white-space: nowrap;
+}
+
+/* Badges de acción mini */
+.accion-badge-mini {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.accion-login       { background: #DBEAFE; color: #1B396A; }
+.accion-creacion    { background: #DCFCE7; color: #16A34A; }
+.accion-edicion     { background: #FEF3C7; color: #F59E0B; }
+.accion-eliminacion { background: #FEF2F2; color: #DC2626; }
+.accion-default     { background: #F5F5F5; color: #6B7280; }
+
 </style>
+

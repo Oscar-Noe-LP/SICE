@@ -42,20 +42,20 @@ class GrupoController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'clave_grupo'    => 'required|string|max:20|unique:grupo,clave_grupo',
+                'clave_grupo'    => 'nullable|string|max:20|unique:grupo,clave_grupo',
                 'nombre_materia' => 'required|string',
                 'aula'           => 'required|string',
                 'nombre_docente' => 'nullable|string',
                 'capacidad'      => 'required|integer|min:1',
-                'id_periodo'     => 'required|integer|exists:periodo,id_periodo',
+                'id_periodo'     => 'nullable|integer|exists:periodo,id_periodo',
+                'dia'            => 'nullable|string|max:50',
+                'hora_inicio'    => 'nullable|date_format:H:i',
+                'hora_fin'       => 'nullable|date_format:H:i',
             ], [
-                'clave_grupo.required'    => 'La clave del grupo es requerida',
                 'clave_grupo.unique'      => 'Ya existe un grupo con esa clave',
                 'nombre_materia.required' => 'La materia es requerida',
                 'aula.required'           => 'El aula es requerida',
                 'capacidad.required'      => 'La capacidad es requerida',
-                'id_periodo.required'     => 'El periodo es requerido',
-                'id_periodo.exists'       => 'El periodo no es válido',
             ]);
 
             if ($validator->fails()) {
@@ -78,20 +78,32 @@ class GrupoController extends Controller
                 $id_docente = DB::table('docente as d')
                     ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
                     ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
-                    ->where(DB::raw("CONCAT(p.nombre, ' ', p.apellido_paterno)"), $request->nombre_docente)
+                    ->where(DB::raw("TRIM(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno, '')))"), 'like', $request->nombre_docente . '%')
                     ->value('d.id_docente');
                 if (!$id_docente) {
                     return response()->json(['success' => false, 'error' => 'El docente indicado no existe'], 422);
                 }
             }
 
+            // id_periodo: usar el enviado o el periodo activo más reciente
+            $id_periodo = $request->id_periodo
+                ?? DB::table('periodo')->where('estatus', 1)->orderByDesc('id_periodo')->value('id_periodo');
+
+            // clave_grupo: usar la enviada o auto-generar
+            $clave_grupo = $request->clave_grupo
+                ?? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $request->nombre_materia), 0, 6))
+                   . '-' . now()->format('mdHi');
+
             $id = DB::table('grupo')->insertGetId([
-                'clave_grupo' => $request->clave_grupo,
+                'clave_grupo' => $clave_grupo,
                 'id_materia'  => $id_materia,
                 'id_docente'  => $id_docente,
                 'id_aula'     => $id_aula,
-                'id_periodo'  => $request->id_periodo,
+                'id_periodo'  => $id_periodo,
                 'capacidad'   => $request->capacidad,
+                'dia'         => $request->dia,
+                'hora_inicio' => $request->hora_inicio,
+                'hora_fin'    => $request->hora_fin,
                 'estatus'     => 1,
             ]);
 
@@ -115,7 +127,10 @@ class GrupoController extends Controller
                 'aula'           => 'sometimes|string',
                 'nombre_docente' => 'nullable|string',
                 'capacidad'      => 'sometimes|integer|min:1',
-                'id_periodo'     => 'sometimes|integer|exists:periodo,id_periodo',
+                'id_periodo'     => 'sometimes|nullable|integer|exists:periodo,id_periodo',
+                'dia'            => 'sometimes|nullable|string|max:50',
+                'hora_inicio'    => 'sometimes|nullable|date_format:H:i',
+                'hora_fin'       => 'sometimes|nullable|date_format:H:i',
             ], [
                 'clave_grupo.unique'  => 'Ya existe un grupo con esa clave',
                 'id_periodo.exists'   => 'El periodo no es válido',
@@ -148,7 +163,7 @@ class GrupoController extends Controller
                     $id_docente = DB::table('docente as d')
                         ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
                         ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
-                        ->where(DB::raw("CONCAT(p.nombre, ' ', p.apellido_paterno)"), $request->nombre_docente)
+                        ->where(DB::raw("TRIM(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno, '')))"), 'like', $request->nombre_docente . '%')
                         ->value('d.id_docente');
                     if (!$id_docente) {
                         return response()->json(['success' => false, 'error' => 'El docente indicado no existe'], 422);
@@ -165,6 +180,9 @@ class GrupoController extends Controller
                 'id_docente'  => $id_docente,
                 'id_periodo'  => $request->id_periodo ?? $grupo->id_periodo,
                 'capacidad'   => $request->capacidad ?? $grupo->capacidad,
+                'dia'         => $request->has('dia')         ? $request->dia         : $grupo->dia,
+                'hora_inicio' => $request->has('hora_inicio') ? $request->hora_inicio : $grupo->hora_inicio,
+                'hora_fin'    => $request->has('hora_fin')    ? $request->hora_fin    : $grupo->hora_fin,
             ]);
 
             return response()->json(['success' => true, 'message' => 'Grupo actualizado']);

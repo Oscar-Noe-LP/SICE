@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -11,19 +10,15 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Siembra la base de datos de SICE.
+     * Orden importante: roles y datos iniciales primero,
+     * luego seeders que dependen de grupos/inscripciones.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
         $this->call([
-            RolesSeeder::class,
+            DatosInicialesSeeder::class,   // géneros, deptos, puestos, etc.
+            RolesSeeder::class,            // roles del sistema
         ]);
     }
 }

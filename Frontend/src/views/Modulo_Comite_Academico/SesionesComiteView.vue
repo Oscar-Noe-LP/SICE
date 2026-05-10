@@ -124,11 +124,51 @@ const formModal = ref({ fecha: '', descripcion: '' }); const errModal = ref({ fe
 const toast = ref({ visible: false, mensaje: '', tipo: 'exito' }); let timerNotif = null
 const mostrarNotificacion = (m, t='exito') => { clearTimeout(timerNotif); toast.value={visible:true,mensaje:m,tipo:t}; timerNotif=setTimeout(()=>toast.value.visible=false,3500) }
 
+<<<<<<< HEAD
 const cargarSesiones = async () => {
   cargando.value=true; errorCarga.value=false
   try { const res=await fetch('http://localhost:8000/api/comite/sesiones'); if(!res.ok) throw new Error(); const d=await res.json(); sesiones.value=Array.isArray(d)?d:d.data??[] }
   catch(e) { console.error(e); errorCarga.value=true; mostrarNotificacion('No se pudieron cargar las sesiones.','error') }
   finally { cargando.value=false }
+=======
+const cargando       = ref(false)
+const errorCarga     = ref(false)
+const mostrarModal   = ref(false)
+const modoEdicion    = ref(false)
+const sesionEditando = ref(null)
+
+const sesiones  = ref([])
+const formModal = ref({ fecha: '', descripcion: '' })
+const errModal  = ref({ fecha: '', descripcion: '' })
+
+const BASE = `${import.meta.env.VITE_API_URL}/api`
+
+// ── Toast (corregido: era "notificacion") ─────────────────────
+const toast = ref({ visible: false, mensaje: '', tipo: 'exito' })
+let timerNotif = null
+const mostrarNotificacion = (mensaje, tipo = 'exito') => {
+  if (timerNotif) clearTimeout(timerNotif)
+  toast.value = { visible: true, mensaje, tipo }
+  timerNotif = setTimeout(() => { toast.value.visible = false }, 3500)
+}
+
+// ── Carga de sesiones ─────────────────────────────────────────
+const cargarSesiones = async () => {
+  cargando.value   = true
+  errorCarga.value = false
+  try {
+    const res = await fetch(`${BASE}/comite/sesiones`)
+    if (!res.ok) throw new Error('Error en la respuesta del servidor')
+    const data = await res.json()
+    sesiones.value = Array.isArray(data) ? data : data.data ?? []
+  } catch (error) {
+    console.error('Error cargando sesiones:', error)
+    errorCarga.value = true
+    mostrarNotificacion('No se pudieron cargar las sesiones.', 'error')
+  } finally {
+    cargando.value = false
+  }
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
 }
 onMounted(() => { cargarSesiones() })
 
@@ -163,16 +203,59 @@ const guardarSesion = async () => {
   if(Object.values(errModal.value).some(e=>e)) return
   cargando.value=true
   try {
+<<<<<<< HEAD
     const payload={ fecha:formModal.value.fecha, descripcion:formModal.value.descripcion.trim() }
     if(modoEdicion.value && sesionEditando.value) {
       const res=await fetch(`http://localhost:8000/api/comite/sesiones/${sesionEditando.value.id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
       if(!res.ok) throw new Error((await res.json().catch(()=>({}))).message||'Error al actualizar')
       sesionEditando.value.fecha=payload.fecha; sesionEditando.value.descripcion=payload.descripcion
+=======
+    const payload = {
+      fecha:       formModal.value.fecha,
+      descripcion: formModal.value.descripcion.trim()
+    }
+
+    if (modoEdicion.value && sesionEditando.value) {
+      // PUT /api/comite/sesiones/{id}
+      const res = await fetch(`${BASE}/comite/sesiones/${sesionEditando.value.id}`, {
+        method:  'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Error al actualizar')
+      }
+      // Actualiza la fila en la tabla sin recargar
+      sesionEditando.value.fecha       = payload.fecha
+      sesionEditando.value.descripcion = payload.descripcion
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
       mostrarNotificacion('Sesión actualizada correctamente')
     } else {
+<<<<<<< HEAD
       const res=await fetch('http://localhost:8000/api/comite/sesiones', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
       if(!res.ok) throw new Error((await res.json().catch(()=>({}))).message||'Error al registrar')
       const r=await res.json(); sesiones.value.unshift({ id:r.data?.id??r.id, fecha:r.data?.fecha??payload.fecha, descripcion:r.data?.descripcion??payload.descripcion, resoluciones:0, numero_acta: r.data?.numero_acta || null })
+=======
+      // POST /api/comite/sesiones
+      const res = await fetch(`${BASE}/comite/sesiones`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || 'Error al registrar')
+      }
+      const respuesta = await res.json()
+      // El back responde { message, data: { id, fecha, descripcion, resoluciones } }
+      sesiones.value.unshift({
+        id:          respuesta.data?.id          ?? respuesta.id,
+        fecha:       respuesta.data?.fecha       ?? payload.fecha,
+        descripcion: respuesta.data?.descripcion ?? payload.descripcion,
+        resoluciones: 0
+      })
+>>>>>>> c2418267fbf4129f97257b7d0b6b145be4b6ad4a
       mostrarNotificacion('Sesión registrada correctamente')
     }
     cerrarModal()

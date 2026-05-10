@@ -57,14 +57,14 @@ class AlumnoController extends Controller
 
         try {
             $request->validate([
-                'numero_control'   => 'required|string|unique:alumno,numero_control',
-                'nombre'           => 'required|string',
-                'apellido_paterno' => 'required|string',
-                'genero'           => 'required|in:Masculino,Femenino,Otro',
-                'id_carrera'       => 'required|integer|exists:carrera,id_carrera',
-                'semestre_actual'  => 'required|integer|between:1,8',
-                'estatus'          => 'required',
-                'fecha_ingreso'    => 'required|date',
+                'numero_control'    => 'required|string|unique:alumno,numero_control',
+                'nombre'            => 'required|string',
+                'apellido_paterno'  => 'required|string',
+                'genero'            => 'required|in:Masculino,Femenino,Otro',
+                'id_carrera'        => 'required|integer|exists:carrera,id_carrera',
+                'semestre_actual'   => 'required|integer|between:1,8',
+                'id_estatus_alumno' => 'required|integer|exists:estatus_alumno,id_estatus_alumno',
+                'fecha_ingreso'     => 'required|date',
             ]);
 
             $idGenero = DB::table('genero')
@@ -81,14 +81,20 @@ class AlumnoController extends Controller
                 'fecha_nacimiento' => $request->fecha_nacimiento ?? null,
             ]);
 
+            // Resolver nombre legible del estatus desde el catálogo
+            $estatusNombre = DB::table('estatus_alumno')
+                ->where('id_estatus_alumno', $request->id_estatus_alumno)
+                ->value('nombre') ?? 'Activo';
+
             // Crear Alumno
             $alumno = Alumno::create([
-                'numero_control'   => $request->numero_control,
-                'id_persona'       => $persona->id_persona,
-                'id_carrera'       => $request->id_carrera,
-                'semestre_actual'  => $request->semestre_actual,
-                'estatus'          => $request->estatus,          
-                'fecha_ingreso'    => $request->fecha_ingreso,
+                'numero_control'    => $request->numero_control,
+                'id_persona'        => $persona->id_persona,
+                'id_carrera'        => $request->id_carrera,
+                'semestre_actual'   => $request->semestre_actual,
+                'estatus'           => $estatusNombre,
+                'id_estatus_alumno' => $request->id_estatus_alumno,
+                'fecha_ingreso'     => $request->fecha_ingreso,
             ]);
 
             DB::commit();

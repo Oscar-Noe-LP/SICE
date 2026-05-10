@@ -57,15 +57,15 @@ class ServiciosEscolaresController extends Controller
         if ($d->evaluacion === 'Parcial 1') {
             $resultado[$key]['p1'] = $d->calificacion;
             $resultado[$key]['id_evaluacion_parcial_1'] = $d->id_evaluacion;
-        }
-        if ($d->evaluacion === 'Parcial 2') {
+        } elseif ($d->evaluacion === 'Parcial 2') {
             $resultado[$key]['p2'] = $d->calificacion;
             $resultado[$key]['id_evaluacion_parcial_2'] = $d->id_evaluacion;
-        }
-        if ($d->evaluacion !== 'Parcial 1' && $d->evaluacion !== 'Parcial 2') {
+        } elseif ($d->evaluacion !== null) {
+            // Cualquier otra evaluación nombrada (proyecto, final, etc.)
             $resultado[$key]['proy'] = $d->calificacion;
             $resultado[$key]['id_evaluacion_proyecto'] = $d->id_evaluacion;
         }
+        // Si evaluacion es null (LEFT JOIN sin calificación) se ignora
     }
 
     return response()->json(array_values($resultado));
@@ -196,7 +196,7 @@ class ServiciosEscolaresController extends Controller
                     'numero_control' => $alumno->numero_control,
                     'id_carrera' => $alumno->id_carrera,
                     'semestre_actual' => $alumno->semestre_actual,
-                    'estatus' => $alumno->estatus == 1 ? 'Activo' : 'Inactivo',
+                    'estatus' => $alumno->estatus,  // VARCHAR: 'Activo', 'Baja Temporal', etc.
                     'nombre' => $alumno->nombre,
                     'carrera' => [
                         'nombre_carrera' => $alumno->carrera // 👈 importante para Vue

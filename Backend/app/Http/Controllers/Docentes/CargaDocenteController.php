@@ -99,13 +99,9 @@ class CargaDocenteController extends Controller
                     DB::raw("COALESCE(car.nombre, 'Sin carrera') as carrera"),
                     DB::raw('COALESCE(pm.semestre, 0) as semestre'),
 
-                    // [HORARIO] Si agregas columnas al schema, reemplaza los NULL:
-                    // 'g.dia',
-                    // 'g.hora_inicio',
-                    // 'g.hora_fin',
-                    DB::raw("NULL as dia"),
-                    DB::raw("NULL as hora_inicio"),
-                    DB::raw("NULL as hora_fin"),
+                    'g.dia',
+                    'g.hora_inicio',
+                    'g.hora_fin',
 
                     'g.capacidad',
                     DB::raw('(SELECT COUNT(*) FROM inscripcion i WHERE i.id_grupo = g.id_grupo) as inscritos'),

@@ -1,12 +1,9 @@
-import axios from 'axios'
-
-// ── URL base del backend (variable de entorno) ──────────────────────
-const API = `${import.meta.env.VITE_API_URL}/api`
+import api from './axios'
 
 export const getCalificacionesGrupo = async (filtros = {}) => {
   const params = {}
   if (filtros.grupo) params.grupo_id = filtros.grupo
-  const { data } = await axios.get(`${API}/calificaciones-grupo`, { params })
+  const { data } = await api.get('/calificaciones-grupo', { params })
   return data
 }
 
@@ -21,7 +18,6 @@ export const guardarCalificaciones = async (alumnos) => {
       { id_evaluacion: alumno.id_evaluacion_proyecto,  valor: alumno.proy },
     ]
     for (const p of parciales) {
-      console.log('Parcial:', p, 'id_inscripcion:', alumno.id_inscripcion)
       if (p.id_evaluacion && alumno.id_inscripcion && p.valor !== null && p.valor !== '') {
         peticiones.push({
           id_inscripcion: alumno.id_inscripcion,
@@ -43,7 +39,7 @@ export const guardarCalificaciones = async (alumnos) => {
   for (let i = 0; i < peticiones.length; i += LOTE) {
     const lote = peticiones.slice(i, i + LOTE)
     const res = await Promise.all(
-      lote.map(p => axios.post(`${API}/guardar-calificaciones`, p))
+      lote.map(p => api.post('/guardar-calificaciones', p))
     )
     resultados.push(...res)
   }

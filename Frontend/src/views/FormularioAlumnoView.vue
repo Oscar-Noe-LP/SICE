@@ -206,9 +206,8 @@
               </select>
 
               <!-- Indicador dinámico corregido -->
-              <div 
-                class="indicador-estatus" 
-                :class="getEstatusClass(form.id_estatus_alumno)">
+              <div class="indicador-estatus" :class="getEstatusClass(form.id_estatus_alumno)">
+                <span class="indicador-dot"></span>
                 {{ getEstatusNombre(form.id_estatus_alumno) }}
               </div>
             </div>
@@ -397,21 +396,6 @@ const validarFormulario = () => {
   return Object.keys(errors).length === 0
 }
 
-// ── Helpers de mapeo ──────────────────────────────────────────────────
-const getIdCarrera = (nombreCarrera) => {
-  const mapa = {
-    'Contador Publico': 1,
-    'Ingenieria Civil': 2,
-    'Ingenieria en Gestion empresarial': 3,
-    'Ingenieria en Sistemas Computacionales': 4,
-    'Ingenieria Industrial': 5,
-  }
-  return mapa[nombreCarrera] || null
-}
-
-const getEstatus = (estatus) => {
-  return { 'Activo': 1, 'Baja Temporal': 0, 'Baja Definitiva': 0 }[estatus]
-}
 
 // ── Guardar alumno ────────────────────────────────────────────────────
 // Endpoint: POST /api/alumnos
@@ -424,15 +408,15 @@ const guardarAlumno = async () => {
   isLoading.value = true
 
   const payload = {
-    numero_control:   form.noControl,
-    nombre:           form.nombre.trim(),
-    apellido_paterno: form.apellidoPaterno.trim(),
-    apellido_materno: form.apellidoMaterno.trim() || null,
-    genero:           form.genero,
-    id_carrera:       form.id_carrera,
-    semestre_actual:  parseInt(form.semestre),
-    estatus:          form.id_estatus_alumno,    // Ahora se usa el ID
-    fecha_ingreso:    form.fechaIngreso
+    numero_control:    form.noControl,
+    nombre:            form.nombre.trim(),
+    apellido_paterno:  form.apellidoPaterno.trim(),
+    apellido_materno:  form.apellidoMaterno.trim() || null,
+    genero:            form.genero,
+    id_carrera:        form.id_carrera,
+    semestre_actual:   parseInt(form.semestre),
+    id_estatus_alumno: form.id_estatus_alumno,
+    fecha_ingreso:     form.fechaIngreso
   }
 
   try {
@@ -526,9 +510,9 @@ const showNotification = (message, type) => {
 </script>
 
 
+
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-
 
 .formulario-page {
   --azul:          #1B396A;
@@ -544,7 +528,6 @@ const showNotification = (message, type) => {
   background: var(--fondo);
   font-family: 'Montserrat', sans-serif;
 }
-
 
 .breadcrumb {
   display: flex;
@@ -563,7 +546,6 @@ const showNotification = (message, type) => {
 .breadcrumb-link:hover { color: var(--azul-hover); text-decoration: underline; }
 .breadcrumb-sep { color: #9CA3AF; }
 .breadcrumb-actual { color: var(--gris); font-weight: 600; }
-
 
 .page-header {
   display: flex;
@@ -584,7 +566,6 @@ const showNotification = (message, type) => {
   margin: 0;
 }
 .obligatorio { color: var(--rojo); }
-
 
 .toast {
   position: fixed;
@@ -610,7 +591,6 @@ const showNotification = (message, type) => {
 .toast-slide-enter-active, .toast-slide-leave-active { transition: all 0.35s ease; }
 .toast-slide-enter-from, .toast-slide-leave-to { opacity: 0; transform: translateX(110%); }
 
-
 .form-card {
   background: #FFFFFF;
   border-radius: 14px;
@@ -621,7 +601,6 @@ const showNotification = (message, type) => {
   margin: 0 auto;
   border: 1px solid var(--borde);
 }
-
 
 .seccion {
   margin-bottom: 2rem;
@@ -656,7 +635,6 @@ const showNotification = (message, type) => {
   position: relative;
 }
 
-
 .etiqueta {
   display: flex;
   align-items: center;
@@ -676,7 +654,6 @@ const showNotification = (message, type) => {
   border-radius: 10px;
   margin-left: 4px;
 }
-
 
 .input-campo {
   width: 100%;
@@ -716,7 +693,6 @@ const showNotification = (message, type) => {
 .error-fade-enter-active, .error-fade-leave-active { transition: all 0.25s ease; }
 .error-fade-enter-from, .error-fade-leave-to { opacity: 0; transform: translateY(-4px); }
 
-
 .input-con-prefijo {
   display: flex;
   align-items: stretch;
@@ -752,7 +728,6 @@ const showNotification = (message, type) => {
 }
 .input-con-prefijo-campo:focus { box-shadow: none !important; }
 
-
 .campo.campo-error   .input-con-prefijo { border-color: var(--rojo); }
 .campo.campo-valido  .input-con-prefijo { border-color: #16A34A; }
 
@@ -765,10 +740,11 @@ const showNotification = (message, type) => {
 }
 .vista-previa-control strong { color: var(--azul); font-weight: 700; }
 
-
+/* Indicadores de estatus actualizados */
 .indicador-estatus {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   margin-top: 7px;
   padding: 4px 12px;
   border-radius: 20px;
@@ -776,10 +752,18 @@ const showNotification = (message, type) => {
   font-weight: 600;
   font-family: 'Montserrat', sans-serif;
 }
+.indicador-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: currentColor;
+}
 .indicador-estatus.activo        { background: #DCFCE7; color: #16A34A; }
 .indicador-estatus.baja-temporal { background: #FEF3C7; color: #F59E0B; }
 .indicador-estatus.baja-definitiva { background: #FEE2E2; color: #DC2626; }
-
+.indicador-estatus.titulado      { background: #EDE9FE; color: #7C3AED; }
+.indicador-estatus.egresado      { background: #DBEAFE; color: #1B396A; }
 
 .form-acciones {
   display: flex;
@@ -822,7 +806,6 @@ const showNotification = (message, type) => {
 }
 .btn-guardar:hover:not(:disabled) { background: var(--azul-hover); }
 .btn-guardar:disabled { opacity: 0.7; cursor: not-allowed; }
-
 
 .spinner {
   display: inline-block;

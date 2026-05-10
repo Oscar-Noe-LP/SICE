@@ -19,27 +19,33 @@
           <div class="input-group">
             <span class="icon">👤</span>
             <input
-              v-model="form.username"
+              v-model="form.nombre_usuario"
               type="text"
-              placeholder="Usuario / Correo institucional"
+              placeholder="Nombre de usuario"
               required
+              :disabled="isLoading"
             >
           </div>
 
           <div class="input-group">
             <span class="icon">🔒</span>
             <input
-              v-model="form.password"
+              v-model="form.contrasena"
               type="password"
               placeholder="Contraseña"
               required
+              :disabled="isLoading"
             >
+          </div>
+
+          <div v-if="error" style="color:#DC2626;font-size:0.9rem;margin-bottom:1rem;text-align:left;">
+            ⚠ {{ error }}
           </div>
 
           <a href="#" class="forgot">¿Olvidaste tu contraseña?</a>
 
-          <button type="submit" class="btn-login">
-            Iniciar sesión
+          <button type="submit" class="btn-login" :disabled="isLoading">
+            {{ isLoading ? 'Verificando...' : 'Iniciar sesión' }}
           </button>
 
           <div class="secure">
@@ -53,13 +59,43 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 
-const form = ref({ username: '', password: '' })
+const router = useRouter()
 
-const handleLogin = () => {
-  console.log('Login:', form.value)
-  alert('✅ Login simulado')
+const form = reactive({ nombre_usuario: '', contrasena: '' })
+const error = ref('')
+const isLoading = ref(false)
+
+const handleLogin = async () => {
+  error.value = ''
+  isLoading.value = true
+
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        nombre_usuario: form.nombre_usuario,
+        contrasena:     form.contrasena,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (response.ok && data.success) {
+      localStorage.setItem('auth_token', data.token)
+      localStorage.setItem('usuario', JSON.stringify(data.usuario))
+      router.push('/inicio')
+    } else {
+      error.value = data.message || 'Credenciales incorrectas'
+    }
+  } catch (e) {
+    error.value = 'Error de conexión. Verifica que el servidor esté activo.'
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
