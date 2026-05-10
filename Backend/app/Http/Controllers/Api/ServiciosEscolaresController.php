@@ -275,10 +275,28 @@ class ServiciosEscolaresController extends Controller
     {
         // Primero borrar las calificaciones asociadas
         DB::table('calificacion')->where('id_evaluacion', $id)->delete();
-    
+
         // Luego borrar la evaluación
         Evaluacion::destroy($id);
-    
+
         return response()->json(['mensaje' => 'Evaluación eliminada'], 200);
+    }
+
+    // 🔹 RESUMEN ESCOLAR
+    public function getResumen()
+    {
+        try {
+            return response()->json([
+                'total_alumnos'       => DB::table('alumno')->count(),
+                'alumnos_activos'     => DB::table('alumno')->where('estatus', 'Activo')->count(),
+                'total_grupos'        => DB::table('grupo')->count(),
+                'total_inscripciones' => DB::table('inscripcion')->count(),
+                'total_materias'      => DB::table('materia')->count(),
+                'total_evaluaciones'  => DB::table('evaluacion')->count(),
+                'total_calificaciones'=> DB::table('calificacion')->count(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

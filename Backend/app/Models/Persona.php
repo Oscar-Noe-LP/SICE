@@ -11,11 +11,13 @@ class Persona extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'nombre', 
-        'apellido_paterno', 
-        'apellido_materno', 
-        'curp', 
-        'fecha_nacimiento', 
-        'id_genero'
+        'nombre',
+        'apellido_paterno',
+        'apellido_materno',
+        'curp',
+        'fecha_nacimiento',
+        'id_genero',
+        'estado_civil',
+        'nacionalidad',
     ];
 }

@@ -30,16 +30,22 @@ class MateriaController extends Controller
     // ===============================
     public function store(Request $request)
     {
-        DB::table('materia')->insert([
-            'clave' => $request->clave,
-            'nombre' => $request->nombre,
-            'creditos' => $request->creditos,
-            'horas_teoria' => $request->horas_teoria,
-            'horas_practica' => $request->horas_practica,
-            'estatus' => $request->estatus ?? 1
+        $request->validate([
+            'nombre'   => 'required|string|max:150',
+            'creditos' => 'required|integer|min:0',
         ]);
 
-        return response()->json(['message' => 'Materia creada']);
+        $id = DB::table('materia')->insertGetId([
+            'clave'          => $request->clave,
+            'nombre'         => $request->nombre,
+            'descripcion'    => $request->descripcion,
+            'creditos'       => $request->creditos,
+            'horas_teoria'   => $request->horas_teoria   ?? 0,
+            'horas_practica' => $request->horas_practica ?? 0,
+            'estatus'        => $request->estatus ?? 1,
+        ]);
+
+        return response()->json(['message' => 'Materia creada', 'id_materia' => $id], 201);
     }
 
     // ===============================
@@ -47,14 +53,20 @@ class MateriaController extends Controller
     // ===============================
     public function update(Request $request, $id)
     {
+        $materia = DB::table('materia')->where('id_materia', $id)->first();
+        if (!$materia) {
+            return response()->json(['error' => 'Materia no encontrada'], 404);
+        }
+
         DB::table('materia')
             ->where('id_materia', $id)
             ->update([
-                'nombre' => $request->nombre,
-                'creditos' => $request->creditos,
-                'horas_teoria' => $request->horas_teoria,
-                'horas_practica' => $request->horas_practica,
-                'estatus' => $request->estatus
+                'nombre'         => $request->nombre          ?? $materia->nombre,
+                'descripcion'    => $request->descripcion     ?? $materia->descripcion,
+                'creditos'       => $request->creditos        ?? $materia->creditos,
+                'horas_teoria'   => $request->horas_teoria    ?? $materia->horas_teoria,
+                'horas_practica' => $request->horas_practica  ?? $materia->horas_practica,
+                'estatus'        => $request->estatus         ?? $materia->estatus,
             ]);
 
         return response()->json(['message' => 'Materia actualizada']);
