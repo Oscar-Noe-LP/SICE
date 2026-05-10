@@ -550,7 +550,7 @@ const buscar = async () => {
 const guardarFila = async (item) => {
   cargando.value = true
   try {
-    await guardarEvaluaciones(item)
+    await guardarEvaluaciones(item, route.params.id || null)
     mostrarToast(`Evaluación "${item.nombre}" guardada`)
   } catch {
     mostrarToast('No se pudo guardar.', 'error')
@@ -560,7 +560,7 @@ const guardarFila = async (item) => {
 const guardarTodo = async () => {
   cargando.value = true
   try {
-    await guardarEvaluaciones(criterios.value)
+    await guardarEvaluaciones(criterios.value, route.params.id || null)
     mostrarToast('Todos los criterios guardados')
   } catch {
     mostrarToast('Error al guardar.', 'error')
@@ -612,8 +612,9 @@ const guardarNuevaEvaluacion = async () => {
       mostrarToast(`Evaluación actualizada`)
     } else {
       const payload = { nombre: nuevoNombre.value.trim(), porcentaje: Number(nuevoPorcentaje.value) || 0, id_tipo_evaluacion: nuevoTipoEvalId.value || null }
-      await guardarEvaluaciones(payload)
-      await cargarDatosVista(route.params.id || null)
+      const grupoId = route.params.id || null
+      await guardarEvaluaciones(payload, grupoId)
+      await cargarDatosVista(grupoId)
       mostrarToast('Nueva evaluación agregada')
     }
     cerrarModal()
