@@ -89,9 +89,15 @@ import MainLayout from '@/layouts/MainLayout.vue'
 
 const router = useRouter()
 const route  = useRoute()
+const API    = `${import.meta.env.VITE_API_URL}/api`
 
-// Bug 1 corregido: VITE_API_URL undefined, igual que EventosView
-const API = `${import.meta.env.VITE_API_URL}/api`
+// ── Token de autenticación ────────────────────────────────────
+const token     = localStorage.getItem('auth_token')
+const headers   = {
+  'Content-Type': 'application/json',
+  ...(token && { 'Authorization': `Bearer ${token}` })
+}
+const headersGet = token ? { 'Authorization': `Bearer ${token}` } : {}
 
 const modoEdicion = computed(() => !!route.params.id)
 const cargando    = ref(false)
@@ -106,16 +112,12 @@ const mostrarNotificacion = (m, t = 'exito') => {
 }
 
 const fechaMinima = computed(() => new Date().toISOString().split('T')[0])
-
 const form    = ref({ nombre_evento: '', id_tipo_evento: '', fecha: '', descripcion: '' })
 const errores = ref({ nombre_evento: '', id_tipo_evento: '', fecha: '' })
 
-// Bug 2 corregido: era /tipo-evento, la ruta correcta es /tipos-evento
-// Bug 3 corregido: el back devuelve id_tipo_evento y nombre_tipo (ya lo tienen
-//                  gracias al fix en tiposEvento() del controlador)
 const cargarTipos = async () => {
   try {
-    const r = await fetch(`${API}/tipos-evento`)
+    const r = await fetch(`${API}/tipos-evento`, { headers: headersGet })
     if (!r.ok) throw new Error()
     tiposEvento.value = await r.json()
   } catch {
@@ -126,10 +128,9 @@ const cargarTipos = async () => {
 const cargarEvento = async () => {
   cargando.value = true
   try {
-    const r = await fetch(`${API}/eventos/${route.params.id}`)
+    const r = await fetch(`${API}/eventos/${route.params.id}`, { headers: headersGet })
     if (!r.ok) throw new Error()
     const d = await r.json()
-    // d.id_tipo_evento y d.nombre_evento ya vienen correctos del back
     form.value = {
       nombre_evento:  d.nombre_evento,
       id_tipo_evento: d.id_tipo_evento,
@@ -151,15 +152,11 @@ onMounted(() => {
 
 const validarCampo = (c) => {
   errores.value[c] = ''
-  if (c === 'nombre_evento' && !form.value.nombre_evento.trim())
-    errores.value.nombre_evento = 'Requerido'
-  if (c === 'id_tipo_evento' && !form.value.id_tipo_evento)
-    errores.value.id_tipo_evento = 'Selecciona un tipo'
+  if (c === 'nombre_evento'  && !form.value.nombre_evento.trim()) errores.value.nombre_evento  = 'Requerido'
+  if (c === 'id_tipo_evento' && !form.value.id_tipo_evento)       errores.value.id_tipo_evento = 'Selecciona un tipo'
   if (c === 'fecha') {
-    if (!form.value.fecha)
-      errores.value.fecha = 'Requerida'
-    else if (form.value.fecha < fechaMinima.value)
-      errores.value.fecha = 'La fecha no puede ser pasada'
+    if (!form.value.fecha) errores.value.fecha = 'Requerida'
+    else if (form.value.fecha < fechaMinima.value) errores.value.fecha = 'La fecha no puede ser pasada'
   }
 }
 
@@ -174,20 +171,13 @@ const guardar = async () => {
   try {
     const url    = modoEdicion.value ? `${API}/eventos/${route.params.id}` : `${API}/eventos`
     const method = modoEdicion.value ? 'PUT' : 'POST'
-
-    // El back espera: nombre, tipo_evento_id, fecha, descripcion
     const payload = {
       nombre:         form.value.nombre_evento.trim(),
       tipo_evento_id: Number(form.value.id_tipo_evento),
       fecha:          form.value.fecha,
       descripcion:    form.value.descripcion.trim() || null,
     }
-
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(payload)
-    })
+    const res = await fetch(url, { method, headers, body: JSON.stringify(payload) })
     if (!res.ok) throw new Error((await res.json()).message || 'Error del servidor')
     mostrarNotificacion(modoEdicion.value ? 'Evento actualizado' : 'Evento creado')
     setTimeout(() => router.push('/eventos'), 800)
@@ -198,6 +188,7 @@ const guardar = async () => {
   }
 }
 </script>
+
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 .formulario-evento-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; }
