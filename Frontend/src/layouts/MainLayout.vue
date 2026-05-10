@@ -119,7 +119,8 @@
     ></div>
 
     <!-- ══ MENÚ LATERAL ══ -->
-    <aside class="menu-lateral" @click.stop @mouseenter="onSidebarEnter" @mouseleave="onSidebarLeave">
+    <aside class="menu-lateral" @mouseenter="onSidebarEnter" @mouseleave="onSidebarLeave" @click.capture="interceptarClick">
+
       <nav class="navegacion" role="navigation" aria-label="Menú principal">
 
         <!-- Inicio -->
@@ -322,13 +323,14 @@ import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 useKeyboardShortcuts()
 
 import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route  = useRoute()
 
 // ── Estado global ─────────────────────────────────────────────────────
 const busquedaGlobal = ref('')
-const isCollapsed    = ref(false)
+const isCollapsed    = ref(true)
 
 // ── Fijado del sidebar ────────────────────────────────────────────────
 // isFixed: true = sidebar siempre visible (fijado)
@@ -376,15 +378,11 @@ onMounted(() => {
   load('isHistorialAcademicoOpen',      isHistorialAcademicoOpen)
   load('isInscripcionesDetalladasOpen', isInscripcionesDetalladasOpen)
   load('rolActual',                     rolActual, false)
-  load('isFixed',                       isFixed)
 
-  // Si estaba fijado, mostrar sidebar inmediatamente
-  if (isFixed.value) {
-    isCollapsed.value = false
-  } else {
-    // Si no estaba fijado, colapsar al cargar
-    isCollapsed.value = true
-  }
+  // Siempre arrancar con sidebar colapsado — el usuario lo abre con hover o hamburguesa
+  isFixed.value     = false
+  isCollapsed.value = true
+  localStorage.removeItem('isFixed')
 })
 
 watch(
@@ -448,17 +446,24 @@ const onSidebarLeave = () => {
   }
 }
 
-// ── Auto-colapso al navegar ───────────────────────────────────────────
-// Cuando el usuario hace clic en un link y cambia de ruta,
-// si el sidebar NO está fijado se colapsa automáticamente
+// ── Colapso al navegar ───────────────────────────────────────────────
+// interceptarClick usa la fase capture para atrapar el click ANTES
+// de que router-link lo procese, así el sidebar se colapsa al instante
+const interceptarClick = (e) => {
+  if (!isFixed.value && e.target.closest('a[href]')) {
+    isHovered.value   = false
+    isCollapsed.value = true
+  }
+}
+
+// Watch de ruta como respaldo
 watch(
-  () => router.currentRoute.value.fullPath,
+  () => route.fullPath,
   () => {
     if (!isFixed.value) {
       isHovered.value   = false
       isCollapsed.value = true
     }
-    // Siempre cerrar los menús desplegables del header
     cerrarMenus()
   }
 )
@@ -520,7 +525,7 @@ const establecerRol = (rol) => {
 
 /* ══ Encabezado ══ */
 .encabezado-superior {
-  background: #1B396A;
+  background: #1a2744;
   padding: 0 2rem;
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -640,55 +645,105 @@ const establecerRol = (rol) => {
 /* ══ Menú lateral ══ */
 .menu-lateral {
   width: 260px;
-  background: #D6D6D6;
+  background: #1a2744;
   position: fixed;
   top: 74px; bottom: 0; left: 0;
-  overflow-y: auto; overflow-x: hidden;
-  padding-top: 0.5rem;
+  overflow: hidden;
+  padding-top: 0;
   transition: width 0.35s ease;
   z-index: 900;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.07);
+  box-shadow: 3px 0 16px rgba(0,0,0,0.3);
 }
 .sistema-layout.sidebar-collapsed .menu-lateral { width: 0; padding-top: 0; }
 
 .navegacion { width: 260px; display: flex; flex-direction: column; }
 
+/* ── Items del menú ── */
 .elemento-menu {
-  display: flex; align-items: center; gap: 11px;
-  padding: 12px 20px;
-  color: #1A1A1A; text-decoration: none;
-  font-size: 0.93rem; font-weight: 500; cursor: pointer;
-  transition: background 0.18s, color 0.18s;
-  white-space: nowrap; border-left: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  color: rgba(255,255,255,0.72);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  border-left: 3px solid transparent;
+  font-family: 'Montserrat', sans-serif;
 }
-.elemento-menu:hover { background: #E5E7EB; color: #1B396A; }
-.elemento-menu.activo {
-  background: #FFFFFF; color: #1B396A;
-  font-weight: 600; border-left-color: #1B396A;
+.elemento-menu:hover {
+  background: rgba(255,255,255,0.07);
+  color: #FFFFFF;
 }
-.elemento-menu.activo .icono-menu { stroke: #1B396A; }
+.elemento-menu:hover .icono-menu { stroke: #FFFFFF; }
 
-.icono-menu { width: 20px; height: 20px; stroke: #6B7280; flex-shrink: 0; transition: stroke 0.18s; }
+.elemento-menu.activo {
+  background: rgba(255,255,255,0.13);
+  color: #FFFFFF;
+  font-weight: 600;
+  border-left-color: #7DD3FC;
+}
+.elemento-menu.activo .icono-menu { stroke: #7DD3FC; }
+
+.icono-menu {
+  width: 17px; height: 17px;
+  stroke: rgba(255,255,255,0.5);
+  flex-shrink: 0;
+  transition: stroke 0.15s;
+}
 .etiqueta-menu { flex: 1; }
 
 .elemento-padre { user-select: none; }
-.flecha-submenu { margin-left: auto; font-size: 1.1rem; color: #6B7280; transition: transform 0.25s; }
+.flecha-submenu {
+  margin-left: auto;
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.35);
+  transition: transform 0.22s;
+}
 .flecha-submenu.abierto { transform: rotate(90deg); }
 
-.submenu { background: rgba(0,0,0,0.05); }
-.elemento-submenu { padding-left: 44px; font-size: 0.88rem; font-weight: 400; }
-.elemento-submenu-anidado { padding-left: 60px; font-size: 0.85rem; }
+/* ── Submenús ── */
+.submenu { background: rgba(0,0,0,0.12); }
+.elemento-submenu {
+  padding: 8px 16px 8px 42px;
+  font-size: 0.86rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.6);
+}
+.elemento-submenu:hover { color: #FFFFFF; background: rgba(255,255,255,0.06); }
+.elemento-submenu.activo {
+  color: #FFFFFF;
+  background: rgba(255,255,255,0.1);
+  border-left-color: #7DD3FC;
+  font-weight: 500;
+}
+.elemento-submenu-anidado {
+  padding-left: 58px;
+  font-size: 0.83rem;
+}
 
-.separador-menu { padding: 10px 20px 4px; margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); }
+/* ── Separador de sección ── */
+.separador-menu {
+  padding: 14px 16px 5px;
+  margin-top: 2px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
 .separador-menu span {
-  font-size: 0.72rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em; color: #6B7280;
+  font-size: 0.63rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.3);
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* ══ Barra de scroll — Navy Slim Minimal ══ */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #1a3a5f #f1f5f9;
+  scrollbar-color: #1e3a5f #f1f5f9;
 }
 
 *::-webkit-scrollbar {
@@ -702,7 +757,7 @@ const establecerRol = (rol) => {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #1a3a5f;
+  background: #1e3a5f;
   border-radius: 4px;
   transition: background 200ms ease;
 }
@@ -738,6 +793,8 @@ const establecerRol = (rol) => {
 .sistema-layout.sidebar-collapsed .menu-lateral {
   width: 0;
   padding-top: 0;
+  overflow: hidden;
+  box-shadow: none;
 }
 
 /* Franja invisible de 8px para activar expansión por hover */
