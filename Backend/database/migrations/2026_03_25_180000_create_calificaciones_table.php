@@ -4,38 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * NOTA: Esta migración fue reemplazada por el esquema real de la tabla `calificacion`
+ * (singular) que es la que usan todos los controladores. Se conserva como no-op
+ * para no romper el historial de migraciones en bases de datos existentes.
+ */
 class CreateCalificacionesTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('calificaciones', function (Blueprint $table) {
-            $table->bigIncrements('id_calificacion'); // PK BIGINT UNSIGNED
-
-            $table->string('control', 20)->unique(); // número de control
-            $table->string('nombre');                // nombre del alumno
-            $table->integer('p1')->nullable();       // parcial 1 (30%)
-            $table->integer('p2')->nullable();       // parcial 2 (30%)
-            $table->integer('proy')->nullable();     // proyecto (40%)
-
-            // Relación con evaluacion
-            $table->unsignedBigInteger('id_evaluacion'); // FK BIGINT UNSIGNED
-            $table->foreign('id_evaluacion')
-                  ->references('id_evaluacion')
-                  ->on('evaluacion')
-                  ->onDelete('cascade');
-
-            $table->timestamps();
-        });
+        // No-op: la tabla real es `calificacion` (singular), no `calificaciones`.
+        // El esquema fue definido directamente en la base de datos de producción.
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('calificaciones');
+        // No-op
     }
 }

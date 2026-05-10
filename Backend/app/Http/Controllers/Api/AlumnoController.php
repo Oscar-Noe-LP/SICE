@@ -138,18 +138,10 @@ class AlumnoController extends Controller
                 ]);
             }
 
-         
-            $estatusBoolean = match($request->estatus) {
-                'Activo'          => 1,
-                'Baja Temporal'   => 0,
-                'Baja Definitiva' => 0,
-                default           => $alumno->estatus
-            };
-
             $alumno->update([
                 'id_carrera'        => $request->id_carrera      ?? $alumno->id_carrera,
                 'semestre_actual'   => $request->semestre_actual  ?? $alumno->semestre_actual,
-                'estatus'           => $estatusBoolean,
+                'estatus'           => $request->estatus           ?? $alumno->estatus,
                 'id_estatus_alumno' => $request->id_estatus_alumno ?? $alumno->id_estatus_alumno,
             ]);
 
