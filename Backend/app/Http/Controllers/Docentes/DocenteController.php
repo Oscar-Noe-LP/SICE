@@ -16,15 +16,16 @@ class DocenteController extends Controller
     {
         try {
             $docentes = DB::table('docente as d')
-                ->join('persona as p', 'd.id_persona', '=', 'p.id_persona')
+                ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+                ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
                 ->select([
                     'd.id_docente',
                     DB::raw("CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno, '')) as nombre"),
-                    'd.numero_empleado',
-                    DB::raw('0 as carga_actual'),           // Puedes calcularlo después si quieres
-                    DB::raw('[] as horarios')               // Placeholder (puedes expandir después)
+                    'e.numero_empleado',
+                    DB::raw('0 as carga_actual'),
+                    DB::raw("'[]' as horarios"),
                 ])
-                ->where('d.estatus', true)
+                ->where('e.estatus', true)
                 ->orderBy('p.apellido_paterno')
                 ->get();
 

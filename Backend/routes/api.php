@@ -136,9 +136,6 @@ Route::get('/materias/{id}/planes', [MateriaController::class, 'planes']);
 // Plan - Materia
 Route::post('/plan-materia', [PlanMateriaController::class, 'store']);
 
-// Planes de estudio
-Route::get('/planes-estudio', [PlanEstudioController::class, 'index']);
-
 // PERÍODOS
 use App\Http\Controllers\PeriodoController;
 
@@ -147,15 +144,11 @@ Route::post('/periodos', [PeriodoController::class, 'store']);
 Route::put('/periodos/{id}', [PeriodoController::class, 'update']);
 Route::delete('/periodos/{id}', [PeriodoController::class, 'destroy']);
 
-// PLANES DE ESTUDIO Y CARRERAS
 // PLANES DE ESTUDIO
 Route::get('/planes-estudio', [PlanEstudioController::class, 'index']);
 Route::post('/planes-estudio', [PlanEstudioController::class, 'store']);
 Route::put('/planes-estudio/{id}', [PlanEstudioController::class, 'update']);
 Route::delete('/planes-estudio/{id}', [PlanEstudioController::class, 'destroy']);
-
-// CARRERAS
-Route::get('/carreras', [CarreraController::class, 'index']);
 
 // PRERREQUISITOS
 use App\Http\Controllers\PrerrequisitoController;
@@ -272,8 +265,6 @@ Route::prefix('comite')->group(function () {
 
     Route::get('/personas/buscar', [ComiteAcademicoController::class, 'buscarPersonas']);
 });
-
-Route::get('/personas/buscar', [ComiteAcademicoController::class, 'buscarPersonas']);
 
 // ====================== ASIGNACIÓN DOCENTE A GRUPOS ======================
 
