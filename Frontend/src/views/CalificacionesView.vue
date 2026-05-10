@@ -713,7 +713,7 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-.calificaciones-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; position: relative; }
+.calificaciones-page { width: 100%; max-width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; position: relative; box-sizing: border-box; }
 
 /* ALERTAS Y BREADCRUMB */
 .alerta-error-catalogos { display: flex; align-items: center; gap: 0.6rem; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 10px; padding: 0.8rem 1.2rem; margin-bottom: 1rem; font-size: 0.875rem; font-weight: 600; }
@@ -766,7 +766,7 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
 .parcial-valor { font-size: 0.9rem; font-weight: 800; width: 40px; text-align: right; flex-shrink: 0; }
 
 /* FILTROS REFACTORIZADOS CON POPOVER */
-.filtros-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1rem 1.4rem; margin-bottom: 1.5rem; }
+.filtros-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1rem 1.4rem; margin-bottom: 1.5rem; width: 100%; box-sizing: border-box; }
 .filtros-container { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; flex-wrap: wrap; }
 .busqueda-wrapper { position: relative; display: flex; align-items: center; flex: 1; max-width: 450px; }
 .busqueda-control { display: flex; align-items: center; flex: 1; gap: 8px; background: #F5F5F5; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0 8px 0 12px; transition: border-color 0.2s; }
@@ -793,11 +793,12 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
 .btn-exportar:hover { background: #DBEAFE; }
 
 /* TABLA OPTIMIZADA (Padding reducido y sin textos) */
-.tabla-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 1.5rem; }
+.tabla-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 1.5rem; width: 100%; box-sizing: border-box; }
 .tabla-encabezado { padding: 1rem 1.4rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #E5E7EB; }
 .tabla-acciones-top { display: flex; align-items: center; gap: 0.75rem; }
 .tabla-contador { font-size: 0.8rem; color: #6B7280; background: #F5F5F5; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 20px; }
-.tabla-scroll { overflow-x: auto; }
+.tabla-scroll { overflow-x: auto; width: 100%; }
+.tabla-califs { width: 100%; border-collapse: collapse; }
 .tabla-califs.compacta th { padding: 10px 14px; font-size: 0.75rem; font-weight: 700; color: #6B7280; text-transform: uppercase; background: #F5F5F5; border-bottom: 1px solid #E5E7EB; text-align: left; }
 .tabla-califs.compacta td { padding: 8px 14px; border-bottom: 1px solid #E5E7EB; vertical-align: middle; font-size: 0.85rem; }
 .tabla-califs th.centrado, .tabla-califs td.centrado { text-align: center; }

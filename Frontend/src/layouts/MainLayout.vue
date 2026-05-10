@@ -119,7 +119,7 @@
     ></div>
 
     <!-- ══ MENÚ LATERAL ══ -->
-    <aside class="menu-lateral" @click.stop>
+    <aside class="menu-lateral" @click.stop @mouseenter="onSidebarEnter" @mouseleave="onSidebarLeave">
       <nav class="navegacion" role="navigation" aria-label="Menú principal">
 
         <!-- Inicio -->
@@ -692,7 +692,7 @@ const establecerRol = (rol) => {
 }
 
 *::-webkit-scrollbar {
-  width: 0px;
+  width: 8px;
   height: 8px;
 }
 
@@ -708,7 +708,7 @@ const establecerRol = (rol) => {
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #193d94;
+  background: #16304d;
 }
 
 *::-webkit-scrollbar-thumb:active {

@@ -81,7 +81,7 @@
               <th>Nombre del Rol</th>
               <th>Descripción</th>
               <th>Estatus</th>
-              <th>Acciones</th>
+              <th style="width:120px">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -846,6 +846,8 @@ watch(busquedaRol, () => {
   gap: 6px;
   align-items: center;
   width: fit-content;
+  padding-right: 0 !important;
+  white-space: nowrap;
 }
 .btn-icono {
   display: flex;
