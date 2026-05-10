@@ -41,9 +41,13 @@ class CargaDocenteController extends Controller
                 });
             }
 
+            // Limitar resultados solo cuando se busca (dropdown), no en listado completo
+            if ($request->filled('q')) {
+                $query->limit(20);
+            }
+
             $docentes = $query
                 ->orderBy('p.apellido_paterno')
-                ->limit(20) // Limitar resultados para no saturar el dropdown
                 ->get();
 
             return response()->json($docentes);

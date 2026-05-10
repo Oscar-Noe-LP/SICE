@@ -17,7 +17,6 @@ class PersonaController extends Controller
         try {
             $query = DB::table('persona as pe')
                 ->leftJoin('genero as g', 'pe.id_genero', '=', 'g.id_genero')
-                ->where('pe.estatus', true)
                 ->leftJoin('alumno as al', 'pe.id_persona', '=', 'al.id_persona')
                 ->leftJoin('empleado as em', 'pe.id_persona', '=', 'em.id_persona')
                 ->select(

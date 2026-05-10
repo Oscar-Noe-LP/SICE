@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Alumno;
 use App\Models\Persona;
+use App\Services\BitacoraService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -94,6 +95,12 @@ class AlumnoController extends Controller
 
             DB::commit();
 
+            BitacoraService::registrar('INSERT', 'alumno', $alumno->id_alumno, [], [
+                'numero_control' => $request->numero_control,
+                'id_carrera'     => $request->id_carrera,
+                'semestre'       => $request->semestre_actual,
+            ]);
+
             return response()->json([
                 'message' => 'Alumno registrado correctamente',
                 'data'    => $alumno->load(['persona', 'carrera'])
@@ -150,8 +157,12 @@ class AlumnoController extends Controller
 
             DB::commit();
 
-            // Recargar con la relación de estatus para que la respuesta
-            // incluya el nombre correcto (no el booleano)
+            BitacoraService::registrar('UPDATE', 'alumno', $id,
+                ['id_carrera' => $alumno->getOriginal('id_carrera'), 'semestre_actual' => $alumno->getOriginal('semestre_actual'), 'estatus' => $alumno->getOriginal('estatus')],
+                ['id_carrera' => $request->id_carrera, 'semestre_actual' => $request->semestre_actual, 'estatus' => $request->estatus]
+            );
+
+            // Recargar con la relación de estatus para que la respuesta incluya el nombre correcto
             $alumno->load(['persona', 'carrera', 'estatusAlumno']);
             $alumno->estatus = $alumno->estatusAlumno?->nombre
                                ?? ($alumno->estatus ? 'Activo' : 'Inactivo');
@@ -263,6 +274,11 @@ class AlumnoController extends Controller
             DB::table('persona')->where('id_persona', $idPersona)->delete();
 
             DB::commit();
+
+            BitacoraService::registrar('DELETE', 'alumno', $id, [
+                'id_persona'     => $idPersona,
+                'numero_control' => $alumno->numero_control,
+            ]);
 
             return response()->json(['message' => 'Alumno eliminado correctamente']);
 

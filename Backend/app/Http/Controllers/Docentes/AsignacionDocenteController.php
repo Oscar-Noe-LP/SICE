@@ -57,25 +57,33 @@ class AsignacionDocenteController extends Controller
     public function docentesDisponibles()
     {
         try {
+            // Subquery: grupos del periodo activo por docente
+            $cargaSubquery = DB::table('grupo as g')
+                ->join('periodo as per', 'g.id_periodo', '=', 'per.id_periodo')
+                ->where('per.estatus', true)
+                ->select('g.id_docente', DB::raw('COUNT(*) as carga_periodo_actual'))
+                ->groupBy('g.id_docente');
+
             $docentes = DB::table('docente as d')
                 ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
                 ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
-                ->leftJoin('grupo as g', 'g.id_docente', '=', 'd.id_docente')
+                ->leftJoinSub($cargaSubquery, 'carga', 'carga.id_docente', '=', 'd.id_docente')
+                ->where('e.estatus', true)
                 ->select(
                     'd.id_docente',
-                    DB::raw("CONCAT(p.nombre, ' ', COALESCE(p.apellido_paterno,''), ' ', COALESCE(p.apellido_materno,'')) as nombre"),
+                    DB::raw("TRIM(CONCAT(p.nombre, ' ', COALESCE(p.apellido_paterno,''), ' ', COALESCE(p.apellido_materno,''))) as nombre"),
                     'e.numero_empleado',
                     'd.especialidad',
                     'd.grado_academico',
-                    DB::raw('COUNT(g.id_grupo) as carga_actual')
+                    DB::raw('COALESCE(carga.carga_periodo_actual, 0) as carga_actual')
                 )
-                ->groupBy('d.id_docente', 'p.nombre', 'p.apellido_paterno', 'p.apellido_materno', 'e.numero_empleado', 'd.especialidad', 'd.grado_academico')
+                ->orderBy('p.apellido_paterno')
                 ->get();
 
             return response()->json($docentes);
         } catch (\Exception $e) {
             Log::error("Error en docentesDisponibles(): " . $e->getMessage());
-            return response()->json(['error' => 'Error al cargar docentes'], 500);
+            return response()->json(['error' => 'Error al cargar docentes', 'detalle' => $e->getMessage()], 500);
         }
     }
 

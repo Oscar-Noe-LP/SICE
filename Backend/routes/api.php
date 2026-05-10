@@ -249,8 +249,8 @@ Route::put('/adscripciones/{id}',                         [AdscripcionController
 Route::delete('/adscripciones/{id}',                      [AdscripcionController::class, 'destroy']);
 Route::get('/empleados/{idEmpleado}/adscripcion-activa',  [AdscripcionController::class, 'getAdscripcionActiva']);
 
-// Docentes
-Route::get('/docentes',      [DocentesController::class, 'index']);
+// Docentes (vista RH detallada con puesto/departamento)
+Route::get('/docentes-rh',   [DocentesController::class, 'index']);
 Route::put('/docentes/{id}', [DocentesController::class, 'update']);
 
 
