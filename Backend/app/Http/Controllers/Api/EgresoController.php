@@ -80,8 +80,13 @@ class EgresoController extends Controller
                 ->where('cal.calificacion', '>=', 70)
                 ->sum('m.creditos');
 
+            $idEstatusEgreso = DB::table('estatus_alumno')
+                ->where('nombre', 'Proceso de Egreso')
+                ->value('id_estatus_alumno');
+
             DB::table('alumno')->where('id_alumno', $request->id_alumno)->update([
-                'estatus' => 'Proceso de Egreso',
+                'estatus'           => 'Proceso de Egreso',
+                'id_estatus_alumno' => $idEstatusEgreso,
             ]);
 
             return response()->json([
@@ -107,7 +112,14 @@ class EgresoController extends Controller
                 return response()->json(['success' => false, 'error' => 'Alumno no encontrado'], 404);
             }
 
-            DB::table('alumno')->where('id_alumno', $id)->update(['estatus' => 'Titulado']);
+            $idEstatusTitulado = DB::table('estatus_alumno')
+                ->where('nombre', 'Titulado')
+                ->value('id_estatus_alumno');
+
+            DB::table('alumno')->where('id_alumno', $id)->update([
+                'estatus'           => 'Titulado',
+                'id_estatus_alumno' => $idEstatusTitulado,
+            ]);
 
             return response()->json(['success' => true, 'message' => 'Alumno marcado como Titulado']);
 

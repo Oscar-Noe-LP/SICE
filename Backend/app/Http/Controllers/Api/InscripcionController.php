@@ -23,11 +23,13 @@ class InscripcionController extends Controller
             }
 
             $alumno = Alumno::with(['persona', 'carrera'])
-                ->where('numero_control', $term)
-                ->orWhereHas('persona', function ($query) use ($term) {
-                    $query->where('nombre', 'like', "%{$term}%")
-                          ->orWhere('apellido_paterno', 'like', "%{$term}%")
-                          ->orWhere('apellido_materno', 'like', "%{$term}%");
+                ->where(function ($q) use ($term) {
+                    $q->where('numero_control', $term)
+                      ->orWhereHas('persona', function ($q2) use ($term) {
+                          $q2->where('nombre', 'like', "%{$term}%")
+                             ->orWhere('apellido_paterno', 'like', "%{$term}%")
+                             ->orWhere('apellido_materno', 'like', "%{$term}%");
+                      });
                 })
                 ->first();
 
