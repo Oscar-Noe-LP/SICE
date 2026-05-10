@@ -1,6 +1,3 @@
-Aquí tienes el código completo y refactorizado de `EvaluacionesView.vue`. Se han implementado rigurosamente todos los requerimientos solicitados en el documento de revisión, incluyendo la nueva estructura de filtros avanzados (popover), la optimización de espacios (padding reducido y paginación) y la iconización total de las acciones, preservando el diseño y la arquitectura base.
-
-```vue
 <template>
   <MainLayout v-slot="{ busquedaGlobal }">
     <div class="evaluaciones-page">
@@ -761,6 +758,4 @@ const generarReporte = async () => {
 .popover-fade-enter-from, .popover-fade-leave-to { opacity: 0; transform: translateY(-10px); }
 .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 0.9rem 1.4rem; border-radius: 10px; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.6rem; z-index: 3000; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
 .toast.exito { background: #1B396A; color: #FFFFFF; } .toast.error { background: #DC2626; color: #FFFFFF; }
-</style>
-
-```
+</style>

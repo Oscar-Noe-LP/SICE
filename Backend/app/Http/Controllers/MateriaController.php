@@ -61,12 +61,13 @@ class MateriaController extends Controller
         DB::table('materia')
             ->where('id_materia', $id)
             ->update([
-                'nombre'         => $request->nombre          ?? $materia->nombre,
-                'descripcion'    => $request->descripcion     ?? $materia->descripcion,
-                'creditos'       => $request->creditos        ?? $materia->creditos,
-                'horas_teoria'   => $request->horas_teoria    ?? $materia->horas_teoria,
-                'horas_practica' => $request->horas_practica  ?? $materia->horas_practica,
-                'estatus'        => $request->estatus         ?? $materia->estatus,
+                'clave'          => $request->has('clave')          ? $request->clave          : $materia->clave,
+                'nombre'         => $request->has('nombre')         ? $request->nombre         : $materia->nombre,
+                'descripcion'    => $request->has('descripcion')    ? $request->descripcion    : $materia->descripcion,
+                'creditos'       => $request->has('creditos')       ? $request->creditos       : $materia->creditos,
+                'horas_teoria'   => $request->has('horas_teoria')   ? $request->horas_teoria   : $materia->horas_teoria,
+                'horas_practica' => $request->has('horas_practica') ? $request->horas_practica : $materia->horas_practica,
+                'estatus'        => $request->has('estatus')        ? $request->estatus        : $materia->estatus,
             ]);
 
         return response()->json(['message' => 'Materia actualizada']);

@@ -45,6 +45,43 @@ class HistorialInscripcionController extends Controller
      */
     public function historial($id_alumno)
     {
+        return response()->json($this->getHistorialData($id_alumno));
+    }
+
+    /**
+     * 📄 Exportar PDF
+     */
+    public function exportar($id_alumno)
+    {
+        $alumno = DB::table('alumno as a')
+            ->join('persona as p', 'a.id_persona', '=', 'p.id_persona')
+            ->select(
+                'a.numero_control',
+                DB::raw("CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', p.apellido_materno) as nombre")
+            )
+            ->where('a.id_alumno', $id_alumno)
+            ->first();
+
+        if (!$alumno) {
+            return response()->json(['error' => 'Alumno no encontrado'], 404);
+        }
+
+        $periodos = $this->getHistorialData($id_alumno);
+
+        $pdf = Pdf::loadView('pdf.historial', [
+            'periodos' => $periodos,
+            'alumno'   => $alumno,
+        ]);
+
+        return $pdf->download("historial_{$alumno->numero_control}.pdf");
+    }
+
+    /**
+     * Consulta base del historial — devuelve una Collection agrupada por periodo.
+     * Usada tanto por historial() (JSON) como por exportar() (PDF).
+     */
+    private function getHistorialData($id_alumno)
+    {
         $inscripciones = DB::table('inscripcion as i')
             ->join('grupo as g', 'i.id_grupo', '=', 'g.id_grupo')
             ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
@@ -56,7 +93,7 @@ class HistorialInscripcionController extends Controller
             ->leftJoin('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
             ->leftJoin('persona as pd', 'e.id_persona', '=', 'pd.id_persona')
 
-            // 🔥 cálculo de calificación final
+            // calificación final
             ->leftJoin('calificacion as cal', 'i.id_inscripcion', '=', 'cal.id_inscripcion')
 
             ->select(
@@ -72,7 +109,6 @@ class HistorialInscripcionController extends Controller
                 'i.fecha_inscripcion',
                 'i.estatus',
 
-                // 🔥 PROMEDIO de calificaciones
                 DB::raw("ROUND(AVG(cal.calificacion), 0) as calificacion_final")
             )
             ->where('i.id_alumno', $id_alumno)
@@ -91,39 +127,12 @@ class HistorialInscripcionController extends Controller
             ->orderBy('p.id_periodo', 'desc')
             ->get();
 
-        // 🔥 Agrupar por periodo (igual que tu frontend espera)
-        $agrupado = $inscripciones->groupBy('id_periodo')->map(function ($items) {
+        return $inscripciones->groupBy('id_periodo')->map(function ($items) {
             return [
-                'id_periodo' => $items[0]->id_periodo,
+                'id_periodo'    => $items[0]->id_periodo,
                 'nombre_periodo' => $items[0]->nombre_periodo,
-                'inscripciones' => $items->values()
+                'inscripciones' => $items->values(),
             ];
         })->values();
-
-        return response()->json($agrupado);
-    }
-
-    /**
-     * 📄 Exportar PDF
-     */
-    public function exportar($id_alumno)
-    {
-        $historial = json_decode($this->historial($id_alumno)->getContent());
-
-        $alumno = DB::table('alumno as a')
-            ->join('persona as p', 'a.id_persona', '=', 'p.id_persona')
-            ->select(
-                'a.numero_control',
-                DB::raw("CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', p.apellido_materno) as nombre")
-            )
-            ->where('a.id_alumno', $id_alumno)
-            ->first();
-
-        $pdf = Pdf::loadView('pdf.historial', [
-            'periodos' => $historial,
-            'alumno' => $alumno
-        ]);
-
-        return $pdf->download("historial_{$alumno->numero_control}.pdf");
     }
 }
