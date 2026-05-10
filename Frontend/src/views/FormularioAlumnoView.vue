@@ -98,16 +98,11 @@
           <div class="fila-campos fila-parcial">
             <div class="campo" :class="{ 'campo-error': errors.genero, 'campo-valido': campoValido('genero') }">
               <label class="etiqueta">Género <span class="obligatorio">*</span></label>
-              <select
-                v-model="form.genero"
-                class="input-campo"
-                :class="{ 'borde-error': errors.genero, 'borde-valido': campoValido('genero') }"
-                @change="validarCampo('genero')"
-              >
-                <option value="">Seleccionar</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Otro">Otro</option>
+              <select v-model="form.genero" class="input-campo" @change="validarCampo('genero')">
+                <option value="">Seleccionar género</option>
+                <option v-for="g in generos" :key="g.id_genero" :value="g.nombre_genero">
+                  {{ g.nombre_genero }}
+                </option>
               </select>
               <transition name="error-fade">
                 <small v-if="errors.genero" class="mensaje-error">{{ errors.genero }}</small>
@@ -159,18 +154,11 @@
 
             <div class="campo" :class="{ 'campo-error': errors.carrera, 'campo-valido': campoValido('carrera') }">
               <label class="etiqueta">Carrera <span class="obligatorio">*</span></label>
-              <select
-                v-model="form.carrera"
-                class="input-campo"
-                :class="{ 'borde-error': errors.carrera, 'borde-valido': campoValido('carrera') }"
-                @change="validarCampo('carrera')"
-              >
+              <select v-model="form.id_carrera" class="input-campo" @change="validarCampo('carrera')">
                 <option value="">Seleccionar carrera</option>
-                <option value="Contador Publico">Contador Público</option>
-                <option value="Ingenieria Civil">Ingeniería Civil</option>
-                <option value="Ingenieria en Gestion empresarial">Ing. en Gestión Empresarial</option>
-                <option value="Ingenieria en Sistemas Computacionales">Ing. en Sistemas Computacionales</option>
-                <option value="Ingenieria Industrial">Ingeniería Industrial</option>
+                <option v-for="c in carreras" :key="c.id_carrera" :value="c.id_carrera">
+                  {{ c.nombre }}
+                </option>
               </select>
               <transition name="error-fade">
                 <small v-if="errors.carrera" class="mensaje-error">{{ errors.carrera }}</small>
@@ -211,14 +199,17 @@
 
             <div class="campo">
               <label class="etiqueta">Estatus <span class="obligatorio">*</span></label>
-              <select v-model="form.estatus" class="input-campo">
-                <option value="Activo">Activo</option>
-                <option value="Baja Temporal">Baja Temporal</option>
-                <option value="Baja Definitiva">Baja Definitiva</option>
+              <select v-model="form.id_estatus_alumno" class="input-campo">
+                <option v-for="e in estatusOptions" :key="e.id_estatus_alumno" :value="e.id_estatus_alumno">
+                  {{ e.nombre }}
+                </option>
               </select>
 
-              <div class="indicador-estatus" :class="form.estatus.toLowerCase().replace(/\s/g, '-')">
-                {{ form.estatus }}
+              <!-- Indicador dinámico corregido -->
+              <div 
+                class="indicador-estatus" 
+                :class="getEstatusClass(form.id_estatus_alumno)">
+                {{ getEstatusNombre(form.id_estatus_alumno) }}
               </div>
             </div>
 
@@ -259,7 +250,7 @@
 
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
@@ -273,6 +264,11 @@ const anioActual  = new Date().getFullYear()
 const prefijoAnio = String(anioActual).slice(-2)
 const hoyISO      = new Date().toISOString().split('T')[0]
 
+// ── Catálogos dinámicos ─────────────────────────────────────
+const generos = ref([])
+const carreras = ref([])
+const estatusOptions = ref([])
+
 // ── Sufijo del número de control ─────────────────────────────────────
 const sufijoCodigo = ref('')
 
@@ -283,9 +279,9 @@ const form = reactive({
   apellidoMaterno: '',
   genero:          '',
   noControl:       '',
-  carrera:         '',
+  id_carrera:      null,        // ← Cambiado a id
   semestre:        '',
-  estatus:         'Activo',
+  id_estatus_alumno: 1,         // Activo por defecto
   fechaIngreso:    ''
 })
 
@@ -293,6 +289,34 @@ const errors       = reactive({})
 const tocados      = reactive({})
 const notification = reactive({ message: '', type: '' })
 const isLoading    = ref(false)
+
+
+
+// Cargar catálogos al montar el componente
+const cargarCatalogos = async () => {
+  try {
+    const response = await fetch(`${API_URL}/api/alumnos/catalogos`)
+    if (!response.ok) throw new Error('Error al cargar catálogos')
+    
+    const data = await response.json()
+    
+    generos.value = data.generos || []
+    carreras.value = data.carreras || []
+    estatusOptions.value = data.estatus_alumno || []
+    
+  } catch (error) {
+    console.error('Error cargando catálogos:', error)
+    showNotification('Error al cargar catálogos. Verifica tu conexión.', 'error')
+  }
+}
+
+onMounted(() => {
+  cargarCatalogos()
+})
+
+
+
+
 
 // ── Máscara del número de control ────────────────────────────────────
 const aplicarMascaraControl = () => {
@@ -341,7 +365,7 @@ const validarCampo = (campo) => {
       break
 
     case 'carrera':
-      if (!form.carrera)
+      if (!form.id_carrera)
         errors.carrera = 'Seleccione una carrera'
       else
         delete errors.carrera
@@ -405,9 +429,9 @@ const guardarAlumno = async () => {
     apellido_paterno: form.apellidoPaterno.trim(),
     apellido_materno: form.apellidoMaterno.trim() || null,
     genero:           form.genero,
-    id_carrera:       getIdCarrera(form.carrera),
+    id_carrera:       form.id_carrera,
     semestre_actual:  parseInt(form.semestre),
-    estatus:          getEstatus(form.estatus),
+    estatus:          form.id_estatus_alumno,    // Ahora se usa el ID
     fecha_ingreso:    form.fechaIngreso
   }
 
@@ -477,6 +501,20 @@ const esDuplicadoControl = (data) => {
   return texto.includes('unique') || texto.includes('duplicate') ||
          texto.includes('numero_control') || texto.includes('ya está')
 }
+
+// Helper para obtener el nombre del estatus
+const getEstatusNombre = (id) => {
+  const estatus = estatusOptions.value.find(e => e.id_estatus_alumno === id)
+  return estatus ? estatus.nombre : 'Activo'
+}
+
+// Helper para la clase CSS del indicador
+const getEstatusClass = (id) => {
+  const nombre = getEstatusNombre(id)
+  return nombre.toLowerCase().replace(/\s/g, '-')
+}
+
+
 
 const cancelar = () => router.push('/alumnos')
 
