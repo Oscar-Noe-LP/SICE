@@ -15,7 +15,9 @@ class GrupoController extends Controller
         try {
             $grupos = DB::table('grupo as g')
                 ->leftJoin('materia as m', 'g.id_materia', '=', 'm.id_materia')
-                ->leftJoin('persona as p', 'g.id_docente', '=', 'p.id_persona')
+                ->leftJoin('docente as d', 'g.id_docente', '=', 'd.id_docente')
+                ->leftJoin('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+                ->leftJoin('persona as p', 'e.id_persona', '=', 'p.id_persona')
                 ->leftJoin('aula as a', 'g.id_aula', '=', 'a.id_aula')
                 ->leftJoin('inscripcion as i', 'g.id_grupo', '=', 'i.id_grupo')
                 ->select(
@@ -73,9 +75,11 @@ class GrupoController extends Controller
 
             $id_docente = null;
             if ($request->filled('nombre_docente')) {
-                $id_docente = DB::table('persona')->where(
-                    DB::raw("CONCAT(nombre, ' ', apellido_paterno)"), $request->nombre_docente
-                )->value('id_persona');
+                $id_docente = DB::table('docente as d')
+                    ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+                    ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
+                    ->where(DB::raw("CONCAT(p.nombre, ' ', p.apellido_paterno)"), $request->nombre_docente)
+                    ->value('d.id_docente');
                 if (!$id_docente) {
                     return response()->json(['success' => false, 'error' => 'El docente indicado no existe'], 422);
                 }
@@ -141,9 +145,11 @@ class GrupoController extends Controller
             $id_docente = $grupo->id_docente;
             if ($request->has('nombre_docente')) {
                 if ($request->filled('nombre_docente')) {
-                    $id_docente = DB::table('persona')->where(
-                        DB::raw("CONCAT(nombre, ' ', apellido_paterno)"), $request->nombre_docente
-                    )->value('id_persona');
+                    $id_docente = DB::table('docente as d')
+                        ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+                        ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
+                        ->where(DB::raw("CONCAT(p.nombre, ' ', p.apellido_paterno)"), $request->nombre_docente)
+                        ->value('d.id_docente');
                     if (!$id_docente) {
                         return response()->json(['success' => false, 'error' => 'El docente indicado no existe'], 422);
                     }

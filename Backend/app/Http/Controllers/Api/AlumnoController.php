@@ -67,11 +67,9 @@ class AlumnoController extends Controller
                 'fecha_ingreso'    => 'required|date',
             ]);
 
-            $idGenero = match ($request->genero) {
-                'Masculino' => 1,
-                'Femenino'  => 2,
-                default     => 3,
-            };
+            $idGenero = DB::table('genero')
+                ->where('nombre_genero', $request->genero ?? '')
+                ->value('id_genero');
 
             // Crear Persona
             $persona = Persona::create([

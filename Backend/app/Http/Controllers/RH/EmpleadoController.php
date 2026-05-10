@@ -144,8 +144,10 @@ class EmpleadoController extends Controller
             // Validar adscripción activa
             $adscripcionActiva = DB::table('adscripcion')
                 ->where('id_empleado', '=', $id)
-                ->whereNull('fecha_fin')
-                ->orWhere('fecha_fin', '>', now())
+                ->where(function ($q) {
+                    $q->whereNull('fecha_fin')
+                      ->orWhere('fecha_fin', '>', now());
+                })
                 ->first();
 
             $empleadoFormateado = [

@@ -12,15 +12,24 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('grupo', function (Blueprint $table) {
-            $table->boolean('acta_cerrada')->default(false)->after('estatus');
-            $table->timestamp('fecha_cierre_acta')->nullable()->after('acta_cerrada');
+            if (!Schema::hasColumn('grupo', 'acta_cerrada')) {
+                $table->boolean('acta_cerrada')->default(false)->after('estatus');
+            }
+            if (!Schema::hasColumn('grupo', 'fecha_cierre_acta')) {
+                $table->timestamp('fecha_cierre_acta')->nullable()->after('acta_cerrada');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('grupo', function (Blueprint $table) {
-            $table->dropColumn(['acta_cerrada', 'fecha_cierre_acta']);
+            if (Schema::hasColumn('grupo', 'acta_cerrada')) {
+                $table->dropColumn('acta_cerrada');
+            }
+            if (Schema::hasColumn('grupo', 'fecha_cierre_acta')) {
+                $table->dropColumn('fecha_cierre_acta');
+            }
         });
     }
 };

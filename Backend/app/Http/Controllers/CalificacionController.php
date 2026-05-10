@@ -1,3 +1,5 @@
+<?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -13,8 +15,8 @@ class CalificacionController extends Controller
         $datos = DB::table('inscripcion as i')
             ->join('alumno as a', 'i.id_alumno', '=', 'a.id_alumno')
             ->join('persona as p', 'a.id_persona', '=', 'p.id_persona')
-            ->join('calificacion as c', 'i.id_inscripcion', '=', 'c.id_inscripcion')
-            ->join('evaluacion as e', 'c.id_evaluacion', '=', 'e.id_evaluacion')
+            ->leftJoin('calificacion as c', 'i.id_inscripcion', '=', 'c.id_inscripcion')
+            ->leftJoin('evaluacion as e', 'c.id_evaluacion', '=', 'e.id_evaluacion')
             ->when($grupoId, function ($q) use ($grupoId) {
                 $q->where('i.id_grupo', $grupoId);
             })

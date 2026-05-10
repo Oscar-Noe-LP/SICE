@@ -15,7 +15,6 @@ class FormularioEmpleadoController extends Controller
             $query = $request->input('q', '');
 
             $personas = DB::table('persona')
-                ->where('estatus', true)
                 ->where(function ($q) use ($query) {
                     $q->where('nombre', 'LIKE', "%{$query}%")
                       ->orWhere('apellido_paterno', 'LIKE', "%{$query}%")
