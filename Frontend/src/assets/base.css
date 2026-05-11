@@ -127,3 +127,141 @@ main::-webkit-scrollbar,
   width: 8px;
   height: 8px;
 }
+
+/* ══════════════════════════════════════
+   CORRECCIONES ANTI-ZOOM — SICE
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
+
+/* ── Viewport meta comportamiento ── */
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+/* ── Tamaños mínimos táctiles para botones ── */
+button, input, select, textarea, a {
+  min-height: 36px;
+  font-size: 0.875rem;
+}
+
+/* ── Inputs nunca más pequeños que 16px en móvil
+   (evita zoom automático en iOS al enfocar) ── */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ── Tablas con scroll horizontal en lugar de overflow oculto ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container,
+.tabla-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Contenedores no desbordan en pantallas pequeñas ── */
+img, svg, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Texto mínimo legible sin zoom ── */
+p, span, td, th, label, li {
+  font-size: clamp(0.8rem, 2vw, 1rem);
+  line-height: 1.55;
+}
+
+h1 { font-size: clamp(1.3rem, 4vw, 1.75rem); }
+h2 { font-size: clamp(1.1rem, 3vw, 1.4rem);  }
+h3 { font-size: clamp(1rem,  2.5vw, 1.2rem); }
+
+/* ── Modales no desbordan en pantallas pequeñas ── */
+.modal-content,
+.modal-caja {
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ── Cards y paneles ── */
+.kpi-card,
+.grafica-card,
+.panel-card,
+.form-card,
+.tabla-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Grids adaptativos ── */
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .fila-graficas,
+  .fila-inferior {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-row,
+  .fila-campos {
+    flex-direction: column !important;
+  }
+
+  .grilla-roles,
+  .grilla-permisos,
+  .grilla-acciones,
+  .campos-grid-modal,
+  .filtros-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-grupo-doble {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filters-bar,
+  .filtros-fila {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .filters-bar .btn-nuevo,
+  .filters-bar .btn-limpiar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .paginacion {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .modal-footer,
+  .modal-pie {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .modal-footer button,
+  .modal-pie button {
+    width: 100% !important;
+    justify-content: center;
+  }
+}

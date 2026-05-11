@@ -14,13 +14,12 @@ class GrupoController extends Controller
     {
         try {
             $grupos = DB::table('grupo as g')
-                ->leftJoin('materia as m',   'g.id_materia',  '=', 'm.id_materia')
-                ->leftJoin('docente as d',   'g.id_docente',  '=', 'd.id_docente')
-                ->leftJoin('empleado as e',  'd.id_empleado', '=', 'e.id_empleado')
-                ->leftJoin('persona as p',   'e.id_persona',  '=', 'p.id_persona')
-                ->leftJoin('aula as a',      'g.id_aula',     '=', 'a.id_aula')
-                ->leftJoin('carrera as c',   'g.id_carrera',  '=', 'c.id_carrera')
-                ->leftJoin('inscripcion as i', 'g.id_grupo',  '=', 'i.id_grupo')
+                ->leftJoin('materia as m',    'g.id_materia', '=', 'm.id_materia')
+                ->leftJoin('docente as d',    'g.id_docente', '=', 'd.id_docente')
+                ->leftJoin('empleado as e',   'd.id_empleado','=', 'e.id_empleado')
+                ->leftJoin('persona as p',    'e.id_persona', '=', 'p.id_persona')
+                ->leftJoin('aula as a',       'g.id_aula',    '=', 'a.id_aula')
+                ->leftJoin('inscripcion as i','g.id_grupo',   '=', 'i.id_grupo')
                 ->select(
                     'g.id_grupo',
                     'g.clave_grupo',
@@ -29,9 +28,6 @@ class GrupoController extends Controller
                     DB::raw("COALESCE(CONCAT(p.nombre, ' ', p.apellido_paterno), 'Sin docente') as docente"),
                     'a.nombre as aula',
                     'g.capacidad',
-                    'g.id_carrera',
-                    'c.nombre as carrera',
-                    'g.semestre',
                     'g.dia',
                     'g.hora_inicio',
                     'g.hora_fin',
@@ -41,8 +37,7 @@ class GrupoController extends Controller
                 ->groupBy(
                     'g.id_grupo', 'g.clave_grupo', 'm.nombre', 'm.id_materia',
                     'p.nombre', 'p.apellido_paterno', 'a.nombre', 'g.capacidad',
-                    'g.id_carrera', 'c.nombre', 'g.semestre', 'g.dia',
-                    'g.hora_inicio', 'g.hora_fin', 'g.id_periodo'
+                    'g.dia', 'g.hora_inicio', 'g.hora_fin', 'g.id_periodo'
                 )
                 ->get();
 
@@ -76,7 +71,6 @@ class GrupoController extends Controller
                 return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
             }
 
-            // Resolver IDs a partir de los nombres
             $id_materia = DB::table('materia')->where('nombre', $request->nombre_materia)->value('id_materia');
             if (!$id_materia) {
                 return response()->json(['success' => false, 'error' => 'La materia indicada no existe'], 422);
@@ -91,7 +85,7 @@ class GrupoController extends Controller
             if ($request->filled('nombre_docente')) {
                 $id_docente = DB::table('docente as d')
                     ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
-                    ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
+                    ->join('persona as p',  'e.id_persona',  '=', 'p.id_persona')
                     ->where(DB::raw("TRIM(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno, '')))"), 'like', $request->nombre_docente . '%')
                     ->value('d.id_docente');
                 if (!$id_docente) {
@@ -99,11 +93,9 @@ class GrupoController extends Controller
                 }
             }
 
-            // id_periodo: usar el enviado o el periodo activo más reciente
             $id_periodo = $request->id_periodo
                 ?? DB::table('periodo')->where('estatus', 1)->orderByDesc('id_periodo')->value('id_periodo');
 
-            // clave_grupo: usar la enviada o auto-generar
             $clave_grupo = $request->clave_grupo
                 ?? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $request->nombre_materia), 0, 6))
                    . '-' . now()->format('mdHi');
@@ -152,16 +144,12 @@ class GrupoController extends Controller
                 'dia'            => 'sometimes|nullable|string|max:50',
                 'hora_inicio'    => 'sometimes|nullable|date_format:H:i',
                 'hora_fin'       => 'sometimes|nullable|date_format:H:i',
-            ], [
-                'clave_grupo.unique'  => 'Ya existe un grupo con esa clave',
-                'id_periodo.exists'   => 'El periodo no es válido',
             ]);
 
             if ($validator->fails()) {
                 return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
             }
 
-            // Resolver IDs solo si se enviaron
             $id_materia = $grupo->id_materia;
             if ($request->filled('nombre_materia')) {
                 $id_materia = DB::table('materia')->where('nombre', $request->nombre_materia)->value('id_materia');
@@ -183,7 +171,7 @@ class GrupoController extends Controller
                 if ($request->filled('nombre_docente')) {
                     $id_docente = DB::table('docente as d')
                         ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
-                        ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
+                        ->join('persona as p',  'e.id_persona',  '=', 'p.id_persona')
                         ->where(DB::raw("TRIM(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno, '')))"), 'like', $request->nombre_docente . '%')
                         ->value('d.id_docente');
                     if (!$id_docente) {
@@ -200,7 +188,7 @@ class GrupoController extends Controller
                 'id_aula'     => $id_aula,
                 'id_docente'  => $id_docente,
                 'id_periodo'  => $request->id_periodo ?? $grupo->id_periodo,
-                'capacidad'   => $request->capacidad ?? $grupo->capacidad,
+                'capacidad'   => $request->capacidad  ?? $grupo->capacidad,
                 'dia'         => $request->has('dia')         ? $request->dia         : $grupo->dia,
                 'hora_inicio' => $request->has('hora_inicio') ? $request->hora_inicio : $grupo->hora_inicio,
                 'hora_fin'    => $request->has('hora_fin')    ? $request->hora_fin    : $grupo->hora_fin,
@@ -224,7 +212,6 @@ class GrupoController extends Controller
                 return response()->json(['success' => false, 'error' => 'Grupo no encontrado'], 404);
             }
 
-            // Verificar si tiene inscripciones activas
             $inscritos = DB::table('inscripcion')
                 ->where('id_grupo', $id)
                 ->whereIn('estatus', ['Activo', 'activo', 'inscrito'])
@@ -245,57 +232,20 @@ class GrupoController extends Controller
         }
     }
 
-    /**
-     * POST /api/grupos/{id}/cerrar-acta
-     * Cierra el acta del grupo — bloquea edición de calificaciones
-     */
+    // Deshabilitados hasta que la BD tenga las columnas acta_cerrada y fecha_cierre_acta
     public function cerrarActa(int $id)
     {
-        try {
-            $grupo = DB::table('grupo')->where('id_grupo', $id)->first();
-            if (!$grupo) {
-                return response()->json(['success' => false, 'error' => 'Grupo no encontrado'], 404);
-            }
-
-            if ($grupo->acta_cerrada) {
-                return response()->json(['success' => false, 'error' => 'El acta ya está cerrada'], 409);
-            }
-
-            DB::table('grupo')->where('id_grupo', $id)->update([
-                'acta_cerrada'      => true,
-                'fecha_cierre_acta' => now(),
-            ]);
-
-            BitacoraService::registrar('UPDATE', 'grupo', $id, ['acta_cerrada' => false], ['acta_cerrada' => true]);
-
-            return response()->json(['success' => true, 'message' => 'Acta cerrada correctamente']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
-        }
+        return response()->json([
+            'success' => false,
+            'error'   => 'Funcionalidad no disponible en esta versión de la BD'
+        ], 503);
     }
 
-    /**
-     * POST /api/grupos/{id}/abrir-acta
-     * Reabre el acta (solo admin)
-     */
     public function abrirActa(int $id)
     {
-        try {
-            $grupo = DB::table('grupo')->where('id_grupo', $id)->first();
-            if (!$grupo) {
-                return response()->json(['success' => false, 'error' => 'Grupo no encontrado'], 404);
-            }
-
-            DB::table('grupo')->where('id_grupo', $id)->update([
-                'acta_cerrada'      => false,
-                'fecha_cierre_acta' => null,
-            ]);
-
-            BitacoraService::registrar('UPDATE', 'grupo', $id, ['acta_cerrada' => true], ['acta_cerrada' => false]);
-
-            return response()->json(['success' => true, 'message' => 'Acta reabierta']);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
-        }
+        return response()->json([
+            'success' => false,
+            'error'   => 'Funcionalidad no disponible en esta versión de la BD'
+        ], 503);
     }
 }

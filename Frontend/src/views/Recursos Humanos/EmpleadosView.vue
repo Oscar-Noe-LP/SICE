@@ -52,53 +52,28 @@
           <span v-if="cargandoBusqueda" class="spinner-busqueda"></span>
         </div>
 
-        <!-- Filter Icon — filtros avanzados -->
-        <div class="filtros-wrapper">
-          <button class="btn-filtros" @click="mostrarFiltros = !mostrarFiltros" :class="{ activo: filtrosActivos }" title="Filtros avanzados">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-            </svg>
-            Filtros
-            <span v-if="filtrosActivos" class="filtros-badge">{{ contadorFiltros }}</span>
-          </button>
+        <select v-model="filtroPuesto" class="filter-select" @change="currentPage = 1">
+          <option value="">Puesto</option>
+          <option v-for="p in puestosDisponibles" :key="p" :value="p">{{ p }}</option>
+        </select>
 
-          <!-- Popover de filtros -->
-          <transition name="filtros-slide">
-            <div v-if="mostrarFiltros" class="filtros-panel" @click.stop>
-              <div class="filtros-panel-header">
-                <span>Filtros avanzados</span>
-                <button @click="limpiarFiltros" class="btn-limpiar-filtros">Limpiar</button>
-              </div>
-              <div class="filtros-panel-body">
-                <div class="campo-filtro">
-                  <label>Puesto</label>
-                  <select v-model="filtroPuesto" class="filtro-select" @change="currentPage = 1">
-                    <option value="">Todos los puestos</option>
-                    <option v-for="p in puestosDisponibles" :key="p" :value="p">{{ p }}</option>
-                  </select>
-                </div>
-                <div class="campo-filtro">
-                  <label>Departamento</label>
-                  <select v-model="filtroDepartamento" class="filtro-select" @change="currentPage = 1">
-                    <option value="">Todos los departamentos</option>
-                    <option v-for="d in departamentosDisponibles" :key="d" :value="d">{{ d }}</option>
-                  </select>
-                </div>
-                <div class="campo-filtro">
-                  <label>Estatus</label>
-                  <select v-model="filtroEstatus" class="filtro-select" @change="currentPage = 1">
-                    <option value="">Todos los estatus</option>
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                  </select>
-                </div>
-              </div>
-              <div class="filtros-panel-footer">
-                <button @click="mostrarFiltros = false" class="btn-aplicar">Aplicar</button>
-              </div>
-            </div>
-          </transition>
-        </div>
+        <select v-model="filtroDepartamento" class="filter-select" @change="currentPage = 1">
+          <option value="">Departamento</option>
+          <option v-for="d in departamentosDisponibles" :key="d" :value="d">{{ d }}</option>
+        </select>
+
+        <select v-model="filtroEstatus" class="filter-select" @change="currentPage = 1">
+          <option value="">Estatus</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
+
+        <button class="btn-limpiar" @click="resetFilters" title="Limpiar filtros">
+          <svg xmlns="http://www.w3.org/2000/svg" class="reset-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Limpiar
+        </button>
 
         <button class="btn-nuevo" @click="nuevoEmpleado">+ Nuevo Empleado</button>
       </div>
@@ -280,20 +255,6 @@ const tablaRef         = ref(null)
 
 // ── Filtros ──
 const busquedaEmpleado  = ref('')
-const mostrarFiltros    = ref(false)
-
-const filtrosActivos = computed(() =>
-  !!filtroPuesto.value || !!filtroDepartamento.value || !!filtroEstatus.value
-)
-const contadorFiltros = computed(() =>
-  [filtroPuesto.value, filtroDepartamento.value, filtroEstatus.value].filter(Boolean).length
-)
-const limpiarFiltros = () => {
-  filtroPuesto.value      = ''
-  filtroDepartamento.value = ''
-  filtroEstatus.value     = ''
-  currentPage.value       = 1
-}
 const filtroPuesto      = ref('')
 const filtroDepartamento = ref('')
 const filtroEstatus     = ref('')
@@ -510,25 +471,6 @@ const navegarTeclado = (e) => {
 
 /* ── Filtros ── */
 .filters-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
-.filtros-wrapper { position: relative; }
-.btn-filtros { display: flex; align-items: center; gap: 7px; background: #FFFFFF; color: #1A1A1A; border: 1px solid #E5E7EB; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; font-family: 'Montserrat', sans-serif; transition: background 0.15s, border-color 0.15s; white-space: nowrap; position: relative; }
-.btn-filtros svg { width: 15px; height: 15px; stroke: #6B7280; }
-.btn-filtros:hover { background: #F5F5F5; }
-.btn-filtros.activo { border-color: #1B396A; color: #1B396A; background: #DBEAFE; }
-.btn-filtros.activo svg { stroke: #1B396A; }
-.filtros-badge { background: #1B396A; color: white; font-size: 0.7rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 0 4px; }
-.filtros-panel { position: absolute; top: calc(100% + 8px); left: 0; width: 280px; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 500; overflow: hidden; }
-.filtros-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #F8FAFC; border-bottom: 1px solid #E5E7EB; font-weight: 600; font-size: 0.9rem; color: #1A1A1A; font-family: 'Montserrat', sans-serif; }
-.btn-limpiar-filtros { background: none; border: none; color: #1B396A; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; }
-.filtros-panel-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
-.campo-filtro label { display: block; font-size: 0.8rem; font-weight: 600; color: #6B7280; margin-bottom: 4px; font-family: 'Montserrat', sans-serif; }
-.filtro-select { width: 100%; padding: 8px 10px; border: 1px solid #E5E7EB; border-radius: 7px; font-size: 0.88rem; background: #FFFFFF; color: #1A1A1A; font-family: 'Montserrat', sans-serif; outline: none; }
-.filtro-select:focus { border-color: #1B396A; }
-.filtros-panel-footer { padding: 10px 16px; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; }
-.btn-aplicar { background: #1B396A; color: white; border: none; padding: 8px 20px; border-radius: 7px; font-weight: 600; font-size: 0.88rem; cursor: pointer; font-family: 'Montserrat', sans-serif; }
-.btn-aplicar:hover { background: #1D4ED8; }
-.filtros-slide-enter-active, .filtros-slide-leave-active { transition: all 0.2s ease; }
-.filtros-slide-enter-from, .filtros-slide-leave-to { opacity: 0; transform: translateY(-8px); }
 .search-group { position: relative; flex: 0 0 280px; min-width: 200px; }
 .search-input { width: 100%; padding: 7px 12px 7px 36px; border: 1px solid var(--borde); border-radius: 7px; font-size: 0.88rem; background: #FFFFFF; color: var(--texto); font-family: 'Montserrat', sans-serif; outline: none; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
 .search-input:focus { border-color: #1B396A; box-shadow: 0 0 0 3px #DBEAFE; }
