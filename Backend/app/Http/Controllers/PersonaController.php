@@ -77,8 +77,6 @@ class PersonaController extends Controller
                     'pe.curp',
                     'pe.fecha_nacimiento',
                     'pe.id_genero',
-                    'pe.estado_civil',
-                    'pe.nacionalidad',
                     'g.nombre_genero as genero',
                     'pc.correo',
                     'pt.telefono',
@@ -153,8 +151,6 @@ class PersonaController extends Controller
                 'curp'             => $request->curp,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'id_genero'        => $this->resolverIdGenero($request),
-                'estado_civil'     => $request->estado_civil,
-                'nacionalidad'     => $request->nacionalidad,
             ]);
 
             if ($request->filled('correo')) {
@@ -222,8 +218,6 @@ class PersonaController extends Controller
                 'curp'             => $request->curp,
                 'fecha_nacimiento' => $request->fecha_nacimiento,
                 'id_genero'        => $this->resolverIdGenero($request),
-                'estado_civil'     => $request->estado_civil,
-                'nacionalidad'     => $request->nacionalidad,
             ]);
 
             // Correo: actualizar o insertar
