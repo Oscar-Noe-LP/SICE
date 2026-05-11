@@ -42,7 +42,7 @@
         <span class="resumen-etiqueta">Promedio General</span>
       </div>
       <div class="resumen-barra">
-        <div class="resumen-barra-fill" :style="{ width: (promedioGeneral / 10 * 100) + '%' }"></div>
+        <div class="resumen-barra-fill" :style="{ width: promedioGeneral + '%' }"></div>
       </div>
     </div>
     <div class="resumen-card verde">
@@ -598,7 +598,7 @@ const reintentarCatalogos = () => cargarCatalogos(['periodos', 'carreras', 'mate
 let debounceTimer = null
 const buscarEnTiempoReal = () => {
   clearTimeout(debounceTimer)
-  debounceTimer = setTimeout(() => { }, 300)
+  debounceTimer = setTimeout(() => { paginaActual.value = 1 }, 300)
 }
 
 // ── Navegación ───────────────────────────────────────────────

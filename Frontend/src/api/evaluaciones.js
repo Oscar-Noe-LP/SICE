@@ -6,17 +6,16 @@ import api from './axios'
  * Cuando se pasa un objeto, usa grupoId como parámetro de ruta.
  */
 export const getEvaluaciones = async (idGrupoOrFiltros) => {
-  // Normalizar: si recibe un objeto de filtros, extraer el grupoId
-  const id = (typeof idGrupoOrFiltros === 'object' && idGrupoOrFiltros !== null)
-    ? idGrupoOrFiltros.grupoId
-    : idGrupoOrFiltros
+  const esFiltros = typeof idGrupoOrFiltros === 'object' && idGrupoOrFiltros !== null
+  const id = esFiltros ? idGrupoOrFiltros.grupoId : idGrupoOrFiltros
 
-  if (!id) {
-    // Sin grupo seleccionado → devolver array vacío en lugar de llamar /evaluaciones/null
-    return []
-  }
+  if (!id) return []
 
-  const { data } = await api.get(`/evaluaciones/${id}`)
+  const params = {}
+  if (esFiltros && idGrupoOrFiltros.periodoId) params.periodo_id = idGrupoOrFiltros.periodoId
+  if (esFiltros && idGrupoOrFiltros.materiaId) params.materia_id = idGrupoOrFiltros.materiaId
+
+  const { data } = await api.get(`/evaluaciones/${id}`, { params })
   return data
 }
 
