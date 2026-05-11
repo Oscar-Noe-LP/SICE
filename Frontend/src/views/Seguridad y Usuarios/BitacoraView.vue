@@ -791,5 +791,147 @@ const navegarTeclado = (e) => {
 .btn-secundario { padding: 10px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; background: #FFFFFF; color: var(--texto); border: 1px solid var(--borde); transition: background 0.15s; }
 .btn-secundario:hover { background: var(--fondo); }
 
+/* ══════════════════════════════════════
+   RESPONSIVE — BitacoraView
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .page-title { font-size: 1.5rem; }
+
+  /* Filtros en 3 columnas */
+  .filtros-fila {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  .filtro-busqueda { grid-column: 1 / -1; }
+  .filtro-accion   { grid-column: 3; justify-self: end; }
+
+  /* Ocultar columna Descripción en tablet */
+  .bitacora-table th:nth-child(5),
+  .bitacora-table td:nth-child(5) {
+    display: none;
+  }
+}
+
+/* ── Tablet pequeña / móvil grande (≤768px) ── */
+@media (max-width: 768px) {
+  .page-header {
+    gap: 0.5rem;
+  }
+
+  .page-title    { font-size: 1.35rem; }
+  .page-subtitle { font-size: 0.82rem; }
+
+  /* Filtros en 2 columnas */
+  .filtros-fila {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+  }
+
+  .filtro-busqueda { grid-column: 1 / -1; }
+  .filtro-accion   { grid-column: 2; justify-self: end; }
+
+  /* Tabla con scroll horizontal */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ocultar también columna Módulo en móvil */
+  .bitacora-table th:nth-child(4),
+  .bitacora-table td:nth-child(4) {
+    display: none;
+  }
+
+  /* Paginación en columna */
+  .paginacion {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .paginacion-izquierda,
+  .paginacion-centro,
+  .paginacion-derecha {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal full width */
+  .modal-content {
+    max-width: 96%;
+    margin: 0 0.75rem;
+  }
+
+  .modal-body { padding: 1.2rem; }
+
+  /* Detalle fila en columna */
+  .detalle-fila {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
+
+  .detalle-valor,
+  .detalle-desc-texto { text-align: left; }
+
+  /* Chips de filtros activos en columna */
+  .filtros-activos { gap: 4px; }
+}
+
+/* ── Móvil pequeño (≤480px) ── */
+@media (max-width: 480px) {
+  .page-title    { font-size: 1.2rem; }
+  .page-subtitle { font-size: 0.78rem; }
+
+  /* Filtros en 1 columna */
+  .filtros-fila {
+    grid-template-columns: 1fr;
+  }
+
+  .filtro-busqueda { grid-column: 1; }
+  .filtro-accion   { grid-column: 1; justify-self: stretch; }
+
+  .btn-limpiar { width: 100%; justify-content: center; }
+
+  /* Ocultar columna Acción en móvil pequeño — queda Fecha, Usuario y Descripción */
+  .bitacora-table th:nth-child(3),
+  .bitacora-table td:nth-child(3) {
+    display: none;
+  }
+
+  .bitacora-table th,
+  .bitacora-table td {
+    padding: 7px 9px;
+    font-size: 0.82rem;
+  }
+
+  .fecha-principal { font-size: 0.8rem; }
+  .fecha-hora      { font-size: 0.72rem; }
+
+  .avatar-mini {
+    width: 24px;
+    height: 24px;
+    font-size: 0.72rem;
+  }
+
+  .accion-badge {
+    padding: 3px 8px;
+    font-size: 0.72rem;
+  }
+
+  /* Inputs sin zoom iOS */
+  .filtro-input,
+  .filtro-select { font-size: 16px !important; }
+
+  /* Modal footer centrado */
+  .modal-footer { justify-content: center; }
+  .btn-secundario { width: 100%; justify-content: center; }
+}
+
 @keyframes girar { to { transform: rotate(360deg); } }
 </style>

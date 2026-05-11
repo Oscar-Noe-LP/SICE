@@ -587,17 +587,164 @@ const irACalificaciones  = () => router.push('/calificaciones')
 
 .accion-icono { width: 22px; height: 22px; stroke: currentColor; flex-shrink: 0; }
 
+/* ══════════════════════════════════════
+   RESPONSIVE — DashboardView
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
+
+/* ── Tablet grande (≤1100px) ── */
 @media (max-width: 1100px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
+
+/* ── Tablet (≤900px) ── */
 @media (max-width: 900px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .fila-graficas, .fila-inferior { grid-template-columns: 1fr; }
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .fila-graficas {
+    grid-template-columns: 1fr;
+  }
+
+  .fila-inferior {
+    grid-template-columns: 1fr;
+  }
+
+  .barra-etiqueta {
+    width: 100px;
+    font-size: 0.78rem;
+  }
 }
+
+/* ── Móvil grande (≤640px) ── */
 @media (max-width: 640px) {
-  .inicio-header { flex-direction: column; gap: 0.5rem; }
-  .fecha-actual  { white-space: normal; }
-  .grilla-acciones { grid-template-columns: 1fr; }
+  .inicio-page {
+    padding-bottom: 1rem;
+  }
+
+  .inicio-header {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .page-title {
+    font-size: 1.4rem;
+  }
+
+  .fecha-actual {
+    white-space: normal;
+    font-size: 0.8rem;
+  }
+
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .kpi-card {
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .kpi-valor {
+    font-size: 1.4rem;
+  }
+
+  .kpi-icono-wrapper {
+    width: 38px;
+    height: 38px;
+  }
+
+  .kpi-icono {
+    width: 20px;
+    height: 20px;
+  }
+
+  .grafica-card,
+  .panel-card {
+    padding: 1rem 1.2rem;
+  }
+
+  .barra-etiqueta {
+    width: 80px;
+    font-size: 0.75rem;
+  }
+
+  .grilla-acciones {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .btn-accion {
+    min-height: 72px;
+    font-size: 0.78rem;
+    padding: 10px 8px;
+  }
+
+  .accion-icono {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Bitácora más compacta */
+  .item-bitacora {
+    padding: 6px 8px;
+  }
+
+  .bitacora-desc {
+    font-size: 0.78rem;
+  }
+
+  .btn-ver-bitacora {
+    font-size: 0.75rem;
+  }
+}
+
+/* ── Móvil pequeño (≤480px) ── */
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .kpi-etiqueta {
+    font-size: 0.75rem;
+  }
+
+  .kpi-valor {
+    font-size: 1.2rem;
+  }
+
+  .grilla-acciones {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-accion {
+    flex-direction: row;
+    min-height: 52px;
+    justify-content: flex-start;
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  /* Bitácora: descripción con 2 líneas en móvil pequeño */
+  .bitacora-desc {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;                /* ← propiedad estándar agregada */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+  .bitacora-fila-inferior {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
 }
 
 /* ══ Bitácora reciente ══ */

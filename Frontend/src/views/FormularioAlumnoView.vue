@@ -817,5 +817,151 @@ const showNotification = (message, type) => {
   animation: girar 0.8s linear infinite;
   flex-shrink: 0;
 }
+
+/* ══════════════════════════════════════
+   RESPONSIVE — FormularioAlumnoView
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .form-card {
+    padding: 1.6rem 1.8rem;
+    max-width: 100%;
+  }
+
+  .page-title { font-size: 1.5rem; }
+
+  .fila-parcial .campo {
+    flex: 0 0 calc(50% - 0.6rem);
+    min-width: 160px;
+  }
+}
+
+/* ── Tablet pequeña / móvil grande (≤768px) ── */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-title { font-size: 1.35rem; }
+
+  .form-card {
+    padding: 1.4rem 1.2rem;
+    border-radius: 10px;
+  }
+
+  /* Campos en 2 columnas en tablet */
+  .fila-campos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  /* Parciales también en 2 columnas */
+  .fila-parcial .campo {
+    flex: none;
+    min-width: unset;
+  }
+
+  .seccion-titulo { font-size: 1rem; }
+
+  /* Toast más compacto */
+  .toast {
+    top: 70px;
+    right: 12px;
+    left: 12px;
+    max-width: unset;
+    font-size: 0.88rem;
+  }
+
+  /* Acciones en columna inversa */
+  .form-acciones {
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+  }
+
+  .btn-cancelar,
+  .btn-guardar {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Móvil pequeño (≤480px) ── */
+@media (max-width: 480px) {
+  .page-title { font-size: 1.2rem; }
+
+  .breadcrumb { font-size: 0.8rem; gap: 4px; }
+
+  .form-card {
+    padding: 1.2rem 1rem;
+    border-radius: 8px;
+  }
+
+  /* Campos en 1 columna */
+  .fila-campos {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  .fila-parcial .campo {
+    width: 100%;
+  }
+
+  .campo { min-width: unset; }
+
+  /* Inputs sin zoom en iOS */
+  .input-campo,
+  .input-con-prefijo-campo {
+    font-size: 16px !important;
+  }
+
+  /* Prefijo número de control más compacto */
+  .prefijo-fijo {
+    padding: 10px 10px;
+    font-size: 0.92rem;
+  }
+
+  /* Etiqueta hint en línea nueva */
+  .etiqueta {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .etiqueta-hint {
+    font-size: 0.72rem;
+    padding: 2px 6px;
+  }
+
+  .seccion {
+    margin-bottom: 1.4rem;
+    padding-bottom: 1.4rem;
+  }
+
+  .seccion-titulo {
+    font-size: 0.95rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .indicador-estatus {
+    font-size: 0.78rem;
+    padding: 3px 10px;
+  }
+
+  .form-acciones {
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+  }
+
+  .btn-cancelar,
+  .btn-guardar {
+    padding: 12px;
+    font-size: 0.92rem;
+  }
+}
+
 @keyframes girar { to { transform: rotate(360deg); } }
 </style>

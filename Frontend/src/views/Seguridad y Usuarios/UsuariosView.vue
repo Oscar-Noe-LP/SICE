@@ -910,5 +910,169 @@ const validarContrasena = (campo) => {
 
 .spinner-btn { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: girar 0.7s linear infinite; flex-shrink: 0; }
 
+/* ══════════════════════════════════════
+   RESPONSIVE — UsuariosView
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .page-title  { font-size: 1.5rem; }
+  .search-group { flex: 0 0 250px; min-width: 180px; }
+  .modal-editar { width: 500px; }
+}
+
+/* ── Tablet pequeña / móvil grande (≤768px) ── */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-title { font-size: 1.35rem; }
+
+  /* Filtros en grid 2 columnas */
+  .filters-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .search-group {
+    grid-column: 1 / -1;
+    flex: none;
+    min-width: unset;
+    width: 100%;
+  }
+
+  .filter-select { width: 100%; }
+  .btn-limpiar   { justify-content: center; }
+  .btn-nuevo     { margin-left: 0; justify-content: center; }
+
+  /* Tabla con scroll horizontal */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ocultar columna Nombre Completo en tablet */
+  .alumnos-table th:nth-child(2),
+  .alumnos-table td:nth-child(2) {
+    display: none;
+  }
+
+  /* Avatar más pequeño */
+  .avatar-inicial {
+    width: 28px;
+    height: 28px;
+    font-size: 0.82rem;
+  }
+
+  /* Roles: solo mostrar el primero */
+  .rol-badge:not(:first-child):not(.rol-extra) {
+    display: none;
+  }
+
+  /* Paginación en columna */
+  .paginacion {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .paginacion-izquierda,
+  .paginacion-centro,
+  .paginacion-derecha {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modales full width */
+  .modal-content,
+  .modal-editar,
+  .modal-contrasena {
+    width: 96%;
+    max-width: 520px;
+    margin: 0 0.75rem;
+  }
+
+  .modal-body  { padding: 1.2rem; }
+  .modal-footer { padding: 0.8rem 1.2rem; }
+
+  /* Grilla de roles en 1 columna */
+  .grilla-roles { grid-template-columns: 1fr; }
+
+  /* Footer usuario en columna */
+  .modal-footer-usuario {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .modal-footer-usuario button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Móvil pequeño (≤480px) ── */
+@media (max-width: 480px) {
+  .page-title    { font-size: 1.2rem; }
+  .page-subtitle { font-size: 0.8rem; }
+
+  /* Filtros en 1 columna */
+  .filters-bar { grid-template-columns: 1fr; }
+  .search-group { grid-column: 1; }
+
+  /* Ocultar también columna Roles en móvil pequeño */
+  .alumnos-table th:nth-child(3),
+  .alumnos-table td:nth-child(3) {
+    display: none;
+  }
+
+  .alumnos-table th,
+  .alumnos-table td {
+    padding: 8px 10px;
+    font-size: 0.82rem;
+  }
+
+  .nombre-usuario-texto { font-size: 0.82rem; }
+
+  .celda-acciones { gap: 4px; }
+
+  /* Modal footer normal en columna */
+  .modal-footer:not(.modal-footer-usuario) {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .modal-footer:not(.modal-footer-usuario) button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Inputs sin zoom iOS */
+  .modal-input,
+  .modal-select {
+    font-size: 16px !important;
+  }
+
+  /* Avatar modal más compacto */
+  .avatar-modal {
+    width: 52px;
+    height: 52px;
+    font-size: 1.3rem;
+  }
+
+  /* Roles items más compactos */
+  .rol-check-item  { padding: 7px 9px; }
+  .rol-check-nombre { font-size: 0.82rem; }
+  .rol-check-desc   { font-size: 0.72rem; }
+
+  /* Botón cambiar contraseña compacto */
+  .btn-cambiar-pass { font-size: 0.82rem; padding: 9px 14px; }
+}
+
 @keyframes girar { to { transform: rotate(360deg); } }
 </style>

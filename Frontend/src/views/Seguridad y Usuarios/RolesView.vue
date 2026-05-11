@@ -1157,6 +1157,145 @@ watch(busquedaRol, () => {
   animation: girar 0.7s linear infinite;
   flex-shrink: 0;
 }
+/* ══════════════════════════════════════
+   RESPONSIVE — RolesView
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
 
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .page-title { font-size: 1.5rem; }
+
+  /* Modal permisos más angosto */
+  .modal-permisos { width: 680px; }
+
+  .search-group { flex: 0 0 240px; min-width: 180px; }
+}
+
+/* ── Tablet pequeña / móvil grande (≤768px) ── */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-title { font-size: 1.35rem; }
+
+  /* Filtros en grid 2 columnas */
+  .filters-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  .search-group {
+    grid-column: 1 / -1;
+    flex: none;
+    min-width: unset;
+    width: 100%;
+  }
+
+  .filter-select { flex: none; width: 100%; min-width: unset; }
+
+  .btn-limpiar { justify-content: center; }
+  .btn-nuevo   { margin-left: 0; justify-content: center; }
+
+  /* Tabla scroll horizontal */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ocultar columna Descripción en tablet */
+  .alumnos-table th:nth-child(2),
+  .alumnos-table td:nth-child(2) {
+    display: none;
+  }
+
+  /* Paginación en columna */
+  .paginacion {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .paginacion-izquierda,
+  .paginacion-centro,
+  .paginacion-derecha {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal permisos full width */
+  .modal-permisos {
+    width: 96%;
+    max-width: 600px;
+  }
+
+  /* Grilla permisos en 1 columna */
+  .grilla-permisos {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modal normal full width */
+  .modal-content {
+    max-width: 96%;
+    margin: 0 0.75rem;
+  }
+
+  .modal-body        { padding: 1.2rem; }
+  .modal-body-permisos { padding: 1rem; }
+  .modal-footer      { padding: 0.8rem 1.2rem; }
+}
+
+/* ── Móvil pequeño (≤480px) ── */
+@media (max-width: 480px) {
+  .page-title    { font-size: 1.2rem; }
+  .page-subtitle { font-size: 0.8rem; }
+
+  /* Filtros en 1 columna */
+  .filters-bar { grid-template-columns: 1fr; }
+  .search-group { grid-column: 1; }
+
+  .alumnos-table th,
+  .alumnos-table td {
+    padding: 8px 10px;
+    font-size: 0.82rem;
+  }
+
+  .celda-acciones { gap: 4px; }
+
+  .estatus-badge {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+  }
+
+  /* Modal footer en columna */
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .modal-footer button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Inputs sin zoom iOS */
+  .modal-input,
+  .modal-select {
+    font-size: 16px !important;
+  }
+
+  /* Permiso items más compactos */
+  .permiso-item {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .permiso-nombre { font-size: 0.82rem; }
+  .permiso-desc   { font-size: 0.72rem; }
+}
 @keyframes girar { to { transform: rotate(360deg); } }
 </style>

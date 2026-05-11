@@ -691,6 +691,101 @@ const navegarTeclado = (e) => {
   transition: background 0.15s;
 }
 .btn-secundario:hover { background: var(--fondo); }
+/* ══════════════════════════════════════
+   RESPONSIVE — PermisosView
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .page-title  { font-size: 1.5rem; }
+  .search-group { flex: 0 0 300px; }
+}
+
+/* ── Tablet pequeña / móvil grande (≤768px) ── */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-title { font-size: 1.35rem; }
+
+  /* Buscador full width */
+  .filters-bar { flex-direction: column; align-items: stretch; }
+  .search-group { flex: none; width: 100%; }
+
+  /* Tabla con scroll horizontal */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ocultar columna Descripción en tablet */
+  .alumnos-table th:nth-child(2),
+  .alumnos-table td:nth-child(2) {
+    display: none;
+  }
+
+  /* Paginación en columna */
+  .paginacion {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .paginacion-izquierda,
+  .paginacion-centro,
+  .paginacion-derecha {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal full width */
+  .modal-content {
+    max-width: 96%;
+    margin: 0 0.75rem;
+  }
+
+  .modal-body { padding: 1.2rem; }
+
+  /* Detalle fila en columna en pantallas estrechas */
+  .detalle-fila {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
+
+  .detalle-valor { text-align: left; max-width: 100%; }
+}
+
+/* ── Móvil pequeño (≤480px) ── */
+@media (max-width: 480px) {
+  .page-title    { font-size: 1.2rem; }
+  .page-subtitle { font-size: 0.8rem; }
+
+  .alumnos-table th,
+  .alumnos-table td {
+    padding: 7px 9px;
+    font-size: 0.82rem;
+  }
+
+  .celda-nombre { font-size: 0.82rem; }
+
+  .modulo-badge {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+  }
+
+  /* Modal footer centrado */
+  .modal-footer { justify-content: center; }
+
+  .modal-aviso { margin: 0 1rem 0; font-size: 0.78rem; }
+
+  /* Input sin zoom iOS */
+  .search-input { font-size: 16px !important; }
+}
 
 @keyframes girar { to { transform: rotate(360deg); } }
 </style>

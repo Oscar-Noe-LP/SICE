@@ -918,4 +918,167 @@ const irACalificaciones = (grupo) => router.push(`/calificaciones/${grupo.id}`)
 .notif-fade-enter-from, .notif-fade-leave-to { opacity: 0; transform: translateY(-8px); }
 
 .text-center { text-align: center; }
+
+/* ══════════════════════════════════════
+   RESPONSIVE — GestionGruposView
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .page-title { font-size: 1.5rem; }
+
+  .filtros-card { gap: 0.5rem; padding: 0.8rem 1rem; }
+
+  /* Búsquedas más angostas */
+  .busqueda-control-wrap   { min-width: 160px; }
+  .busqueda-secundaria-wrap { min-width: 140px; }
+
+  /* Ocultar texto de botones de acción, solo icono */
+  .btn-accion.evaluaciones span,
+  .btn-accion.calificaciones span { display: none; }
+
+  .btn-accion.evaluaciones,
+  .btn-accion.calificaciones {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  /* Modal más angosto */
+  .modal-content { width: 520px; }
+}
+
+/* ── Tablet pequeña / móvil grande (≤768px) ── */
+@media (max-width: 768px) {
+  .page-title { font-size: 1.35rem; margin-bottom: 0.4rem; }
+
+  /* Filtros en grid 2 columnas */
+  .filtros-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  /* Etiqueta "Filtrar" ocupa todo el ancho */
+  .filtros-label { grid-column: 1 / -1; }
+
+  /* Búsqueda principal ocupa todo el ancho */
+  .busqueda-control-wrap {
+    grid-column: 1 / -1;
+    min-width: unset;
+  }
+
+  /* Búsqueda secundaria ocupa todo el ancho */
+  .busqueda-secundaria-wrap {
+    grid-column: 1 / -1;
+    min-width: unset;
+  }
+
+  /* Selects en 2 columnas */
+  .filtro-select { width: 100%; }
+
+  /* Botones en 2 columnas */
+  .btn-filtrar,
+  .btn-limpiar,
+  .btn-nuevo { width: 100%; justify-content: center; }
+
+  /* Tabla con scroll horizontal */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ocultar columnas Aula y Capacidad en tablet */
+  .grupos-table th:nth-child(3),
+  .grupos-table td:nth-child(3),
+  .grupos-table th:nth-child(5),
+  .grupos-table td:nth-child(5) {
+    display: none;
+  }
+
+  /* Acciones solo iconos — ocultar texto */
+  .btn-accion { gap: 0; padding: 0; width: 32px; height: 32px; justify-content: center; }
+  .btn-accion.evaluaciones span,
+  .btn-accion.calificaciones span { display: none; }
+
+  /* Paginación compacta */
+  .pagination {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  /* Modal casi full width */
+  .modal-content {
+    width: 96%;
+    max-width: 520px;
+    margin: 0 0.75rem;
+  }
+
+  .modal-body { padding: 1.4rem 1.2rem; }
+  .modal-footer { padding: 0.9rem 1.2rem; }
+
+  /* Filas del modal en columna */
+  .form-row {
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .horario-row { flex-direction: column; }
+}
+
+/* ── Móvil pequeño (≤480px) ── */
+@media (max-width: 480px) {
+  .page-title { font-size: 1.2rem; }
+  .breadcrumb { font-size: 0.8rem; }
+
+  /* Filtros en 1 columna */
+  .filtros-card { grid-template-columns: 1fr; }
+  .filtros-label { grid-column: 1; }
+
+  /* Ocultar también columna Horario en móvil pequeño */
+  .grupos-table th:nth-child(4),
+  .grupos-table td:nth-child(4) {
+    display: none;
+  }
+
+  .grupos-table th,
+  .grupos-table td {
+    padding: 6px 8px;
+    font-size: 0.82rem;
+  }
+
+  /* Acciones en columna */
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+  }
+
+  /* Modal footer en columna */
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .modal-footer button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Inputs sin zoom iOS */
+  .modal-input,
+  .modal-select,
+  .input-busqueda-control,
+  .input-busqueda-secundaria {
+    font-size: 16px !important;
+  }
+
+  .modal-confirm { width: 94%; }
+}
+
 </style>

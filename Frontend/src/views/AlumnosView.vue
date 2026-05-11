@@ -1150,4 +1150,163 @@ const navegarTeclado = (e) => {
 @keyframes girar {
   to { transform: rotate(360deg); }
 }
+
+/* ══════════════════════════════════════
+   RESPONSIVE — AlumnosView
+   Santiago Acosta — Modificaciones SICE
+══════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .page-title { font-size: 1.5rem; }
+
+  .search-group-compacto {
+    flex: 0 0 200px;
+    min-width: 160px;
+  }
+
+  .filter-select {
+    flex: 1 1 110px;
+    min-width: 100px;
+    font-size: 0.82rem;
+  }
+}
+
+/* ── Tablet pequeña / móvil grande (≤768px) ── */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    gap: 0.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-title { font-size: 1.35rem; }
+
+  /* Barra de filtros en 2 filas */
+  .filters-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+
+  /* Buscador ocupa todo el ancho */
+  .search-group-compacto {
+    grid-column: 1 / -1;
+    flex: none;
+    min-width: unset;
+    width: 100%;
+  }
+
+  /* Filtros en 2 columnas */
+  .filter-select {
+    flex: none;
+    width: 100%;
+    min-width: unset;
+  }
+
+  /* Botones en la misma fila */
+  .btn-limpiar {
+    justify-content: center;
+  }
+
+  .btn-nuevo {
+    margin-left: 0;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Tabla con scroll horizontal */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ocultar columna Carrera en tablet — mucha info */
+  .alumnos-table th:nth-child(3),
+  .alumnos-table td:nth-child(3) {
+    display: none;
+  }
+
+  /* Paginación en columna */
+  .paginacion {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .paginacion-izquierda,
+  .paginacion-centro,
+  .paginacion-derecha {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal más compacto */
+  .modal-content {
+    max-width: 96%;
+    margin: 0 0.75rem;
+  }
+
+  .modal-body { padding: 1.2rem; }
+  .modal-footer { padding: 0.8rem 1.2rem; }
+}
+
+/* ── Móvil pequeño (≤480px) ── */
+@media (max-width: 480px) {
+  .page-title { font-size: 1.2rem; }
+  .page-subtitle { font-size: 0.8rem; }
+
+  /* Filtros en 1 columna */
+  .filters-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .search-group-compacto {
+    grid-column: 1;
+  }
+
+  /* Ocultar también columna Semestre en móvil pequeño */
+  .alumnos-table th:nth-child(4),
+  .alumnos-table td:nth-child(4) {
+    display: none;
+  }
+
+  /* Celda acciones más compacta */
+  .celda-acciones { gap: 5px; }
+
+  .alumnos-table th,
+  .alumnos-table td {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+  }
+
+  .celda-control { font-size: 0.82rem; }
+
+  .estatus-badge {
+    padding: 3px 8px;
+    font-size: 0.75rem;
+  }
+
+  /* Modal footer en columna */
+  .modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .modal-footer button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* form-grupo-doble en columna */
+  .form-grupo-doble {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-input,
+  .modal-select {
+    font-size: 16px; /* evita zoom en iOS */
+  }
+}
+
 </style>
