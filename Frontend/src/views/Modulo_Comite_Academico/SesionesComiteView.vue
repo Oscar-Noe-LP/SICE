@@ -48,14 +48,14 @@
             class="input-busqueda" 
             @input="reiniciarPagina()" 
           />
-          <button v-if="busqueda" @click="busqueda = ''; reiniciarPagina(); filtrar()" class="btn-limpiar">
+          <button v-if="busqueda" @click="busqueda = ''; reiniciarPagina()" class="btn-limpiar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
               <line x1="18" y1="6" x2="6" y2="18"/>
               <line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>
-        <button @click="mostrarFiltrosModal = true" class="btn-icono" title="Filtros Avanzados">
+        <button @click="mostrarFiltrosModal = true" class="btn-secundario" title="Filtros Avanzados">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
           </svg>
@@ -91,7 +91,7 @@
             </div>
             <div class="modal-pie">
               <button @click="limpiarFiltros" class="btn-cancelar">Limpiar</button>
-              <button @click="aplicarFiltros" class="btn-guardar">Aplicar</button>
+              <button @click="aplicarFiltros" class="btn-primario">Aplicar</button>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@
           </span>
         </div>
         <div class="tabla-scroll">
-          <table class="tabla-principal tabla-densa">
+          <table class="tabla-principal">
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -119,7 +119,7 @@
                 <td><span class="texto-principal">{{ formatearFechaLarga(ses.fecha) }}</span></td>
                 <td class="texto-secundario">{{ ses.descripcion }}</td>
                 <td class="centrado">
-                  <span class="badge-resoluciones" :style="ses.resoluciones > 0 ? { background: '#DCFCE7', color: '#16A34A' } : { background: '#F3F4F6', color: '#6B7280' }">
+                  <span class="badge-estado" :style="ses.resoluciones > 0 ? { background: '#DCFCE7', color: '#16A34A' } : { background: '#F3F4F6', color: '#6B7280' }">
                     {{ ses.resoluciones }} resolución(es)
                   </span>
                 </td>
@@ -220,7 +220,7 @@
             </div>
             <div class="modal-pie">
               <button @click="cerrarModal" class="btn-cancelar">Cancelar</button>
-              <button @click="guardarSesion" class="btn-guardar" :disabled="cargando">
+              <button @click="guardarSesion" class="btn-primario" :disabled="cargando">
                 <span v-if="cargando" class="spinner"></span>
                 {{ cargando ? 'Guardando...' : (modoEdicion ? 'Actualizar' : 'Registrar Sesión') }}
               </button>
@@ -229,7 +229,7 @@
         </div>
       </transition>
 
-      <!-- Toast de notificaciones -->
+      <!-- Toast -->
       <transition name="toast-slide">
         <div v-if="toast.visible" class="toast" :class="toast.tipo">
           <span class="toast-icono">
@@ -278,7 +278,7 @@ const sesiones = ref([])
 const formModal = ref({ fecha: '', descripcion: '' })
 const errModal = ref({ fecha: '', descripcion: '' })
 
-// ── Toast / Notificaciones ──────────────────────────────
+// ── Toast ───────────────────────────────────────────────
 const toast = ref({ visible: false, mensaje: '', tipo: 'exito' })
 let timerNotif = null
 
@@ -309,12 +309,11 @@ const cargarSesiones = async () => {
   }
 }
 
-// ── Ciclo de vida ───────────────────────────────────────
 onMounted(() => {
   cargarSesiones()
 })
 
-// ── Computadas: Filtros y paginación ────────────────────
+// ── Computadas ──────────────────────────────────────────
 const sesionesFiltradas = computed(() => 
   sesiones.value.filter(s => {
     const q = busqueda.value.toLowerCase()
@@ -340,7 +339,7 @@ const filtrosActivosCount = computed(() =>
   [filtroFecha.value, filtroActa.value].filter(Boolean).length
 )
 
-// ── Acciones de paginación y filtros ────────────────────
+// ── Métodos ─────────────────────────────────────────────
 const reiniciarPagina = () => { paginaActual.value = 1 }
 
 const cambiarPagina = (p) => {
@@ -358,11 +357,7 @@ const limpiarFiltros = () => {
   reiniciarPagina()
 }
 
-const filtrar = () => {
-  reiniciarPagina()
-}
-
-// ── Modal: Nueva/Editar Sesión ──────────────────────────
+// ── Modal ───────────────────────────────────────────────
 const abrirModalNueva = () => {
   modoEdicion.value = false
   sesionEditando.value = null
@@ -383,9 +378,8 @@ const cerrarModal = () => {
   mostrarModal.value = false
 }
 
-// ── Guardar Sesión (Crear/Actualizar) ───────────────────
+// ── Guardar ─────────────────────────────────────────────
 const guardarSesion = async () => {
-  // Validación
   errModal.value = { fecha: '', descripcion: '' }
   
   if (!formModal.value.fecha) errModal.value.fecha = 'La fecha es requerida'
@@ -402,38 +396,27 @@ const guardarSesion = async () => {
     }
 
     if (modoEdicion.value && sesionEditando.value) {
-      // PUT: Actualizar sesión existente
       const res = await fetch(`${BASE}/comite/sesiones/${sesionEditando.value.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.message || 'Error al actualizar')
-      }
+      if (!res.ok) throw new Error('Error al actualizar')
       
-      // Actualiza la fila en la tabla sin recargar toda la lista
       sesionEditando.value.fecha = payload.fecha
       sesionEditando.value.descripcion = payload.descripcion
       mostrarNotificacion('Sesión actualizada correctamente')
-      
     } else {
-      // POST: Crear nueva sesión
       const res = await fetch(`${BASE}/comite/sesiones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
       
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.message || 'Error al registrar')
-      }
+      if (!res.ok) throw new Error('Error al registrar')
       
       const respuesta = await res.json()
-      // Inserta la nueva sesión al inicio de la lista
       sesiones.value.unshift({
         id: respuesta.data?.id ?? respuesta.id,
         fecha: respuesta.data?.fecha ?? payload.fecha,
@@ -445,7 +428,6 @@ const guardarSesion = async () => {
     }
     
     cerrarModal()
-    
   } catch (error) {
     console.error('Error guardando sesión:', error)
     mostrarNotificacion(error.message || 'Error al guardar la sesión', 'error')
@@ -454,24 +436,18 @@ const guardarSesion = async () => {
   }
 }
 
-// ── Eliminar Sesión ─────────────────────────────────────
+// ── Eliminar ────────────────────────────────────────────
 const eliminarSesion = async (ses) => {
   if (!confirm(`¿Eliminar la sesión del ${formatearFechaLarga(ses.fecha)}?`)) return
   
   cargando.value = true
   try {
     const res = await fetch(`${BASE}/comite/sesiones/${ses.id}`, { method: 'DELETE' })
-    
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      throw new Error(data.message || 'No se pudo eliminar la sesión')
-    }
+    if (!res.ok) throw new Error('No se pudo eliminar')
     
     sesiones.value = sesiones.value.filter(x => x.id !== ses.id)
     mostrarNotificacion('Sesión eliminada correctamente')
-    
   } catch (error) {
-    console.error('Error eliminando sesión:', error)
     mostrarNotificacion(error.message || 'Error al eliminar', 'error')
   } finally {
     cargando.value = false
@@ -490,468 +466,190 @@ const formatearFechaLarga = (f) => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-.sesiones-page { 
-  width: 100%; 
-  font-family: 'Montserrat', sans-serif; 
-  padding-bottom: 2rem; 
-}
+.sesiones-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; }
 
-.barra-carga { 
-  position: fixed; 
-  top: 74px; 
-  left: 0; 
-  right: 0; 
-  height: 3px; 
-  z-index: 1001; 
-  opacity: 0; 
-  pointer-events: none; 
-  transition: opacity 0.2s; 
-}
+.barra-carga { position: fixed; top: 74px; left: 0; right: 0; height: 3px; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .barra-carga.activa { opacity: 1; }
-.barra-progreso { 
-  height: 100%; 
-  background: linear-gradient(90deg, #1B396A, #1D4ED8, #1B396A); 
-  background-size: 200% 100%; 
-  animation: carga-anim 1.4s linear infinite; 
-}
-@keyframes carga-anim { 
-  0% { background-position: 200% 0; } 
-  100% { background-position: -200% 0; } 
-}
+.barra-progreso { height: 100%; background: linear-gradient(90deg, #1B396A, #1D4ED8, #1B396A); background-size: 200% 100%; animation: carga-anim 1.4s linear infinite; }
+@keyframes carga-anim { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-.breadcrumb { 
-  color: #6B7280; 
-  font-size: 0.875rem; 
-  margin-bottom: 0.75rem; 
-  display: flex; 
-  align-items: center; 
-  gap: 0.4rem; 
-}
+.breadcrumb { display: flex; align-items: center; gap: 0.4rem; color: #6B7280; font-size: 0.875rem; margin-bottom: 0.75rem; }
 .breadcrumb .sep { color: #E5E7EB; }
-.breadcrumb .activo { color: #1B396A; font-weight: 600; }
-.breadcrumb-link { 
-  color: #6B7280; 
-  text-decoration: none; 
-  transition: color 0.15s; 
-}
+.breadcrumb-link { color: #6B7280; text-decoration: none; transition: color 0.15s; }
 .breadcrumb-link:hover { color: #1B396A; }
+.breadcrumb .activo { color: #1B396A; font-weight: 600; }
 
-.encabezado-seccion { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: flex-start; 
-  margin-bottom: 1.5rem; 
-}
-.titulo-pagina { 
-  color: #1A1A1A; 
-  font-size: 1.9rem; 
-  font-weight: 800; 
-  margin: 0 0 0.25rem; 
-}
-.subtitulo { 
-  color: #6B7280; 
-  font-size: 0.9rem; 
-  margin: 0; 
-}
+.encabezado-seccion { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+.titulo-pagina { color: #1A1A1A; font-size: 1.9rem; font-weight: 800; margin: 0 0 0.25rem; }
+.subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; }
 
-.btn-primario { 
-  background: #1B396A; 
-  color: #FFFFFF; 
-  border: none; 
-  padding: 10px 18px; 
-  border-radius: 10px; 
-  font-weight: 600; 
-  font-size: 0.875rem; 
-  display: flex; 
-  align-items: center; 
-  gap: 6px; 
-  cursor: pointer; 
-  font-family: inherit; 
-  transition: background 0.2s; 
+.btn-primario {
+  background: #1B396A; color: #FFFFFF; border: none; padding: 10px 18px; border-radius: 10px;
+  font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 6px;
+  cursor: pointer; font-family: inherit; transition: background 0.2s;
 }
 .btn-primario:hover { background: #1D4ED8; }
 
 /* Filtros */
-.filtros-card { 
-  background: #FFFFFF; 
-  border-radius: 12px; 
-  border: 1px solid #E5E7EB; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-  padding: 0.9rem 1.4rem; 
-  display: flex; 
-  align-items: center; 
-  gap: 0.75rem; 
-  flex-wrap: wrap; 
-  margin-bottom: 1.5rem; 
+.filtros-card {
+  background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0.9rem 1.4rem;
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem;
 }
-.busqueda-wrap { 
-  display: flex; 
-  align-items: center; 
-  gap: 8px; 
-  background: #F5F5F5; 
-  border: 1px solid #E5E7EB; 
-  border-radius: 8px; 
-  padding: 0 12px; 
-  flex: 1; 
-  min-width: 180px; 
+.busqueda-wrap {
+  display: flex; align-items: center; gap: 8px; background: #F5F5F5;
+  border: 1px solid #E5E7EB; border-radius: 8px; padding: 0 12px; flex: 1;
 }
-.busqueda-wrap:focus-within { 
-  border-color: #1B396A; 
-  background: #DBEAFE; 
-}
+.busqueda-wrap:focus-within { border-color: #1B396A; background: #DBEAFE; }
 .icono-busqueda { color: #6B7280; flex-shrink: 0; }
-.input-busqueda { 
-  border: none; 
-  background: transparent; 
-  padding: 9px 0; 
-  font-size: 0.875rem; 
-  font-family: inherit; 
-  outline: none; 
-  flex: 1; 
-  color: #1A1A1A; 
+.input-busqueda {
+  border: none; background: transparent; padding: 9px 0; font-size: 0.875rem;
+  font-family: inherit; outline: none; flex: 1; color: #1A1A1A;
 }
-.input-busqueda::placeholder { color: #9CA3AF; }
-.btn-limpiar { 
-  background: none; 
-  border: none; 
-  color: #6B7280; 
-  cursor: pointer; 
-  padding: 2px; 
-  display: flex; 
-  align-items: center; 
-}
+.btn-limpiar { background: none; border: none; color: #6B7280; cursor: pointer; padding: 2px; }
 
-.btn-icono { 
-  background: #FFFFFF; 
-  color: #6B7280; 
-  border: 1px solid #E5E7EB; 
-  padding: 9px 14px; 
-  border-radius: 8px; 
-  font-weight: 600; 
-  font-size: 0.82rem; 
-  display: flex; 
-  align-items: center; 
-  gap: 6px; 
-  cursor: pointer; 
-  font-family: inherit; 
-  transition: all 0.2s; 
+.btn-secundario {
+  background: #DBEAFE; color: #1B396A; border: none; padding: 10px 16px;
+  border-radius: 10px; font-weight: 600; font-size: 0.875rem;
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  font-family: inherit; transition: background 0.2s;
 }
-.btn-icono:hover { 
-  background: #F5F5F5; 
-  color: #1B396A; 
-  border-color: #1B396A; 
-}
+.btn-secundario:hover { background: #BFDBFE; }
 
-.filtros-activos-indicador { 
-  width: 22px; 
-  height: 22px; 
-  background: #1B396A; 
-  color: #FFFFFF; 
-  border-radius: 50%; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  font-size: 0.7rem; 
-  font-weight: 700; 
-  cursor: pointer; 
+.filtros-activos-indicador {
+  width: 22px; height: 22px; background: #1B396A; color: #FFFFFF;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; cursor: pointer;
 }
-.filtros-count { line-height: 1; }
 
 /* Modal */
-.modal-fondo { 
-  position: fixed; 
-  inset: 0; 
-  background: rgba(0,0,0,0.55); 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  z-index: 2000; 
-  backdrop-filter: blur(3px); 
+.modal-fondo {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center; z-index: 2000;
+  backdrop-filter: blur(3px);
 }
-.modal-caja { 
-  background: #FFFFFF; 
-  width: 480px; 
-  border-radius: 16px; 
-  overflow: hidden; 
-  box-shadow: 0 24px 60px rgba(0,0,0,0.25); 
+.modal-caja {
+  background: #FFFFFF; width: 480px; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
 }
-.modal-cabecera { 
-  background: #1B396A; 
-  color: #FFFFFF; 
-  padding: 1.1rem 1.6rem; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
+.modal-cabecera {
+  background: #1B396A; color: #FFFFFF; padding: 1.1rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
 }
-.modal-cabecera h3 { 
-  margin: 0; 
-  font-size: 1.1rem; 
-  font-weight: 800; 
-}
-.btn-cerrar-modal { 
-  background: none; 
-  border: none; 
-  color: rgba(255,255,255,0.8); 
-  cursor: pointer; 
-  display: flex; 
-  align-items: center; 
-  transition: color 0.2s; 
-}
+.btn-cerrar-modal { background: none; border: none; color: rgba(255,255,255,0.8); cursor: pointer; }
 .btn-cerrar-modal:hover { color: #FFFFFF; }
 
-.modal-cuerpo { 
-  padding: 1.6rem; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 1rem; 
+.modal-cuerpo { padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; }
+.filtros-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.campo-form { display: flex; flex-direction: column; gap: 6px; }
+.campo-label { font-size: 0.82rem; font-weight: 700; color: #1A1A1A; }
+.campo-input {
+  padding: 10px 14px; border: 1.5px solid #E5E7EB; border-radius: 8px;
+  font-size: 0.875rem; font-family: inherit; color: #1A1A1A; outline: none;
 }
-.filtros-grid { 
-  display: grid; 
-  grid-template-columns: 1fr 1fr; 
-  gap: 1rem; 
+.campo-input:focus { border-color: #1B396A; background: #DBEAFE; }
+.campo-textarea { resize: vertical; min-height: 80px; }
+.mensaje-error { font-size: 0.78rem; color: #DC2626; font-weight: 500; }
+.campo-input.campo-error { border-color: #DC2626; }
+
+.modal-pie {
+  padding: 1rem 1.6rem; background: #F5F5F5; border-top: 1px solid #E5E7EB;
+  display: flex; justify-content: flex-end; gap: 0.75rem;
 }
-.campo-form { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 6px; 
+.btn-cancelar {
+  background: #FFFFFF; color: #6B7280; border: 1px solid #E5E7EB;
+  padding: 10px 1.4rem; border-radius: 8px; font-weight: 600;
+  font-size: 0.875rem; cursor: pointer; font-family: inherit;
 }
-.campo-label { 
-  font-size: 0.82rem; 
-  font-weight: 700; 
-  color: #1A1A1A; 
-}
-.campo-input { 
-  padding: 10px 14px; 
-  border: 1.5px solid #E5E7EB; 
-  border-radius: 8px; 
-  font-size: 0.875rem; 
-  font-family: inherit; 
-  color: #1A1A1A; 
-  outline: none; 
-  background: #FFFFFF; 
-}
-.modal-pie { 
-  padding: 1rem 1.6rem; 
-  background: #F5F5F5; 
-  border-top: 1px solid #E5E7EB; 
-  display: flex; 
-  justify-content: flex-end; 
-  gap: 0.75rem; 
-}
-.btn-cancelar { 
-  background: #FFFFFF; 
-  color: #6B7280; 
-  border: 1px solid #E5E7EB; 
-  padding: 9px 1.2rem; 
-  border-radius: 8px; 
-  font-weight: 600; 
-  font-size: 0.875rem; 
-  cursor: pointer; 
-  font-family: inherit; 
-}
-.btn-guardar { 
-  background: #1B396A; 
-  color: #FFFFFF; 
-  border: none; 
-  padding: 9px 1.4rem; 
-  border-radius: 8px; 
-  font-weight: 600; 
-  font-size: 0.875rem; 
-  display: flex; 
-  align-items: center; 
-  gap: 6px; 
-  cursor: pointer; 
-  font-family: inherit; 
-  transition: background 0.2s; 
-}
-.btn-guardar:hover:not(:disabled) { background: #1D4ED8; }
+.btn-cancelar:hover { background: #F5F5F5; }
 
 /* Tabla */
-.tabla-card { 
-  background: #FFFFFF; 
-  border-radius: 12px; 
-  border: 1px solid #E5E7EB; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-  overflow: hidden; 
-  margin-bottom: 1.5rem; 
+.tabla-card {
+  background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 1.5rem;
 }
-.tabla-encabezado { 
-  padding: 0.8rem 1.4rem; 
-  border-bottom: 1px solid #E5E7EB; 
-  display: flex; 
-  align-items: center; 
-  justify-content: flex-end; 
+.tabla-encabezado {
+  padding: 0.8rem 1.4rem; border-bottom: 1px solid #E5E7EB;
+  display: flex; align-items: center; justify-content: flex-end;
 }
-.tabla-contador { 
-  font-size: 0.8rem; 
-  color: #6B7280; 
-  background: #F5F5F5; 
-  border: 1px solid #E5E7EB; 
-  padding: 4px 10px; 
-  border-radius: 20px; 
+.tabla-contador {
+  font-size: 0.8rem; color: #6B7280; background: #F5F5F5;
+  border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 20px;
 }
 .tabla-scroll { overflow-x: auto; }
 .tabla-principal { width: 100%; border-collapse: collapse; }
-.tabla-principal th { 
-  background: #F5F5F5; 
-  padding: 8px 12px; 
-  font-size: 0.75rem; 
-  font-weight: 700; 
-  color: #6B7280; 
-  text-transform: uppercase; 
-  letter-spacing: 0.04em; 
-  border-bottom: 1px solid #E5E7EB; 
-  text-align: left; 
+.tabla-principal th {
+  background: #F5F5F5; padding: 10px 14px; font-size: 0.78rem;
+  font-weight: 700; color: #6B7280; text-transform: uppercase;
+  letter-spacing: 0.04em; border-bottom: 1px solid #E5E7EB; text-align: left;
 }
 .tabla-principal th.centrado { text-align: center; }
-.tabla-principal td { 
-  padding: 6px 12px; 
-  border-bottom: 1px solid #E5E7EB; 
-  vertical-align: middle; 
+.tabla-principal td {
+  padding: 8px 14px; border-bottom: 1px solid #E5E7EB; vertical-align: middle;
 }
 .tabla-principal td.centrado { text-align: center; }
-.tabla-principal tr:last-child td { border-bottom: none; }
-.tabla-principal tr:hover { background: #F9FAFB; }
+.tabla-principal tr:hover { background: #F5F5F5; }
 
-.texto-principal { 
-  font-weight: 600; 
-  color: #1A1A1A; 
-  font-size: 0.82rem; 
-}
-.texto-secundario { 
-  color: #6B7280; 
-  font-size: 0.8rem; 
-}
-.badge-resoluciones { 
-  font-size: 0.7rem; 
-  font-weight: 700; 
-  padding: 2px 8px; 
-  border-radius: 20px; 
-}
+.texto-principal { font-weight: 600; color: #1A1A1A; font-size: 0.82rem; }
+.texto-secundario { color: #6B7280; font-size: 0.8rem; }
+.badge-estado { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
 
-.acciones-fila { 
-  display: flex; 
-  gap: 4px; 
-  justify-content: center; 
-  align-items: center; 
-}
-.btn-accion { 
-  width: 26px; 
-  height: 26px; 
-  border-radius: 5px; 
-  border: none; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  cursor: pointer; 
-  transition: transform 0.15s, background 0.15s; 
+.acciones-fila { display: flex; gap: 4px; justify-content: center; }
+.btn-accion {
+  width: 30px; height: 30px; border-radius: 7px; border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: transform 0.15s;
 }
 .btn-accion:hover { transform: scale(1.1); }
 .btn-accion.ver { background: #DBEAFE; color: #1B396A; }
-.btn-accion.editar { background: #F3F4F6; color: #4B5563; }
-.btn-accion.eliminar { background: #FEE2E2; color: #DC2626; }
+.btn-accion.editar { background: #F5F5F5; color: #6B7280; }
+.btn-accion.eliminar { background: #FEF2F2; color: #DC2626; }
 
-.sin-resultados { 
-  padding: 2.5rem; 
-  text-align: center; 
-  color: #9CA3AF; 
-  font-size: 0.85rem; 
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
-  gap: 0.75rem; 
+.sin-resultados {
+  padding: 2.5rem; text-align: center; color: #9CA3AF;
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
 }
 
-.paginacion-wrap { 
-  padding: 0.8rem 1.4rem; 
-  border-top: 1px solid #E5E7EB; 
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
-  background: #F9FAFB; 
+/* Paginación */
+.paginacion-wrap {
+  padding: 0.8rem 1.4rem; border-top: 1px solid #E5E7EB;
+  display: flex; align-items: center; justify-content: space-between;
+  background: #F5F5F5;
 }
-.btn-pag { 
-  padding: 6px 12px; 
-  border: 1px solid #E5E7EB; 
-  background: #FFFFFF; 
-  border-radius: 6px; 
-  font-size: 0.8rem; 
-  cursor: pointer; 
-  color: #4B5563; 
+.btn-pag {
+  padding: 6px 12px; border: 1px solid #E5E7EB; background: #FFFFFF;
+  border-radius: 6px; font-size: 0.8rem; cursor: pointer; color: #6B7280;
 }
 .btn-pag:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-pag:hover:not(:disabled) { background: #F3F4F6; }
 .pag-numeros { display: flex; gap: 4px; }
-.btn-pag-num { 
-  width: 28px; 
-  height: 28px; 
-  border-radius: 6px; 
-  border: 1px solid #E5E7EB; 
-  background: #FFFFFF; 
-  font-size: 0.8rem; 
-  cursor: pointer; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
+.btn-pag-num {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E7EB;
+  background: #FFFFFF; color: #6B7280; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
-.btn-pag-num.activa { 
-  background: #1B396A; 
-  color: #FFFFFF; 
-  border-color: #1B396A; 
-}
-.btn-pag-num:hover:not(.activa) { background: #F3F4F6; }
+.btn-pag-num.activa { background: #1B396A; color: #FFFFFF; border-color: #1B396A; }
 
-/* Modal Sesión - extras */
-.campo-fecha-wrap { 
-  position: relative; 
-  display: flex; 
-  align-items: center; 
-}
-.icono-campo { 
-  position: absolute; 
-  left: 12px; 
-  color: #6B7280; 
-  pointer-events: none; 
-}
+/* Modal extras */
+.campo-fecha-wrap { position: relative; display: flex; align-items: center; }
+.icono-campo { position: absolute; left: 12px; color: #6B7280; pointer-events: none; }
 .campo-input-fecha { padding-left: 38px; }
-.campo-textarea { 
-  resize: vertical; 
-  min-height: 80px; 
-}
-.mensaje-error { 
-  font-size: 0.78rem; 
-  color: #DC2626; 
-  font-weight: 500; 
-}
-.campo-input.campo-error { border-color: #DC2626; }
-.spinner { 
-  width: 14px; 
-  height: 14px; 
-  border-radius: 50%; 
-  border: 2px solid rgba(255,255,255,0.3); 
-  border-top-color: #FFFFFF; 
-  animation: spin 0.7s linear infinite; 
+.spinner {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3); border-top-color: #FFFFFF;
+  animation: spin 0.7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Toast */
-.toast { 
-  position: fixed; 
-  bottom: 2rem; 
-  right: 2rem; 
-  padding: 0.9rem 1.4rem; 
-  border-radius: 10px; 
-  font-weight: 700; 
-  font-size: 0.9rem; 
-  font-family: 'Montserrat', sans-serif; 
-  display: flex; 
-  align-items: center; 
-  gap: 0.6rem; 
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
-  z-index: 3000; 
+.toast {
+  position: fixed; bottom: 2rem; right: 2rem; padding: 0.9rem 1.4rem;
+  border-radius: 10px; font-weight: 700; font-size: 0.9rem;
+  font-family: 'Montserrat', sans-serif; display: flex; align-items: center;
+  gap: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 3000;
+  color: #FFFFFF;
 }
-.toast.exito { background: #1B396A; color: #FFFFFF; }
-.toast.error { background: #DC2626; color: #FFFFFF; }
+.toast.exito { background: #1B396A; }
+.toast.error { background: #DC2626; }
 
 /* Transiciones */
 .modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.2s; }
@@ -961,12 +659,7 @@ const formatearFechaLarga = (f) => {
 .toast-slide-enter-from { transform: translateY(20px); opacity: 0; }
 .toast-slide-leave-to { transform: translateX(100%); opacity: 0; }
 
-.pie-pagina { 
-  text-align: center; 
-  color: #9CA3AF; 
-  font-size: 0.82rem; 
-  padding-top: 2rem; 
-}
+.pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
 
 @media (max-width: 640px) { 
   .filtros-grid { grid-template-columns: 1fr; } 
