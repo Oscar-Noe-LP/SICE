@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 // controllers
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\ServiciosEscolaresController;
 use App\Http\Controllers\Api\GrupoController;
@@ -18,13 +19,10 @@ use App\Http\Controllers\Docentes\CargaDocenteController;
 
 // ====================== AUTENTICACIÓN ======================
 
-use App\Http\Controllers\Auth\AuthController;
+// Rutas públicas — no requieren token
+Route::post('/login',  [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/me',      [AuthController::class, 'me']);
-});
 
 // DASHBOARD
 Route::get('/dashboard', [DashboardController::class, 'index']);
