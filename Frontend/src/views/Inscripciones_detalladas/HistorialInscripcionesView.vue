@@ -3,7 +3,13 @@
     <div class="alumnos-page">
 
       <div class="page-header">
-        <h1 class="page-title">Historial de Inscripciones</h1>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn-regresar" @click="router.back()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+            Regresar
+          </button>
+          <h1 class="page-title">Historial de Inscripciones</h1>
+        </div>
         <button v-if="alumnoSeleccionado" class="btn-exportar" @click="exportarHistorial" :disabled="exportando">
           <span v-if="exportando" class="spinner-btn" style="border-top-color:#1B396A;border-color:rgba(27,57,106,.3)"></span>
           <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -117,7 +123,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
+
+const router = useRouter()
 
 // ✅ CORREGIDO: era /api, ahora es /api/form
 const API = `${import.meta.env.VITE_API_URL}/api/form`
@@ -189,6 +198,9 @@ const estiloCalificacion = c => {
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 .alumnos-page{--borde:#E5E7EB;--fondo:#F5F5F5;max-width:100%;background:var(--fondo);font-family:'Montserrat',sans-serif;padding-bottom:2rem}
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.75rem}
+.btn-regresar{display:inline-flex;align-items:center;gap:6px;background:#FFF;color:#1B396A;border:1.5px solid #1B396A;padding:8px 14px;border-radius:8px;font-weight:600;font-size:.88rem;cursor:pointer;font-family:'Montserrat',sans-serif;transition:background .15s,color .15s;white-space:nowrap}
+.btn-regresar:hover{background:#1B396A;color:#FFF}
+.btn-regresar:hover svg{stroke:#FFF}
 .page-title{color:#1A1A1A;font-size:1.75rem;font-weight:700;letter-spacing:-.02em;margin:0}
 .barra-carga-global{height:3px;background:transparent;border-radius:2px;margin-bottom:1rem;overflow:hidden;opacity:0;transition:opacity .3s}
 .barra-carga-global.visible{opacity:1}

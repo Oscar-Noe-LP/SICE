@@ -91,6 +91,7 @@
               <td class="celda-acciones">
                 <button class="btn-accion ver" @click.stop="abrirModalVer(ins)"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>Ver</button>
                 <button class="btn-accion editar" @click.stop="abrirModalEditar(ins)"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>Editar</button>
+                <button class="btn-accion gestionar" @click.stop="irAGestion(ins)"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>Gestionar</button>
               </td>
             </tr>
           </tbody>
@@ -196,6 +197,33 @@
       </div>
     </div>
 
+    <!-- MODAL FUERA DE TIEMPO -->
+    <div v-if="showModalFueraDeTiempo" class="modal-overlay" @click.self="showModalFueraDeTiempo=false">
+      <div class="modal-content" style="max-width:460px">
+        <div class="modal-header" style="background:#F59E0B">
+          <h3 style="display:flex;align-items:center;gap:8px">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Fuera de tiempo
+          </h3>
+          <button @click="showModalFueraDeTiempo=false" class="btn-cerrar-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:.95rem;color:#1A1A1A;line-height:1.7;margin:0;font-family:'Montserrat',sans-serif">
+            El periodo de inscripciones
+            <strong v-if="periodoActivo">{{ periodoActivo.nombre_periodo }}</strong>
+            <span v-else>activo</span>
+            no está vigente en este momento. No es posible registrar nuevas inscripciones fuera del periodo establecido.
+          </p>
+          <p v-if="periodoActivo" style="margin:12px 0 0;font-size:.85rem;color:#6B7280;font-family:'Montserrat',sans-serif">
+            Periodo: {{ periodoActivo.fecha_inicio }} — {{ periodoActivo.fecha_fin }}
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-guardar" @click="showModalFueraDeTiempo=false">Entendido</button>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL CONFIRMAR ELIMINAR -->
     <div v-if="showModalEliminar" class="modal-overlay" @click.self="showModalEliminar=false">
       <div class="modal-content" style="max-width:460px">
@@ -213,7 +241,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
+
+const router = useRouter()
 
 // ✅ Base correcta: todos los endpoints del módulo de inscripciones usan /api/form
 const API = `${import.meta.env.VITE_API_URL}/api/form`
@@ -233,6 +264,26 @@ const grupoActual         = ref('')
 
 // KPIs: SELECT estatus, COUNT(*) FROM inscripcion GROUP BY estatus
 const kpis = ref({ totalInscritos: 0, activos: 0, bajaTemporal: 0, bajaDefinitiva: 0 })
+
+// ─── Periodo activo y control de tiempo ────────────────────────────────────
+// GET /api/form/periodos/activo → { id_periodo, nombre_periodo, fecha_inicio, fecha_fin } | null
+const periodoActivo       = ref(null)
+const showModalFueraDeTiempo = ref(false)
+
+const esFueraDeTiempo = () => {
+  if (!periodoActivo.value) return true
+  const hoy = new Date()
+  const inicio = new Date(periodoActivo.value.fecha_inicio)
+  const fin    = new Date(periodoActivo.value.fecha_fin)
+  return hoy < inicio || hoy > fin
+}
+
+const cargarPeriodoActivo = async () => {
+  try {
+    const r = await fetch(`${API}/periodos/activo`)
+    if (r.ok) periodoActivo.value = await r.json()
+  } catch { console.error('periodoActivo') }
+}
 
 const busquedaInput  = ref('')
 const busquedaActiva = ref('')
@@ -346,6 +397,7 @@ const cargarDatos = () => {
   cargarKpis()
   cargarGrupos()
   cargarFiltros()
+  cargarPeriodoActivo()
 }
 onMounted(cargarDatos)
 
@@ -438,7 +490,19 @@ const confirmarEliminar = async () => {
   } finally { guardando.value=false }
 }
 
-const abrirModalNueva  = () => { form.value=formVacio(); alumnoEncontrado.value=null; grupoActual.value=''; errores.value={id_grupo:'',fecha:''}; showModal.value=true }
+// ─── Tarea 1: Navegación correcta hacia GestionInscripcionView ─────────────
+const irAGestion = (ins) => {
+  router.push({ name: 'GestionInscripcion', params: { id: ins.id_inscripcion } })
+}
+
+// ─── Tarea 2: Mensaje fuera de tiempo antes de abrir modal de nueva inscripción
+const abrirModalNueva  = () => {
+  if (esFueraDeTiempo()) {
+    showModalFueraDeTiempo.value = true
+    return
+  }
+  form.value=formVacio(); alumnoEncontrado.value=null; grupoActual.value=''; errores.value={id_grupo:'',fecha:''}; showModal.value=true
+}
 const abrirModalVer    = (ins) => { inscripcionVer.value=ins; showModalVer.value=true }
 const abrirModalEditar = (ins) => {
   form.value = { id_inscripcion:ins.id_inscripcion, numero_control:ins.numero_control, id_alumno:ins.id_alumno, id_grupo:ins.id_grupo, fecha_inscripcion:ins.fecha_inscripcion, estatus:ins.estatus }
@@ -539,6 +603,9 @@ const claseEstatus = e => ({ 'activo':e==='Activo', 'baja-temporal':e==='Baja Te
 .btn-accion.editar{background:#1B396A;color:#FFF;border:1px solid #1B396A}
 .btn-accion.editar svg{stroke:#FFF}
 .btn-accion.editar:hover{background:#1D4ED8;border-color:#1D4ED8}
+.btn-accion.gestionar{background:#F0FDF4;color:#16A34A;border:1px solid #86EFAC}
+.btn-accion.gestionar svg{stroke:#16A34A}
+.btn-accion.gestionar:hover{background:#DCFCE7}
 .estatus-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.83rem;font-weight:600;font-family:'Montserrat',sans-serif}
 .estatus-badge.activo{background:#DCFCE7;color:#16A34A}
 .estatus-badge.baja-temporal{background:#FEF3C7;color:#F59E0B}
