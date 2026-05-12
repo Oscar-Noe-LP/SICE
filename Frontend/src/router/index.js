@@ -273,4 +273,69 @@ const router = createRouter({
   ]
 })
 
+// ══════════════════════════════════════════════════════════════════════
+// GUARD DE NAVEGACIÓN POR ROLES
+// ══════════════════════════════════════════════════════════════════════
+
+// Rutas que no requieren autenticación
+const RUTAS_PUBLICAS = ['/login']
+
+// Rutas permitidas por rol (admin tiene acceso total, no se lista aquí)
+const PERMISOS_POR_ROL = {
+  'docente': [
+    '/inicio',
+    '/asignacion-docente/carga',
+    '/evaluaciones',
+    '/calificaciones',
+    '/gestion-grupos',
+    '/eventos',
+  ],
+  'servicios-escolares': [
+    '/inicio',
+    '/servicios-escolares',
+    '/alumnos',
+    '/formulario-alumno',
+    '/evaluaciones',
+    '/calificaciones',
+    '/inscripcion',
+    '/gestion-grupos',
+    '/inscripciones',
+    '/gestion-academica',
+    '/eventos',
+    '/comite',
+  ],
+}
+
+router.beforeEach((to, from, next) => {
+  // 1. Rutas públicas — siempre pasan
+  if (RUTAS_PUBLICAS.includes(to.path)) {
+    return next()
+  }
+
+  // 2. Sin sesión — redirigir al login
+  const token   = localStorage.getItem('auth_token')
+  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
+  if (!token || !usuario) {
+    return next('/login')
+  }
+
+  const rol = usuario.rol ?? ''
+
+  // 3. Admin — acceso total
+  if (rol === 'admin') {
+    return next()
+  }
+
+
+  const permitidas  = PERMISOS_POR_ROL[rol] ?? []
+  const tieneAcceso = permitidas.some(ruta => to.path.startsWith(ruta))
+
+  if (tieneAcceso) {
+    return next()
+  }
+
+  // 5. Sin permiso — redirigir al inicio
+  return next('/inicio')
+})
+
 export default router
