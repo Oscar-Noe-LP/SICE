@@ -236,6 +236,34 @@
 
         <div class="modal-body">
 
+          <!-- Persona asociada (solo al crear) -->
+          <div v-if="!usuarioEditar.id_usuario" class="form-grupo">
+            <label>Persona Asociada <span class="obligatorio">*</span></label>
+            <input
+              v-model="busquedaPersonaModal"
+              type="text"
+              class="modal-input"
+              :class="{ 'input-error': erroresModal.persona }"
+              placeholder="Buscar por nombre..."
+              @input="buscarPersonaModal"
+            >
+            <div v-if="sugerenciasPersonaModal.length > 0" class="sugerencias-modal">
+              <div
+                v-for="(p, i) in sugerenciasPersonaModal" :key="i"
+                class="sugerencia-modal-item"
+                @click="seleccionarPersonaModal(p)"
+              >
+                <strong>{{ p.nombre_completo }}</strong>
+                <span v-if="p.curp" style="font-size:0.8rem;color:#6B7280;"> · {{ p.curp }}</span>
+              </div>
+            </div>
+            <div v-if="personaSeleccionadaModal" class="persona-seleccionada-modal">
+              ✓ {{ personaSeleccionadaModal.nombre_completo }}
+              <button type="button" @click="personaSeleccionadaModal = null; busquedaPersonaModal = ''" style="margin-left:8px;background:none;border:none;color:#DC2626;cursor:pointer;min-height:unset;">✕</button>
+            </div>
+            <small v-if="erroresModal.persona" class="mensaje-error">{{ erroresModal.persona }}</small>
+          </div>
+
           <!-- Datos del usuario -->
           <div class="form-grupo">
             <label>Nombre de Usuario <span class="obligatorio">*</span></label>
@@ -496,10 +524,34 @@ onMounted(() => {
 })
 
 // ── Modales ───────────────────────────────────────────────────────────
+// ── Búsqueda de persona en modal ─────────────────────────────────────
+const busquedaPersonaModal    = ref('')
+const sugerenciasPersonaModal = ref([])
+const personaSeleccionadaModal = ref(null)
+
+const buscarPersonaModal = async () => {
+  const q = busquedaPersonaModal.value.trim()
+  if (q.length < 2) { sugerenciasPersonaModal.value = []; return }
+  try {
+    const res = await fetch(`${API_URL}/api/personas/buscar?q=${encodeURIComponent(q)}`)
+    sugerenciasPersonaModal.value = res.ok ? await res.json() : []
+  } catch { sugerenciasPersonaModal.value = [] }
+}
+
+const seleccionarPersonaModal = (persona) => {
+  personaSeleccionadaModal.value = persona
+  sugerenciasPersonaModal.value  = []
+  busquedaPersonaModal.value     = persona.nombre_completo
+  if (erroresModal.value.persona) delete erroresModal.value.persona
+}
+
 const abrirModalNuevo = () => {
-  usuarioEditar.value = { nombre_usuario: '', contrasena: '', estatus: 'Activo' }
-  rolesSeleccionados.value = {}
-  erroresModal.value = {}
+  usuarioEditar.value            = { nombre_usuario: '', contrasena: '', estatus: 'Activo' }
+  rolesSeleccionados.value       = {}
+  erroresModal.value             = {}
+  busquedaPersonaModal.value     = ''
+  sugerenciasPersonaModal.value  = []
+  personaSeleccionadaModal.value = null
   showModal.value = true
 }
 
@@ -524,7 +576,13 @@ const abrirModalVer = (usuario) => {
   showModalVer.value = true
 }
 
-const cerrarModal           = () => { showModal.value = false }
+const cerrarModal = () => {
+  showModal.value                = false
+  busquedaPersonaModal.value     = ''
+  sugerenciasPersonaModal.value  = []
+  personaSeleccionadaModal.value = null
+  erroresModal.value             = {}
+}
 const cerrarModalVer        = () => { showModalVer.value = false }
 const cerrarModalContrasena = () => { showModalContrasena.value = false }
 
@@ -539,12 +597,24 @@ const abrirModalContrasena = () => {
 // ── Guardar usuario ───────────────────────────────────────────────────
 // Endpoints: POST /api/usuarios  |  PUT /api/usuarios/{id}
 const guardarUsuario = async () => {
+  const esEdicion = !!usuarioEditar.value.id_usuario
+
+  // Validaciones básicas
   if (!usuarioEditar.value.nombre_usuario?.trim()) {
     mostrarNotificacion('El nombre de usuario es obligatorio', 'error')
     return
   }
+  if (!esEdicion && !personaSeleccionadaModal.value) {
+    erroresModal.value.persona = 'Debes seleccionar una persona asociada'
+    mostrarNotificacion('Selecciona una persona asociada al usuario', 'error')
+    return
+  }
+  if (!esEdicion && !usuarioEditar.value.contrasena) {
+    erroresModal.value.contrasena = 'La contraseña es obligatoria'
+    mostrarNotificacion('La contraseña es obligatoria', 'error')
+    return
+  }
 
-  const esEdicion = !!usuarioEditar.value.id_usuario
   const url = esEdicion
     ? `${API_URL}/api/usuarios/${usuarioEditar.value.id_usuario}`
     : `${API_URL}/api/usuarios`
@@ -558,7 +628,9 @@ const guardarUsuario = async () => {
     roles:          rolesActivos
   }
 
-  if (!esEdicion && usuarioEditar.value.contrasena) {
+  // Al crear: agregar id_persona y contraseña (requeridos por el backend)
+  if (!esEdicion) {
+    payload.id_persona = personaSeleccionadaModal.value.id_persona
     payload.contrasena = usuarioEditar.value.contrasena
   }
 
@@ -570,6 +642,8 @@ const guardarUsuario = async () => {
       body:    JSON.stringify(payload)
     })
 
+    const data = await response.json().catch(() => ({}))
+
     if (response.ok) {
       await cargarUsuarios()
       cerrarModal()
@@ -578,8 +652,12 @@ const guardarUsuario = async () => {
         'exito'
       )
     } else {
-      const data = await response.json().catch(() => ({}))
-      mostrarNotificacion(data.error || 'Error al guardar', 'error')
+      // Mostrar el primer error de validación detallado si lo hay
+      const detalle = data.detalle
+      const primerError = detalle
+        ? Object.values(detalle)[0]?.[0]
+        : null
+      mostrarNotificacion(primerError || data.error || 'Error al guardar', 'error')
     }
   } catch (error) {
     console.error(error)
@@ -841,6 +919,27 @@ const validarContrasena = (campo) => {
 .modal-content { background: #FFFFFF; width: 520px; max-width: 92%; border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.18); overflow: hidden; border: 1px solid var(--borde); max-height: 90vh; display: flex; flex-direction: column; }
 .modal-editar { width: 560px; }
 .modal-contrasena { width: 460px; }
+
+/* ── Buscador de persona en modal ── */
+.sugerencias-modal {
+  border: 1px solid #E5E7EB; border-radius: 8px;
+  margin-top: 4px; max-height: 180px; overflow-y: auto;
+  background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.sugerencia-modal-item {
+  padding: 10px 14px; cursor: pointer;
+  font-size: 0.9rem; border-bottom: 1px solid #F3F4F6;
+  transition: background 0.15s;
+}
+.sugerencia-modal-item:hover { background: #EFF6FF; }
+.sugerencia-modal-item:last-child { border-bottom: none; }
+.persona-seleccionada-modal {
+  margin-top: 6px; padding: 8px 12px;
+  background: #F0FDF4; border: 1px solid #86EFAC;
+  border-radius: 8px; font-size: 0.88rem;
+  color: #15803D; font-weight: 500;
+  display: flex; align-items: center;
+}
 
 .modal-header { background: #1B396A; color: white; padding: 1.1rem 1.6rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .modal-header h3 { margin: 0; font-size: 1.2rem; font-weight: 700; font-family: 'Montserrat', sans-serif; }
