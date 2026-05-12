@@ -1,4 +1,37 @@
 <template>
+  <!-- ══════════════════════════════════════
+         MODAL: CONFIRMAR ELIMINACIÓN
+    ═══════════════════════════════════════ -->
+    <div v-if="showModalConfirmar" class="modal-overlay modal-overlay-top" @click.self="cancelarEliminar">
+      <div class="modal-content modal-confirmar">
+        <div class="modal-header modal-header-rojo">
+          <h3>Confirmar eliminación</h3>
+          <button @click="cancelarEliminar" class="btn-cerrar-modal">×</button>
+        </div>
+        <div class="modal-body modal-body-confirmar">
+          <div class="confirmar-icono-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" class="confirmar-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+          </div>
+          <p class="confirmar-titulo">¿Eliminar usuario?</p>
+          <p class="confirmar-subtitulo">
+            Estás a punto de eliminar al usuario
+            <strong>{{ usuarioEditar.nombre_usuario }}</strong>.
+            Esta acción no se puede deshacer.
+          </p>
+        </div>
+        <div class="modal-footer confirmar-footer">
+          <button class="btn-secundario" @click="cancelarEliminar" :disabled="guardando">Cancelar</button>
+          <button class="btn-eliminar confirmar-btn-eliminar" @click="confirmarEliminar" :disabled="guardando">
+            <span v-if="guardando" class="spinner-btn"></span>
+            {{ guardando ? 'Eliminando...' : 'Sí, eliminar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   <MainLayout v-slot="{ busquedaGlobal }">
     <div class="usuarios-page">
 
@@ -358,6 +391,16 @@
             Cambiar contraseña
           </button>
 
+          <!-- ── Botón eliminar (solo en edición) ── -->
+          <button
+            v-if="usuarioEditar.id_usuario"
+            class="btn-eliminar"
+            @click="eliminarUsuario"
+            :disabled="guardando"
+          >
+            Eliminar
+          </button>
+
           <button class="btn-guardar" @click="guardarUsuario" :disabled="guardando">
             <span v-if="guardando" class="spinner-btn"></span>
             {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
@@ -662,6 +705,52 @@ const guardarUsuario = async () => {
   } catch (error) {
     console.error(error)
     mostrarNotificacion('Error de conexión con el servidor', 'error')
+  } finally {
+    guardando.value = false
+  }
+}
+
+const showModalConfirmar = ref(false)
+
+const eliminarUsuario = () => {
+  if (!usuarioEditar.value.id_usuario) return
+  showModalConfirmar.value = true
+}
+
+const cancelarEliminar = () => {
+  showModalConfirmar.value = false
+}
+
+const confirmarEliminar = async () => {
+  const id = usuarioEditar.value.id_usuario
+  if (!id) return
+
+  guardando.value = true
+  try {
+    const response = await fetch(`${API_URL}/api/usuarios/${id}`, {
+      method:  'DELETE',
+      headers: { 'Accept': 'application/json' }
+    })
+
+    let data = {}
+    if (response.status !== 204) {
+      data = await response.json().catch(() => ({}))
+    }
+
+    if (response.ok) {
+      showModalConfirmar.value = false
+      await cargarUsuarios()
+      cerrarModal()
+      mostrarNotificacion('Usuario eliminado correctamente.', 'exito')
+    } else {
+      const mensajeError = data.message || data.error || 'No se pudo eliminar el usuario.'
+      mostrarNotificacion(mensajeError, 'error')
+      showModalConfirmar.value = false
+    }
+  } catch (error) {
+    console.error(error)
+    mostrarNotificacion('Error de conexión al eliminar el usuario.', 'error')
+    showModalConfirmar.value = false
   } finally {
     guardando.value = false
   }
@@ -1001,6 +1090,21 @@ const validarContrasena = (campo) => {
 .btn-cambiar-pass { display: flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; background: #DBEAFE; color: #1B396A; border: 1px solid #BFDBFE; font-size: 0.88rem; transition: background 0.15s; }
 .btn-cambiar-pass:hover { background: #BFDBFE; }
 .btn-cambiar-pass:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Botón eliminar en modal usuario ══ */
+.btn-eliminar {
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  background: #DC2626;
+  color: white;
+  border: none;
+  transition: background 0.15s;
+  font-size: 0.92rem;
+}
+.btn-eliminar:hover { background: #B91C1C; }
+.btn-eliminar:disabled { opacity: 0.5; cursor: not-allowed; }
 .pass-icono { width: 16px; height: 16px; stroke: #1B396A; flex-shrink: 0; }
 
 .btn-guardar { display: flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: 'Montserrat', sans-serif; background: #1B396A; color: white; border: none; transition: background 0.15s; }
@@ -1171,6 +1275,61 @@ const validarContrasena = (campo) => {
 
   /* Botón cambiar contraseña compacto */
   .btn-cambiar-pass { font-size: 0.82rem; padding: 9px 14px; }
+}
+
+/* ══ Modal de confirmación de eliminación ══ */
+.modal-confirmar { width: 420px; }
+
+.modal-header-rojo { background: #DC2626 !important; }
+
+.modal-body-confirmar {
+  padding: 2rem 1.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+}
+
+.confirmar-icono-wrap {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: #FEE2E2;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.confirmar-icono { width: 28px; height: 28px; stroke: #DC2626; }
+
+.confirmar-titulo {
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--texto); margin: 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.confirmar-subtitulo {
+  font-size: 0.9rem; color: var(--gris);
+  margin: 0; line-height: 1.55;
+  font-family: 'Montserrat', sans-serif;
+}
+.confirmar-subtitulo strong { color: var(--texto); font-weight: 700; }
+
+.confirmar-footer {
+  justify-content: center !important;
+  gap: 1rem !important;
+}
+
+.confirmar-btn-eliminar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 120px;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .modal-confirmar { width: 94%; }
+  .confirmar-footer { flex-direction: column-reverse !important; }
+  .confirmar-footer button { width: 100%; }
 }
 
 @keyframes girar { to { transform: rotate(360deg); } }

@@ -133,17 +133,29 @@
       © {{ anioActual }} Tecnológico Nacional de México · Todos los derechos reservados
     </footer>
 
+    <!-- ── Transición de bienvenida ── -->
+    <TransicionLogin
+      :visible="mostrarSplash"
+      :saliendo="splashSaliendo"
+      :nombre-usuario="nombreParaSplash"
+    />
+
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import TransicionLogin from '@/components/TransicionLogin.vue'
 
 const router    = useRouter()
 const isLoading = ref(false)
 const error     = ref('')
 const verContrasena = ref(false)
+
+const mostrarSplash = ref(false)
+const splashSaliendo = ref(false)
+const nombreParaSplash = ref('')
 
 const anioActual = computed(() => new Date().getFullYear())
 
@@ -185,10 +197,6 @@ const validarFormulario = () => {
 }
 
 // ── Login — Endpoint: POST /api/login ────────────────────────────
-// Estructura esperada del backend:
-// Request:  { nombre_usuario: string, contrasena: string }
-// Response: { success: true, token: string, usuario: { id, nombre, rol, ... } }
-//        o: { success: false, message: string }
 const handleLogin = async () => {
   error.value = ''
   if (!validarFormulario()) return
@@ -209,8 +217,19 @@ const handleLogin = async () => {
     if (response.ok && data.success) {
       // Guardar token y datos del usuario en localStorage
       localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('usuario',    JSON.stringify(data.usuario))
-      router.push('/inicio')
+      localStorage.setItem('usuario', JSON.stringify(data.usuario))
+
+      // Mostrar splash con el nombre del usuario
+      nombreParaSplash.value = data.usuario?.nombre || data.usuario?.nombre_usuario || 'Usuario'
+      mostrarSplash.value = true
+
+      // Después de que la barra termina, iniciar salida y navegar
+      setTimeout(() => {
+        splashSaliendo.value = true
+        setTimeout(() => {
+          router.push('/inicio')
+        }, 400)
+      }, 2200)
     } else {
       error.value = data.message || 'Credenciales incorrectas. Intenta de nuevo.'
     }
