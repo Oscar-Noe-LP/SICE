@@ -68,7 +68,7 @@
                 </svg>
               </div>
 
-              <!-- Botón limpiar -->
+              <!--  limpiar -->
               <button
                 v-else-if="numeroBusqueda"
                 class="buscador-limpiar"
