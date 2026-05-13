@@ -329,6 +329,22 @@
       <slot :key="$route.fullPath" :busquedaGlobal="busquedaGlobal" />
     </main>
 
+    <!-- ══ BOTÓN REGRESAR FLOTANTE ══ -->
+    <Transition name="fab-back">
+      <button
+        v-if="mostrarBotonRegresar"
+        class="fab-regresar"
+        @click.stop="regresarPagina"
+        aria-label="Regresar a la página anterior"
+        title="Regresar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="fab-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+    </Transition>
+
   </div>
 </template>
 
@@ -337,9 +353,10 @@ import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 useKeyboardShortcuts()
 
 import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route  = useRoute()
 
 // ── Estado global ─────────────────────────────────────────────────────
 const busquedaGlobal = ref('')
@@ -586,6 +603,51 @@ const cerrarSesion = async () => {
   localStorage.removeItem('auth_token')
   localStorage.removeItem('usuario')
   router.push('/login')
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ── BOTÓN REGRESAR FLOTANTE ───────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════
+
+// Rutas principales donde el botón NO debe mostrarse.
+// Son las "pantallas raíz" de cada módulo; en subrutas sí aparece.
+const RUTAS_PRINCIPALES = new Set([
+  '/inicio',
+  '/dashboard',
+  '/servicios-escolares',
+  '/alumnos',
+  '/evaluaciones',
+  '/calificaciones',
+  '/inscripcion',
+  '/inscripciones',
+  '/gestion-grupos',
+  '/gestion-academica',
+  '/eventos',
+  '/comite',
+  '/kardex',
+  '/historial-academico',
+  '/asignacion-docente',
+  '/roles',
+  '/permisos',
+  '/usuarios',
+  '/bitacora',
+  '/nuevo-usuario',
+  '/recursos-humanos',
+  '/personas',
+])
+
+// El botón aparece cuando:
+//   1. La ruta actual NO es una ruta principal exacta.
+//   2. El historial del navegador tiene al menos una página atrás.
+const mostrarBotonRegresar = computed(() => {
+  const path = route.path.replace(/\/$/, '') // quitar trailing slash
+  const esRutaPrincipal = RUTAS_PRINCIPALES.has(path)
+  const hayHistorial    = window.history.length > 1
+  return !esRutaPrincipal && hayHistorial
+})
+
+const regresarPagina = () => {
+  router.back()
 }
 </script>
 
@@ -1153,4 +1215,90 @@ h3 { font-size: clamp(1rem,  2.5vw, 1.2rem); }
   }
 }
 
+/* ══════════════════════════════════════
+   BOTÓN REGRESAR FLOTANTE (FAB)
+   Diego — SICE Back Button
+══════════════════════════════════════ */
+
+.fab-regresar {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 1200;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+
+  background-color: #1B396A;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(27, 57, 106, 0.45);
+
+  opacity: 0.88;
+  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fab-regresar:hover {
+  opacity: 1;
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px rgba(27, 57, 106, 0.6);
+}
+
+.fab-regresar:active {
+  transform: scale(0.93);
+  box-shadow: 0 2px 8px rgba(27, 57, 106, 0.4);
+}
+
+.fab-regresar:focus-visible {
+  outline: 3px solid #DBEAFE;
+  outline-offset: 3px;
+}
+
+.fab-icono {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+/* ── Animación de entrada / salida ── */
+.fab-back-enter-active,
+.fab-back-leave-active {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.fab-back-enter-from,
+.fab-back-leave-to {
+  opacity: 0;
+  transform: scale(0.65) translateY(10px);
+}
+
+/* ── Móvil: área táctil más generosa ── */
+@media (max-width: 768px) {
+  .fab-regresar {
+    width: 48px;
+    height: 48px;
+    bottom: 1.25rem;
+    left: 1rem;
+    opacity: 1; /* siempre visible en móvil */
+  }
+
+  .fab-icono {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ── Móvil muy pequeño ── */
+@media (max-width: 480px) {
+  .fab-regresar {
+    bottom: 1rem;
+    left: 0.75rem;
+  }
+}
 </style>
