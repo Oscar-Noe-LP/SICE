@@ -33,6 +33,9 @@
             @keydown.escape="busquedaGlobal = ''"
             @click.stop
             aria-label="Búsqueda global"
+            :tabindex="busquedaOculta ? -1 : 0"
+            :readonly="busquedaOculta"
+            autocomplete="off"
           >
         </div>
 
@@ -105,10 +108,11 @@
 
     <!-- Franja de hover para expandir sidebar colapsado -->
     <div
-      v-if="!isFixed && isCollapsed"
+      v-if="!isFixed && isCollapsed && !esMobil"
       class="franja-hover-sidebar"
       @mouseenter="onSidebarEnter"
     ></div>
+
 
     <!-- ══ MENÚ LATERAL ══ -->
     <aside
@@ -336,13 +340,42 @@
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 useKeyboardShortcuts()
 
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
 // ── Estado global ─────────────────────────────────────────────────────
 const busquedaGlobal = ref('')
+
+// ── Control del buscador en móvil ────────────────────────────────────
+const anchoVentana   = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
+const esMobil = computed(() => anchoVentana.value <= 768)
+const busquedaOculta = computed(() => anchoVentana.value <= 480)
+
+// Actualizar ancho al redimensionar
+let resizeTimer = null
+const onResize = () => {
+  if (resizeTimer) clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(() => {
+    anchoVentana.value = window.innerWidth
+  }, 100)
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('resize', onResize, { passive: true })
+}
+
+// Limpiar el listener cuando el componente se desmonta
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', onResize)
+  }
+  if (resizeTimer)  clearTimeout(resizeTimer)
+  if (timerColapso) clearTimeout(timerColapso)
+  if (timerStorage) clearTimeout(timerStorage)
+})
+
 const isCollapsed    = ref(false)
 
 // ── Fijado del sidebar ────────────────────────────────────────────────
@@ -406,6 +439,8 @@ onMounted(() => {
   }
 })
 
+let timerStorage = null
+
 watch(
   [
     isServiciosOpen, isGestionAcademicaOpen, isEventosOpen,
@@ -414,18 +449,22 @@ watch(
     isHistorialAcademicoOpen, isInscripcionesDetalladasOpen, isFixed
   ],
   () => {
-    localStorage.setItem('isServiciosOpen',               JSON.stringify(isServiciosOpen.value))
-    localStorage.setItem('isGestionAcademicaOpen',        JSON.stringify(isGestionAcademicaOpen.value))
-    localStorage.setItem('isEventosOpen',                 JSON.stringify(isEventosOpen.value))
-    localStorage.setItem('isComiteOpen',                  JSON.stringify(isComiteOpen.value))
-    localStorage.setItem('isSeguridadOpen',               JSON.stringify(isSeguridadOpen.value))
-    localStorage.setItem('isRecursosHumanosOpen',         JSON.stringify(isRecursosHumanosOpen.value))
-    localStorage.setItem('isPersonasOpen',                JSON.stringify(isPersonasOpen.value))
-    localStorage.setItem('isAsignacionDocenteOpen',       JSON.stringify(isAsignacionDocenteOpen.value))
-    localStorage.setItem('isKardexOpen',                  JSON.stringify(isKardexOpen.value))
-    localStorage.setItem('isHistorialAcademicoOpen',      JSON.stringify(isHistorialAcademicoOpen.value))
-    localStorage.setItem('isInscripcionesDetalladasOpen', JSON.stringify(isInscripcionesDetalladasOpen.value))
-    localStorage.setItem('isFixed',                       JSON.stringify(isFixed.value))
+    if (timerStorage) clearTimeout(timerStorage)
+    timerStorage = setTimeout(() => {
+      localStorage.setItem('isServiciosOpen',               JSON.stringify(isServiciosOpen.value))
+      localStorage.setItem('isGestionAcademicaOpen',        JSON.stringify(isGestionAcademicaOpen.value))
+      localStorage.setItem('isEventosOpen',                 JSON.stringify(isEventosOpen.value))
+      localStorage.setItem('isComiteOpen',                  JSON.stringify(isComiteOpen.value))
+      localStorage.setItem('isSeguridadOpen',               JSON.stringify(isSeguridadOpen.value))
+      localStorage.setItem('isRecursosHumanosOpen',         JSON.stringify(isRecursosHumanosOpen.value))
+      localStorage.setItem('isPersonasOpen',                JSON.stringify(isPersonasOpen.value))
+      localStorage.setItem('isAsignacionDocenteOpen',       JSON.stringify(isAsignacionDocenteOpen.value))
+      localStorage.setItem('isKardexOpen',                  JSON.stringify(isKardexOpen.value))
+      localStorage.setItem('isHistorialAcademicoOpen',      JSON.stringify(isHistorialAcademicoOpen.value))
+      localStorage.setItem('isInscripcionesDetalladasOpen', JSON.stringify(isInscripcionesDetalladasOpen.value))
+      localStorage.setItem('isFixed',                       JSON.stringify(isFixed.value))
+      timerStorage = null
+    }, 300)
   },
   { deep: true }
 )
@@ -494,12 +533,16 @@ const puedeVerItem = computed(() => (ruta) => {
 })
 // El botón de hamburguesa ahora alterna entre fijado y no fijado
 const toggleSidebar = () => {
+  if (esMobil.value) {
+    // En móvil: el botón simplemente abre/cierra el drawer
+    isCollapsed.value = !isCollapsed.value
+    return
+  }
+  // En escritorio: comportamiento original de fijado
   isFixed.value = !isFixed.value
   if (isFixed.value) {
-    // Al fijar: expandir inmediatamente
     isCollapsed.value = false
   } else {
-    // Al desfijar: colapsar si el cursor no está encima
     if (!isHovered.value) {
       isCollapsed.value = true
     }
@@ -509,15 +552,17 @@ const toggleSidebar = () => {
 // ── Hover del sidebar ─────────────────────────────────────────────────
 // Solo actúa cuando el sidebar NO está fijado
 const onSidebarEnter = () => {
-  if (!isFixed.value) {
-    isHovered.value  = true
+  // En móvil el hover no aplica — el sidebar se controla solo con el botón
+  if (!isFixed.value && !esMobil.value) {
+    isHovered.value   = true
     isCollapsed.value = false
   }
 }
 
 const onSidebarLeave = () => {
-  if (!isFixed.value) {
-    isHovered.value  = false
+  // En móvil el hover no aplica
+  if (!isFixed.value && !esMobil.value) {
+    isHovered.value   = false
     isCollapsed.value = true
   }
 }
@@ -525,22 +570,49 @@ const onSidebarLeave = () => {
 // ── Auto-colapso al navegar ───────────────────────────────────────────
 // Cuando el usuario hace clic en un link y cambia de ruta,
 // si el sidebar NO está fijado se colapsa automáticamente
+let timerColapso = null
+
 watch(
   () => router.currentRoute.value.fullPath,
   () => {
-    if (!isFixed.value) {
+    // Cancelar cualquier animación pendiente antes de iniciar una nueva
+    if (timerColapso) {
+      clearTimeout(timerColapso)
+      timerColapso      = null
+      colapsandoSuave.value   = false
+      contenidoMoviendo.value = false
+    }
+
+    if (esMobil.value) {
+      isCollapsed.value = true
+      isHovered.value   = false
+    } else if (!isFixed.value) {
       isHovered.value         = false
       colapsandoSuave.value   = true
       contenidoMoviendo.value = true
-      setTimeout(() => {
+      timerColapso = setTimeout(() => {
         isCollapsed.value       = true
         colapsandoSuave.value   = false
         contenidoMoviendo.value = false
+        timerColapso            = null
       }, 280)
     }
     cerrarMenus()
   }
 )
+
+watch(esMobil, (ahoraMobil, antesEraMovil) => {
+  if (!ahoraMobil && antesEraMovil) {
+    // Pasó a escritorio: restaurar lógica de isFixed
+    isCollapsed.value = !isFixed.value
+    isHovered.value   = false
+  }
+  if (ahoraMobil && !antesEraMovil) {
+    // Pasó a móvil: colapsar siempre
+    isCollapsed.value = true
+    isHovered.value   = false
+  }
+})
 
 
 // ── Toggles de submenús ───────────────────────────────────────────────
@@ -891,11 +963,12 @@ const cerrarSesion = async () => {
 }
 
 /* ── Móvil grande (640px – 768px) ── */
+/* DESPUÉS */
 @media (max-width: 768px) {
 
   /* Ocultar título largo, mostrar solo "SICE" */
   .titulo-sistema {
-    font-size: 0;        /* oculta el texto original */
+    font-size: 0;
     letter-spacing: 0;
   }
 
@@ -907,64 +980,81 @@ const cerrarSesion = async () => {
     color: white;
   }
 
-  /* Buscador más compacto */
-  .grupo-busqueda {
-    width: 160px;
-  }
+  .grupo-busqueda { width: 160px; }
 
   .grupo-busqueda input {
     font-size: 0.82rem;
     padding: 8px 12px 8px 36px;
   }
 
+  /* Header fijo a 60px en móvil */
   .encabezado-superior {
     padding: 0 1rem;
     height: 60px;
   }
 
-  .logo-encabezado {
-    height: 40px;
-  }
+  .logo-encabezado { height: 40px; }
 
-  /* Sidebar ocupa toda la pantalla en móvil */
+  /* Sidebar arranca justo debajo del header de 60px */
   .menu-lateral {
-    top: 60px;
+    top: 60px !important;
     width: 260px;
   }
 
-  /* Cuando sidebar está abierto en móvil, oscurecer fondo */
+  /* Sidebar colapsado también respeta los 60px */
+  .sistema-layout.sidebar-collapsed .menu-lateral {
+    top: 60px !important;
+  }
+
+  /* Sidebar abierto: sombra para indicar que flota */
   .sistema-layout:not(.sidebar-collapsed) .menu-lateral {
     box-shadow: 4px 0 20px rgba(0,0,0,0.3);
   }
 
-  /* El contenido no se desplaza — el sidebar flota encima */
-  .area-contenido {
-    margin-left: 0 !important;
-    margin-top: 60px;
-    padding: 1rem;
-  }
-
+  /* Contenido arranca exactamente en 60px — sin importar sidebar */
+  .area-contenido,
   .area-contenido.contenido-retrasado {
     margin-left: 0 !important;
+    margin-top: 60px !important;
+    padding: 1rem;
+    min-height: calc(100vh - 60px);
   }
 
-  /* Panel de notificaciones más angosto */
-  .panel-notificaciones {
-    width: 300px;
-    right: -60px;
-  }
+  .panel-notificaciones { width: 300px; right: -60px; }
+  .nombre-usuario       { display: none; }
+  .flecha-desplegable   { display: none; }
+  .encabezado-derecha   { gap: 0.75rem; }
 
-  .nombre-usuario {
-    display: none;
-  }
+  .menu-lateral {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: translateX(0);
+}
 
-  .flecha-desplegable {
-    display: none;
-  }
+/* Sidebar colapsado en móvil: desliza fuera de pantalla */
+.sistema-layout.sidebar-collapsed .menu-lateral {
+  transform: translateX(-100%);
+  width: 260px !important; /* mantiene el ancho, solo se oculta con transform */
+  opacity: 0;
+  pointer-events: none;
+}
 
-  .encabezado-derecha {
-    gap: 0.75rem;
-  }
+/* Sidebar abierto en móvil: visible y encima del contenido */
+.sistema-layout:not(.sidebar-collapsed) .menu-lateral {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Franja de hover: oculta en móvil */
+.franja-hover-sidebar {
+  display: none;
+}
+
+/* El contenido nunca se mueve en móvil */
+.area-contenido.contenido-retrasado {
+  margin-left: 0 !important;
+}
+
 }
 
 /* ── Móvil pequeño (menos de 480px) ── */
@@ -977,10 +1067,12 @@ const cerrarSesion = async () => {
   }
 
   .grupo-busqueda input {
-    opacity: 0;
-    width: 0;
-    padding: 0;
-  }
+  opacity: 0;
+  width: 0;
+  padding: 0;
+  pointer-events: none;  /* ← evita cualquier toque accidental */
+  position: absolute;    /* ← saca el input del flujo táctil */
+}
 
   /* Al hacer focus en la lupa, expandir */
   .grupo-busqueda:focus-within {
@@ -993,10 +1085,12 @@ const cerrarSesion = async () => {
   }
 
   .grupo-busqueda:focus-within input {
-    opacity: 1;
-    width: 100%;
-    padding: 8px 12px 8px 36px;
-  }
+  opacity: 1;
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  pointer-events: auto;
+  position: relative;
+}
 
   .encabezado-superior {
     padding: 0 0.75rem;
@@ -1018,12 +1112,15 @@ const cerrarSesion = async () => {
   .sistema-layout:not(.sidebar-collapsed)::after {
     content: '';
     position: fixed;
-    inset: 0;
+    top: 60px;     /* ← primero top, luego los demás */
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(0,0,0,0.4);
     z-index: 899;
-    top: 60px;
   }
 }
+
 
 /* ══════════════════════════════════════
   ANTI-ZOOM — SICE
@@ -1163,4 +1260,4 @@ h3 { font-size: clamp(1rem,  2.5vw, 1.2rem); }
 }
 
 </style>
-titulo-sistema
+onUnmounted(() => {
