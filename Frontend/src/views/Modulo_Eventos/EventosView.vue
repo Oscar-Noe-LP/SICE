@@ -105,19 +105,27 @@
         </h2>
       </div>
       
+      <!-- FILTROS - BUSCADOR + BOTÓN A LA DERECHA -->
       <div class="filtros-card">
         <div class="busqueda-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-busqueda">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
-          <input v-model="busquedaNombre" type="text" placeholder="Buscar por nombre..." class="input-busqueda" @input="reiniciarPagina()" />
+          <input 
+            v-model="busquedaNombre" 
+            type="text" 
+            placeholder="Buscar por nombre..." 
+            class="input-busqueda" 
+            @input="reiniciarPagina()" 
+          />
           <button v-if="busquedaNombre" @click="busquedaNombre = ''; reiniciarPagina()" class="btn-limpiar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
         </div>
-        <button @click="mostrarFiltrosAvanzados = true" class="btn-secundario" title="Filtros Avanzados">
+
+        <button @click="mostrarFiltrosAvanzados = true" class="btn-secundario btn-filtros">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
           </svg>
@@ -128,7 +136,7 @@
       <!-- Modal Filtros Avanzados -->
       <transition name="modal-fade">
         <div v-if="mostrarFiltrosAvanzados" class="modal-fondo" @click.self="mostrarFiltrosAvanzados = false">
-          <div class="modal-caja">
+          <div class="modal-caja modal-filtros">
             <div class="modal-cabecera">
               <h3>Filtros Avanzados</h3>
               <button @click="mostrarFiltrosAvanzados = false" class="btn-cerrar-modal">
@@ -141,7 +149,7 @@
               <div class="campo-form">
                 <label class="campo-label">Tipo de Evento</label>
                 <select v-model="filtrosAvanzados.tipo" class="campo-input" @change="reiniciarPagina()">
-                  <option value="">Todos</option>
+                  <option value="">Todos los tipos</option>
                   <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">{{ t.nombre_tipo }}</option>
                 </select>
               </div>
@@ -155,17 +163,17 @@
                 </select>
               </div>
               <div class="campo-form">
-                <label class="campo-label">Fecha Inicio</label>
+                <label class="campo-label">Fecha desde</label>
                 <input v-model="filtrosAvanzados.fechaInicio" type="date" class="campo-input" @change="reiniciarPagina()" />
               </div>
               <div class="campo-form">
-                <label class="campo-label">Fecha Fin</label>
+                <label class="campo-label">Fecha hasta</label>
                 <input v-model="filtrosAvanzados.fechaFin" type="date" class="campo-input" @change="reiniciarPagina()" />
               </div>
             </div>
             <div class="modal-pie">
-              <button @click="limpiarFiltros()" class="btn-cancelar">Limpiar</button>
-              <button @click="mostrarFiltrosAvanzados = false" class="btn-primario">Aplicar</button>
+              <button @click="limpiarFiltros()" class="btn-cancelar">Limpiar Filtros</button>
+              <button @click="mostrarFiltrosAvanzados = false" class="btn-primario">Aplicar Filtros</button>
             </div>
           </div>
         </div>
@@ -540,13 +548,87 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 .vacio-subtitulo { font-size: 0.82rem; color: #9CA3AF; margin: 0; }
 
 /* Filtros */
-.filtros-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0.9rem 1.4rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; flex-direction: column; align-items: stretch; padding: 1rem; gap: 0.75rem;}
-.busqueda-wrap { display: flex; align-items: center; gap: 8px; background: #F5F5F5; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0 12px; flex: 1; min-width: 220px; width: 100%; }
+.filtros-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  padding: 0.9rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.busqueda-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F5F5F5;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 0 12px;
+  flex: 1;
+  min-width: 280px;
+}
+
 .busqueda-wrap:focus-within { border-color: #1B396A; background: #DBEAFE; }
 .icono-busqueda { color: #6B7280; flex-shrink: 0; }
-.input-busqueda { border: none; background: transparent; padding: 9px 0; font-size: 0.875rem; font-family: inherit; outline: none; flex: 1; color: #1A1A1A; }
+.input-busqueda {
+  border: none;
+  background: transparent;
+  padding: 10px 4px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  flex: 1;
+  color: #1A1A1A;
+}
+
 .input-busqueda::placeholder { color: #9CA3AF; }
-.btn-limpiar { background: none; border: none; color: #6B7280; cursor: pointer; padding: 2px; display: flex; align-items: center; }
+.btn-limpiar {
+  background: none;
+  border: none;
+  color: #6B7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.btn-limpiar:hover {
+  background: #E5E7EB;
+  color: #374151;
+}  
+
+.btn-filtros {
+  white-space: nowrap;
+}
+
+/* ==================== MODAL FILTROS ==================== */
+.modal-filtros {
+  width: 520px;
+  max-width: 92vw;
+}
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.modal-cuerpo {
+  padding: 1.8rem 1.6rem;
+}
+
+.modal-pie {
+  padding: 1.2rem 1.6rem;
+  background: #F8F9FA;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
 
 /* Tabla Estándar */
 .tabla-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 1.5rem; }
@@ -590,14 +672,14 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 .btn-num.activa { background: #1B396A; color: #FFFFFF; border-color: #1B396A; }
 
 /* Modal */
-.modal-fondo { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(3px); }
-.modal-caja { background: #FFFFFF; width: 480px; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); }
-.modal-caja.modal-ancho { width: 600px; width: 92%; margin: 0 4%;}
+.modal-fondo { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(3px); padding: 1rem;}
+.modal-caja { background: #FFFFFF; width: 480px; max-width: 95vw; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); max-height: 90vh; display: flex; flex-direction: column;}
+.modal-caja.modal-ancho { width: 600px; max-width: 95vw; margin: 0 4%;}
 .modal-cabecera { background: #1B396A; color: #FFFFFF; padding: 1.1rem 1.6rem; display: flex; justify-content: space-between; align-items: center; }
 .modal-cabecera h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
 .btn-cerrar-modal { background: none; border: none; color: rgba(255,255,255,0.8); cursor: pointer; display: flex; align-items: center; transition: color 0.2s; }
 .btn-cerrar-modal:hover { color: #FFFFFF; }
-.modal-cuerpo { padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; }
+.modal-cuerpo { padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; flex: 1;}
 .filtros-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .modal-pie { padding: 1rem 1.6rem; background: #F5F5F5; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; gap: 0.75rem; }
 
@@ -693,11 +775,43 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
 
-/* Responsive */
+/* Responsive adicional para filtros */
 @media (max-width: 640px) {
-  .eventos-proximos-grid {gap: 0.75rem;}
-  .filtros-grid, .campos-grid-modal { grid-template-columns: 1fr; gap: 1rem; }
-  .paginacion-container { flex-direction: column; align-items: center; }
-  .paginacion-controles { flex-wrap: wrap; justify-content: center; }
+  .filtros-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .busqueda-wrap { min-width: auto; }
+
+  
+  .filtros-card .btn-secundario {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .modal-caja,
+  .modal-caja.modal-ancho {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    border-radius: 12px;
+  }
+  
+  .modal-cabecera,
+  .modal-cuerpo,
+  .modal-pie {
+    padding: 1rem;
+  }
+  
+  .campos-grid-modal,
+  .filtros-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .modal-filtros {
+    width: 92vw;
+    margin: 0 4%;
+  }
 }
 </style>
