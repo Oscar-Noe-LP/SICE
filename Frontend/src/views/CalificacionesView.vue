@@ -726,7 +726,12 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
 /* ============================================= */
 /* ESTILOS GLOBALES - PALETA OFICIAL SICE       */
 /* ============================================= */
-.calificaciones-page { width: 100%; max-width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; position: relative; box-sizing: border-box; }
+.calificaciones-page { 
+  width: 100%; 
+  max-width: 100%; 
+  font-family: 'Montserrat', sans-serif; 
+  box-sizing: border-box; 
+  padding: 1rem 1rem 2rem;}
 
 /* ALERTAS Y BREADCRUMB */
 .alerta-error-catalogos { display: flex; align-items: center; gap: 0.6rem; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 10px; padding: 0.8rem 1.2rem; margin-bottom: 1rem; font-size: 0.875rem; font-weight: 600; }
@@ -971,16 +976,125 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
 }
 .btn-cancelar:hover { background: #F5F5F5; }
 
-/* RESPONSIVE */
-@media (max-width: 1200px) { .indicadores-grid { grid-template-columns: repeat(2, 1fr); } }
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1200px) {
+  .indicadores-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 900px) {
   .resumen-grid { grid-template-columns: repeat(2, 1fr); }
-  .paginacion-container { flex-direction: column; align-items: center; }
+  .paginacion-container { flex-direction: column; align-items: center; gap: 1rem; }
   .paginacion-controles { flex-wrap: wrap; justify-content: center; }
-  .paginacion-numeros { justify-content: center; }
 }
+
 @media (max-width: 640px) {
-  .resumen-grid { grid-template-columns: 1fr 1fr; }
-  .indicadores-grid { grid-template-columns: 1fr; }
+  .calificaciones-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+
+  /* Resumen estadístico */
+  .resumen-grid { 
+    grid-template-columns: 1fr; 
+    gap: 0.75rem; 
+  }
+
+  /* Historial */
+  .historial-encabezado {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    text-align: center;
+  }
+  .historial-promedio {
+    align-self: center;
+  }
+
+  /* Filtros */
+  .filtros-card {
+    padding: 1rem;
+  }
+  .filtros-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  .busqueda-wrapper {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Tabla - Lo más importante */
+  .tabla-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabla-califs th,
+  .tabla-califs td {
+    padding: 10px 6px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+  .input-nota {
+    width: 48px;
+    font-size: 0.82rem;
+    padding: 6px 4px;
+  }
+
+  .alumno-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .acciones-fila {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* Encabezado tabla */
+  .tabla-encabezado {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  .tabla-acciones-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Paginación */
+  .paginacion-container {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .paginacion-numeros {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Indicadores */
+  .indicadores-grid { 
+    grid-template-columns: 1fr; 
+  }
+
+  .ind-card {
+    padding: 1rem;
+  }
+
+  /* Resumen inferior */
+  .tabla-resumen {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  /* Popover filtros */
+  .popover-filtros {
+    width: 100%;
+    left: 0;
+    right: 0;
+  }
 }
+
 </style>

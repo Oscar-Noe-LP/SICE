@@ -311,6 +311,7 @@ const exportarMapa = () => {
   font-family: 'Montserrat', sans-serif;
   padding-bottom: 2rem;
   position: relative;
+  max-width: 100%;
 }
 
 /* Barra de Carga */
@@ -485,10 +486,60 @@ const exportarMapa = () => {
   border-top: 1px solid #E5E7EB; margin-top: 1rem;
 }
 
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 900px) {
+  .mapa-rejilla {
+    flex-wrap: wrap;
+  }
+  .mapa-columna {
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
 @media (max-width: 640px) {
-  .buscador-fila { flex-direction: column; align-items: stretch; }
-  .btn-primario { justify-content: center; }
-  .alumno-info-bar { flex-direction: column; align-items: flex-start; }
-  .leyenda { flex-direction: column; align-items: flex-start; }
+  .avance-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+  
+  .buscador-fila {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .btn-primario {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .alumno-info-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .leyenda {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .leyenda-items {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .mapa-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mapa-rejilla {
+    flex-wrap: nowrap;
+  }
+  
+  .materia-card {
+    min-height: 110px;
+  }
 }
 </style>

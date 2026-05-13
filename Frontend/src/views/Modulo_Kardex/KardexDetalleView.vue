@@ -695,6 +695,9 @@ const exportarPDF = async () => {
 
   font-family: 'Montserrat', sans-serif;
   padding-bottom: 2rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* ── Barra de carga ── */
@@ -1086,30 +1089,66 @@ const exportarPDF = async () => {
 .pie-pagina { display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; color: #9CA3AF; font-size: 0.82rem; padding: 1.5rem 0 0; border-top: 1px solid var(--borde); margin-top: 1rem; }
 .pie-pagina svg { stroke: #9CA3AF; flex-shrink: 0; }
 
-/* ══ RESPONSIVE ══ */
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 900px) {
-  .alumno-hero { flex-wrap: wrap; }
-  .alumno-stats-rapidas { width: 100%; border-radius: var(--radio); }
-  .mini-stat { flex: 1; }
-  .info-grid { grid-template-columns: 1fr; }
-  .sk-stats  { grid-template-columns: repeat(2, 1fr); }
+  .alumno-hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.25rem;
+  }
+  .alumno-stats-rapidas {
+    width: 100%;
+  }
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
-  .page-title { font-size: 1.4rem; }
-  .cabecera-fila { flex-direction: column; align-items: flex-start; }
-  .cabecera-acciones { width: 100%; justify-content: flex-end; }
-  .semestre-cabecera { padding: 0.9rem 1rem; }
-  .tab-btn { padding: 12px 14px; font-size: 0.82rem; }
-  .tab-panel { padding: 1rem; }
-  .toast { top: 70px; right: 12px; left: 12px; max-width: unset; }
-  .creditos-hitos { display: none; }
-}
-
-@media (max-width: 480px) {
-  .alumno-hero { padding: 1.2rem; gap: 1rem; }
-  .alumno-foto, .alumno-foto-placeholder { width: 70px; height: 70px; }
-  .alumno-nombre { font-size: 1.1rem; }
-  .semestre-meta { display: none; }
+  .kardex-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+  
+  .alumno-hero {
+    padding: 1.25rem;
+  }
+  
+  .alumno-foto, .alumno-foto-placeholder {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .tabla-materias th,
+  .tabla-materias td {
+    padding: 8px 6px;
+    font-size: 0.78rem;
+  }
+  
+  .semestre-cabecera {
+    padding: 0.9rem 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .semestre-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .tabs-header {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  
+  .tab-btn {
+    padding: 12px 14px;
+    font-size: 0.82rem;
+  }
+  
+  .tab-panel {
+    padding: 1rem;
+  }
 }
 </style>

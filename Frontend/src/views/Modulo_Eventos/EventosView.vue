@@ -528,7 +528,11 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 .evento-card-meta { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
 .meta-item { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; color: #6B7280; }
 .descripcion-resumida { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.evento-card-acciones { flex-shrink: 0; }
+.evento-card-acciones { flex-shrink: 0; width: 100%;}
+.evento-card-acciones .btn-secundario {
+    width: 100%;
+    justify-content: center;
+  }
 
 /* Estado vacío */
 .estado-vacio { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; padding: 3rem; text-align: center; margin-bottom: 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
@@ -536,8 +540,8 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 .vacio-subtitulo { font-size: 0.82rem; color: #9CA3AF; margin: 0; }
 
 /* Filtros */
-.filtros-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0.9rem 1.4rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-.busqueda-wrap { display: flex; align-items: center; gap: 8px; background: #F5F5F5; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0 12px; flex: 1; min-width: 220px; }
+.filtros-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0.9rem 1.4rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; flex-direction: column; align-items: stretch; padding: 1rem; gap: 0.75rem;}
+.busqueda-wrap { display: flex; align-items: center; gap: 8px; background: #F5F5F5; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0 12px; flex: 1; min-width: 220px; width: 100%; }
 .busqueda-wrap:focus-within { border-color: #1B396A; background: #DBEAFE; }
 .icono-busqueda { color: #6B7280; flex-shrink: 0; }
 .input-busqueda { border: none; background: transparent; padding: 9px 0; font-size: 0.875rem; font-family: inherit; outline: none; flex: 1; color: #1A1A1A; }
@@ -550,9 +554,9 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 .tabla-contador { font-size: 0.8rem; color: #6B7280; background: #F5F5F5; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 20px; }
 .tabla-scroll { overflow-x: auto; }
 .tabla-principal { width: 100%; border-collapse: collapse; }
-.tabla-principal th { background: #F5F5F5; padding: 10px 14px; font-size: 0.78rem; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #E5E7EB; text-align: left; }
+.tabla-principal th { background: #F5F5F5; padding: 8px 6px; font-size: 0.8rem; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #E5E7EB; text-align: left; }
 .tabla-principal th.centrado { text-align: center; }
-.tabla-principal td { padding: 8px 14px; border-bottom: 1px solid #E5E7EB; vertical-align: middle; font-size: 0.875rem; color: #1A1A1A; }
+.tabla-principal td { padding: 8px 6px; border-bottom: 1px solid #E5E7EB; vertical-align: middle; font-size: 0.8rem; color: #1A1A1A; }
 .tabla-principal td.centrado { text-align: center; }
 .tabla-principal tr:last-child td { border-bottom: none; }
 .tabla-principal tr:hover { background: #F5F5F5; }
@@ -562,7 +566,7 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 .badge-estado { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
 
 /* Acciones iconizadas */
-.acciones-fila { display: flex; gap: 6px; justify-content: center; align-items: center; }
+.acciones-fila { display: flex; gap: 4px; justify-content: center; align-items: center; }
 .btn-accion { width: 30px; height: 30px; border-radius: 7px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s, opacity 0.2s; flex-shrink: 0; }
 .btn-accion:hover:not(:disabled) { transform: scale(1.1); }
 .btn-accion:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
@@ -580,7 +584,7 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 .btn-pag { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #6B7280; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
 .btn-pag:hover:not(:disabled) { background: #F5F5F5; border-color: #E5E7EB; color: #1B396A; }
 .btn-pag:disabled { opacity: 0.4; cursor: not-allowed; }
-.paginacion-numeros { display: flex; gap: 4px; }
+.paginacion-numeros { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;}
 .btn-num { min-width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #6B7280; font-weight: 600; font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .btn-num:hover { background: #F5F5F5; color: #1B396A; }
 .btn-num.activa { background: #1B396A; color: #FFFFFF; border-color: #1B396A; }
@@ -588,7 +592,7 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 /* Modal */
 .modal-fondo { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(3px); }
 .modal-caja { background: #FFFFFF; width: 480px; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); }
-.modal-caja.modal-ancho { width: 600px; }
+.modal-caja.modal-ancho { width: 600px; width: 92%; margin: 0 4%;}
 .modal-cabecera { background: #1B396A; color: #FFFFFF; padding: 1.1rem 1.6rem; display: flex; justify-content: space-between; align-items: center; }
 .modal-cabecera h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
 .btn-cerrar-modal { background: none; border: none; color: rgba(255,255,255,0.8); cursor: pointer; display: flex; align-items: center; transition: color 0.2s; }
@@ -691,7 +695,8 @@ const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTip
 
 /* Responsive */
 @media (max-width: 640px) {
-  .filtros-grid, .campos-grid-modal { grid-template-columns: 1fr; }
+  .eventos-proximos-grid {gap: 0.75rem;}
+  .filtros-grid, .campos-grid-modal { grid-template-columns: 1fr; gap: 1rem; }
   .paginacion-container { flex-direction: column; align-items: center; }
   .paginacion-controles { flex-wrap: wrap; justify-content: center; }
 }

@@ -492,4 +492,87 @@ const iniciales = (n) => {
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 640px) {
+  .evento-resumen-card {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+  
+  .resumen-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .tabla-header-acciones {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .tabla-header-acciones .btn-primario {
+    width: 100%;
+  }
+
+  .tabla-principal th,
+  .tabla-principal td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+  
+  .control-chip {
+    font-size: 0.78rem;
+    padding: 2px 6px;
+  }
+  
+  .alumno-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  
+  .acciones-fila {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .btn-secundario {
+    width: 100%;
+    justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  .modal-caja {
+    width: 92%;
+    margin: 0 4%;
+  }
+  
+  .alumno-encontrado,
+  .alumno-no-encontrado {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.eventos-page,
+.formulario-evento-page,
+.participantes-page {
+  padding: 1rem;
+  min-height: 100vh;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
 </style>

@@ -424,7 +424,7 @@ const guardar = async () => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-.nueva-solicitud-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; }
+.nueva-solicitud-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; box-sizing: border-box; padding: 1rem 1rem 2rem; }
 .barra-carga { position: fixed; top: 74px; left: 0; right: 0; height: 3px; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .barra-carga.activa { opacity: 1; }
 .barra-progreso { height: 100%; background: linear-gradient(90deg, #1B396A, #1D4ED8, #1B396A); background-size: 200% 100%; animation: carga-anim 1.4s linear infinite; }
@@ -530,5 +530,46 @@ const guardar = async () => {
 .toast-slide-leave-to     { transform: translateX(100%); opacity: 0; }
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
 
-@media (max-width: 640px) { .campos-grid { grid-template-columns: 1fr; } }
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 640px) {
+  .nueva-solicitud-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+  
+  .campos-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .seccion-card {
+    padding: 1.25rem;
+  }
+  
+  .acciones-form {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+  
+  .btn-guardar,
+  .btn-cancelar {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .persona-seleccionada {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .resultados-busqueda {
+    position: static;
+    margin-top: 8px;
+  }
+  
+  .modal-caja {
+    width: 92%;
+    margin: 0 4%;
+  }
+}
 </style>

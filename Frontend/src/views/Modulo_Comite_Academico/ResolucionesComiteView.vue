@@ -517,6 +517,8 @@ const verDetalle = (res) => {
   width: 100%;
   font-family: 'Montserrat', sans-serif;
   padding-bottom: 2rem;
+  box-sizing: border-box;
+  padding: 1rem 1rem 2rem;
 }
 
 .barra-carga {
@@ -1013,8 +1015,44 @@ const verDetalle = (res) => {
   padding-top: 2rem;
 }
 
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 900px) {
+  .tabla-principal th,
+  .tabla-principal td {
+    padding: 8px 6px;
+    font-size: 0.78rem;
+  }
+}
+
 @media (max-width: 640px) {
-  .filtros-grid { grid-template-columns: 1fr; }
-  .paginacion-wrap { flex-direction: column; gap: 0.5rem; }
+  .resoluciones-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+  
+  .filtros-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .tabla-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .decision-texto {
+    max-width: 180px;
+  }
+  
+  .paginacion-wrap {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  
+  .modal-caja {
+    width: 92%;
+    margin: 0 4%;
+  }
 }
 </style>

@@ -469,6 +469,7 @@ const claseCalificacion = (estado) => ({
   background: #F5F5F5;
   font-family: 'Montserrat', sans-serif;
   padding-bottom: 2rem;
+  max-width: 100%;
 }
 
 /* Barra de carga */
@@ -755,24 +756,47 @@ kbd {
 /* Pie */
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; border-top: 1px solid #E5E7EB; margin-top: 2rem; font-family: 'Montserrat', sans-serif; }
 
-/* ══ Responsive ══ */
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
-  .page-title { font-size: 1.4rem; }
-  .buscador-fila { flex-direction: column; }
-  .btn-buscar { width: 100%; justify-content: center; }
-  .resumen-grid { grid-template-columns: repeat(3, 1fr); }
-  .alumno-acciones { width: 100%; }
-  .alumno-acciones .btn-primario { flex: 1; justify-content: center; }
+  .alumno-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .resumen-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
-@media (max-width: 480px) {
-  .page-title { font-size: 1.2rem; }
-  .resumen-grid { grid-template-columns: repeat(2, 1fr); }
-  .semestres-header { flex-direction: column; align-items: flex-start; }
-  .tabla-materias th:nth-child(3),
-  .tabla-materias td:nth-child(3) { display: none; }
-  .buscador-input { font-size: 16px; }
-  .alumno-card { flex-direction: column; align-items: flex-start; }
-  .semestre-meta { flex-wrap: wrap; gap: 4px; }
+@media (max-width: 640px) {
+  .kardex-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+  
+  .buscador-fila {
+    flex-direction: column;
+  }
+  
+  .btn-buscar {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .resumen-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .tabla-materias th,
+  .tabla-materias td {
+    padding: 8px 6px;
+    font-size: 0.78rem;
+  }
+  
+  .semestre-cabecera {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
 </style>

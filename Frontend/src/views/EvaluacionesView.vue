@@ -801,7 +801,7 @@ mostrarToast('Reporte generado correctamente')
 /* ============================================= */
 /* ESTILOS GLOBALES - PALETA OFICIAL SICE       */
 /* ============================================= */
-.evaluaciones-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; position: relative; }
+.evaluaciones-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; position: relative; max-width: 100%; box-sizing: content-box; padding: 1rem 1rem 2rem;}
 
 /* ALERTAS Y BREADCRUMB */
 .alerta-error-catalogos { display: flex; align-items: center; gap: 0.6rem; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 10px; padding: 0.8rem 1.2rem; margin-bottom: 1rem; font-size: 0.875rem; font-weight: 600; }
@@ -1241,12 +1241,108 @@ mostrarToast('Reporte generado correctamente')
 kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 0.8rem; color: #1A1A1A; }
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
 
-/* RESPONSIVE */
-@media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 900px) {
-  .materia-progreso-row { grid-template-columns: 1fr; }
-  .filtros-container { flex-direction: column; align-items: stretch; }
-  .busqueda-wrapper { max-width: 100%; }
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } }
+
+@media (max-width: 900px) {
+  .materia-progreso-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .filtros-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .busqueda-wrapper {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .evaluaciones-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .stats-grid { 
+    grid-template-columns: 1fr; 
+    gap: 0.75rem; 
+  }
+
+  .materia-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .materia-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .filtros-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .tabla-eval th,
+  .tabla-eval td {
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+
+  .input-porcentaje-wrap {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .acciones-fila {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .paginacion-wrapper {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .tabla-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .modal-container {
+    width: 92%;
+    margin: 0.5rem;
+    max-width: none;
+  }
+
+  .modal-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .footer-actions .btn-primario,
+  .footer-actions .btn-cancelar {
+    width: 100%;
+    justify-content: center;
+  }
+}
 </style>

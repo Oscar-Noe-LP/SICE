@@ -299,7 +299,7 @@ const formatearFecha = (f) => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-.comite-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; }
+.comite-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; box-sizing: border-box; padding: 1rem 1rem 2rem;}
 .barra-carga { position: fixed; top: 74px; left: 0; right: 0; height: 3px; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .barra-carga.activa { opacity: 1; }
 .barra-progreso { height: 100%; background: linear-gradient(90deg, #1B396A, #1D4ED8, #1B396A); background-size: 200% 100%; animation: carga-anim 1.4s linear infinite; }
@@ -415,13 +415,42 @@ const formatearFecha = (f) => {
 }
 .btn-secundario:hover { background: #BFDBFE; }
 
-/* Responsive */
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 900px) {
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .listas-grid { grid-template-columns: 1fr; }
 }
+
 @media (max-width: 640px) {
-  .kpi-grid { grid-template-columns: 1fr; }
-  .accesos-rapidos { flex-direction: column; }
+  .comite-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+  
+  .kpi-grid { 
+    grid-template-columns: 1fr; 
+    gap: 0.75rem; 
+  }
+  
+  .kpi-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .kpi-datos { flex: 1; }
+  .kpi-numero { font-size: 1.8rem; }
+  
+  .listas-grid { gap: 0.75rem; }
+  
+  .accesos-rapidos {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .item-actividad {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 }
 </style>

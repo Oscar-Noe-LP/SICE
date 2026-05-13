@@ -230,7 +230,7 @@ const guardar = async () => {
 .subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; }
 
 /* Card de sección */
-.seccion-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.6rem; margin-bottom: 1.5rem; }
+.seccion-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.25rem; margin-bottom: 1.5rem; flex-direction: column-reverse; gap: 0.75rem;}
 .seccion-titulo { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 1rem; }
 .seccion-icono { width: 40px; height: 40px; background: #DBEAFE; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .seccion-nombre { font-size: 1rem; font-weight: 700; color: #1A1A1A; margin: 0 0 2px; }
@@ -254,7 +254,7 @@ const guardar = async () => {
 .mensaje-error { font-size: 0.78rem; color: #DC2626; font-weight: 500; }
 
 /* Acciones de formulario */
-.acciones-form { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem; }
+.acciones-form { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem; flex-direction: column-reverse; }
 
 /* Toast Estándar */
 .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 0.9rem 1.4rem; border-radius: 10px; font-weight: 700; font-size: 0.9rem; font-family: 'Montserrat', sans-serif; display: flex; align-items: center; gap: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 3000; max-width: 380px; color: #FFFFFF; }
@@ -284,6 +284,8 @@ const guardar = async () => {
   font-family: inherit;
   transition: background 0.2s;
   white-space: nowrap;
+  width: 100%;
+  justify-content: center;
 }
 .btn-primario:hover:not(:disabled) { background: #1D4ED8; }
 .btn-primario:disabled { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
@@ -299,8 +301,15 @@ const guardar = async () => {
   cursor: pointer;
   font-family: inherit;
   transition: background 0.2s;
+  width: 100%;
+  justify-content: center;
 }
 .btn-cancelar:hover { background: #F5F5F5; }
+
+.modal-caja {
+    width: 92%;
+    margin: 0 4%;
+  }
 
 .spinner {
   width: 16px; height: 16px; border-radius: 50%;
@@ -313,5 +322,5 @@ const guardar = async () => {
 
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
 
-@media (max-width: 640px) { .campos-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .campos-grid { grid-template-columns: 1fr; gap: 1rem;} }
 </style>

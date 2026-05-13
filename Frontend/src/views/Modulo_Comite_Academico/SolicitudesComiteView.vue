@@ -376,7 +376,7 @@ const resolverSolicitud = (sol) =>
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-.solicitudes-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; }
+.solicitudes-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; box-sizing: border-box; padding: 1rem 1rem 2rem;}
 
 /* Barra de carga */
 .barra-carga { 
@@ -782,9 +782,38 @@ const resolverSolicitud = (sol) =>
 .modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.2s; }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 
-/* Responsive */
-@media (max-width: 640px) { 
-  .filtros-grid { grid-template-columns: 1fr; } 
-  .paginacion-wrap { flex-direction: column; gap: 0.5rem; } 
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 640px) {
+  .solicitudes-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+  
+  .filtros-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .tabla-principal th,
+  .tabla-principal td {
+    padding: 8px 6px;
+    font-size: 0.78rem;
+  }
+  
+  .persona-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .paginacion-wrap {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  
+  .acciones-fila {
+    flex-direction: column;
+    gap: 6px;
+  }
 }
 </style>

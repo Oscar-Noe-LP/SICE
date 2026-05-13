@@ -466,7 +466,7 @@ const formatearFechaLarga = (f) => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
-.sesiones-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; }
+.sesiones-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; box-sizing: border-box; padding: 1rem 1rem 2rem; }
 
 .barra-carga { position: fixed; top: 74px; left: 0; right: 0; height: 3px; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .barra-carga.activa { opacity: 1; }
@@ -661,8 +661,31 @@ const formatearFechaLarga = (f) => {
 
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
 
-@media (max-width: 640px) { 
-  .filtros-grid { grid-template-columns: 1fr; } 
-  .paginacion-wrap { flex-direction: column; gap: 0.5rem; } 
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 640px) {
+  .sesiones-page {
+    padding: 0.75rem 0.5rem 2rem;
+  }
+  
+  .filtros-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .tabla-principal th,
+  .tabla-principal td {
+    padding: 8px 6px;
+    font-size: 0.78rem;
+  }
+  
+  .paginacion-wrap {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .modal-caja {
+    width: 92%;
+    margin: 0 4%;
+  }
 }
 </style>
