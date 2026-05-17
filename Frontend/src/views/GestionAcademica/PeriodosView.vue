@@ -19,27 +19,46 @@
         </div>
       </transition>
 
-      <!-- Barra de herramientas -->
+      <!-- Barra de herramientas: buscador siempre visible + filtros colapsables -->
       <div class="filters-bar">
-        <button class="btn-filtro" @click="panelFiltros = !panelFiltros" :class="{ activo: panelFiltros || busqueda || filtroEstatus }">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+        <!-- Buscador principal siempre visible -->
+        <div class="search-group">
+          <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar periodo..."
+            v-model="busqueda"
+            class="search-input"
+            @keydown.escape="busqueda = ''"
+          >
+          <button v-if="busqueda" class="search-clear" @click="busqueda = ''" title="Limpiar búsqueda">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Botón Filtros solo para filtros adicionales (Estatus) -->
+        <button
+          class="btn-filtro"
+          @click="panelFiltros = !panelFiltros"
+          :class="{ activo: panelFiltros || filtroEstatus }"
+          title="Filtros adicionales"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+          </svg>
           Filtros
-          <span v-if="filtrosActivos > 0" class="filtro-badge">{{ filtrosActivos }}</span>
+          <span v-if="filtroEstatus" class="filtro-badge">1</span>
         </button>
+
         <button class="btn-nuevo" @click="abrirModalNuevo">+ Nuevo periodo</button>
       </div>
 
-      <!-- Panel de filtros desplegable -->
+      <!-- Panel colapsable: solo filtros adicionales (Estatus) -->
       <transition name="panel-slide">
         <div v-if="panelFiltros" class="panel-filtros">
           <div class="panel-filtros-inner">
-            <div class="filtro-grupo">
-              <label class="filtro-label">Buscar por nombre</label>
-              <div class="search-group">
-                <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <input type="text" placeholder="Nombre del periodo..." v-model="busqueda" class="search-input" @keydown.escape="busqueda = ''">
-              </div>
-            </div>
             <div class="filtro-grupo filtro-grupo-sm">
               <label class="filtro-label">Estatus</label>
               <select v-model="filtroEstatus" class="filter-select">
@@ -50,7 +69,7 @@
             </div>
             <button class="btn-limpiar-filtros" @click="limpiarFiltros">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-              Limpiar
+              Limpiar filtros
             </button>
           </div>
         </div>
@@ -190,7 +209,7 @@ const guardando         = ref(false)
 const filaActiva        = ref(-1)
 const busqueda          = ref('')
 const filtroEstatus     = ref('')
-const panelFiltros      = ref(false)
+const panelFiltros      = ref(false)  // colapsado por defecto
 const showModal         = ref(false)
 const showModalVer      = ref(false)
 const showModalEliminar = ref(false)
@@ -210,7 +229,6 @@ const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   timerNotif = setTimeout(() => { notificacion.value.visible = false }, 3500)
 }
 
-const filtrosActivos = computed(() => (busqueda.value ? 1 : 0) + (filtroEstatus.value ? 1 : 0))
 const periodoActivoExistente = computed(() => periodos.value.some(p => p.estatus && p.id_periodo !== form.id_periodo))
 
 const cargarPeriodos = async () => {
@@ -248,8 +266,8 @@ const formatearFecha = (fecha) => {
   return new Date(fecha + 'T00:00:00').toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-const limpiarFiltros = () => { busqueda.value = ''; filtroEstatus.value = ''; filaActiva.value = -1; paginaActual.value = 1 }
-const resetForm = () => { form.id_periodo = null; form.nombre_periodo = ''; form.fecha_inicio = ''; form.fecha_fin = ''; form.estatus = 1; Object.keys(errors).forEach(k => delete errors[k]) }
+const limpiarFiltros  = () => { busqueda.value = ''; filtroEstatus.value = ''; filaActiva.value = -1; paginaActual.value = 1 }
+const resetForm       = () => { form.id_periodo = null; form.nombre_periodo = ''; form.fecha_inicio = ''; form.fecha_fin = ''; form.estatus = 1; Object.keys(errors).forEach(k => delete errors[k]) }
 const abrirModalNuevo  = () => { resetForm(); showModal.value = true }
 const abrirModalVer    = (p) => { periodoVer.value = p; showModalVer.value = true }
 const abrirModalEditar = (p) => { resetForm(); form.id_periodo = p.id_periodo; form.nombre_periodo = p.nombre_periodo; form.fecha_inicio = p.fecha_inicio; form.fecha_fin = p.fecha_fin; form.estatus = p.estatus; showModal.value = true }
@@ -304,22 +322,33 @@ const confirmarEliminar = async () => {
 .toast{position:fixed;bottom:2rem;right:2rem;display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:10px;color:white;font-weight:500;font-size:0.93rem;box-shadow:0 6px 20px rgba(0,0,0,0.18);z-index:3000;max-width:380px}.toast.exito{background:var(--azul)}.toast.error{background:var(--rojo)}.toast-icono{width:20px;height:20px;flex-shrink:0}
 .toast-slide-enter-active,.toast-slide-leave-active{transition:all 0.35s ease}.toast-slide-enter-from,.toast-slide-leave-to{opacity:0;transform:translateX(110%)}
 
-/* Barra de herramientas */
+/* ── Barra de herramientas ─────────────────────────────────────── */
 .filters-bar{display:flex;align-items:center;gap:0.75rem;margin-bottom:0;flex-wrap:wrap}
-.btn-filtro{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;border:1.5px solid var(--borde);background:#FFFFFF;color:var(--texto);font-weight:600;font-size:0.88rem;font-family:'Montserrat',sans-serif;cursor:pointer;transition:all 0.2s;position:relative}
+
+/* Buscador siempre visible */
+.search-group{position:relative;flex:1;min-width:200px;max-width:360px}
+.search-input{width:100%;padding:9px 36px 9px 38px;border:1.5px solid var(--borde);border-radius:8px;font-size:0.9rem;background:#FFFFFF;color:var(--texto);font-family:'Montserrat',sans-serif;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box}
+.search-input:focus{border-color:var(--azul);box-shadow:0 0 0 3px #DBEAFE}
+.search-input::placeholder{color:#9CA3AF}
+.search-icon-svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gris);pointer-events:none}
+.search-clear{position:absolute;right:9px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:20px;height:20px;background:none;border:none;cursor:pointer;padding:0;color:#9CA3AF;transition:color 0.15s}
+.search-clear:hover{color:var(--texto)}
+.search-clear svg{width:14px;height:14px;stroke:currentColor}
+
+/* Botón Filtros para filtros adicionales */
+.btn-filtro{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;border:1.5px solid var(--borde);background:#FFFFFF;color:var(--texto);font-weight:600;font-size:0.88rem;font-family:'Montserrat',sans-serif;cursor:pointer;transition:all 0.2s;position:relative;white-space:nowrap}
 .btn-filtro svg{width:16px;height:16px;stroke:var(--gris)}
 .btn-filtro:hover,.btn-filtro.activo{border-color:var(--azul);color:var(--azul);background:var(--azul-suave)}
 .btn-filtro.activo svg{stroke:var(--azul)}
 .filtro-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--azul);color:white;font-size:0.7rem;font-weight:700}
 .btn-nuevo{background:var(--azul);color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'Montserrat',sans-serif;font-size:0.92rem;transition:background 0.2s;margin-left:auto}.btn-nuevo:hover{background:var(--azul-hover)}
 
-/* Panel de filtros desplegable */
+/* Panel de filtros adicionales colapsable */
 .panel-filtros{background:#FFFFFF;border:1.5px solid var(--borde);border-radius:10px;margin:0.6rem 0 1rem;overflow:hidden}
 .panel-filtros-inner{display:flex;align-items:flex-end;gap:1rem;padding:1rem 1.2rem;flex-wrap:wrap}
 .filtro-grupo{display:flex;flex-direction:column;gap:5px;flex:0 0 280px;min-width:180px}
 .filtro-grupo-sm{flex:0 0 160px;min-width:130px}
 .filtro-label{font-size:0.82rem;font-weight:600;color:var(--gris)}
-.search-group{position:relative;width:100%}.search-input{width:100%;padding:9px 14px 9px 38px;border:1.5px solid var(--borde);border-radius:8px;font-size:0.9rem;background:#FFFFFF;color:var(--texto);font-family:'Montserrat',sans-serif;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box}.search-input:focus{border-color:var(--azul);box-shadow:0 0 0 3px #DBEAFE}.search-input::placeholder{color:#9CA3AF}.search-icon-svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gris);pointer-events:none}
 .filter-select{width:100%;padding:9px 12px;border:1.5px solid var(--borde);border-radius:8px;font-size:0.9rem;background:#FFFFFF;color:var(--texto);font-family:'Montserrat',sans-serif;cursor:pointer;outline:none}.filter-select:focus{border-color:var(--azul)}
 .btn-limpiar-filtros{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;border:1px solid var(--borde);background:#FFFFFF;color:var(--gris);font-size:0.88rem;font-weight:600;font-family:'Montserrat',sans-serif;cursor:pointer;white-space:nowrap;transition:all 0.15s;align-self:flex-end}
 .btn-limpiar-filtros svg{width:14px;height:14px}.btn-limpiar-filtros:hover{background:#FEF2F2;color:var(--rojo);border-color:#FECACA}
@@ -333,7 +362,7 @@ const confirmarEliminar = async () => {
 .data-table{width:100%;border-collapse:collapse}.data-table th{background:var(--fondo);padding:12px 16px;text-align:left;font-weight:600;font-size:0.88rem;color:var(--texto);border-bottom:1px solid var(--borde);font-family:'Montserrat',sans-serif}.th-centro{text-align:center}.data-table td{padding:11px 16px;border-bottom:1px solid var(--borde);color:var(--texto);font-size:0.93rem;font-family:'Montserrat',sans-serif}.data-table tbody tr{transition:background 0.15s;cursor:pointer}.data-table tbody tr:hover{background:#F8FAFC}.data-table tbody tr:last-child td{border-bottom:none}.fila-seleccionada{background:#DBEAFE!important}.celda-nombre{font-weight:600}
 .estatus-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.83rem;font-weight:600}.estatus-badge.activo{background:#DCFCE7;color:#16A34A}.estatus-badge.inactivo{background:#F3F4F6;color:#6B7280}
 
-/* Acciones — solo íconos */
+/* Acciones */
 .celda-acciones{text-align:center}
 .btn-icono{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:7px;cursor:pointer;transition:all 0.15s;position:relative;margin:0 2px}
 .btn-icono svg{width:15px;height:15px}

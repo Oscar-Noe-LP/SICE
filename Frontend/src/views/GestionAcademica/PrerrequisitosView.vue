@@ -19,34 +19,25 @@
         </div>
       </transition>
 
-      <!-- Barra de herramientas -->
+      <!-- Barra de herramientas: buscador siempre visible, sin botón Filtros innecesario -->
       <div class="filters-bar">
-        <button class="btn-filtro" @click="panelFiltros = !panelFiltros" :class="{ activo: panelFiltros || busqueda }">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
-          Filtros
-          <span v-if="busqueda" class="filtro-badge">1</span>
-        </button>
+        <div class="search-group">
+          <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar por materia..."
+            v-model="busqueda"
+            class="search-input"
+            @keydown.escape="busqueda = ''"
+          >
+          <button v-if="busqueda" class="search-clear" @click="busqueda = ''; paginaActual = 1" title="Limpiar búsqueda">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
         <button class="btn-nuevo" @click="showModal = true">+ Agregar prerrequisito</button>
       </div>
-
-      <!-- Panel de filtros desplegable -->
-      <transition name="panel-slide">
-        <div v-if="panelFiltros" class="panel-filtros">
-          <div class="panel-filtros-inner">
-            <div class="filtro-grupo">
-              <label class="filtro-label">Buscar por materia</label>
-              <div class="search-group">
-                <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <input type="text" placeholder="Nombre de materia..." v-model="busqueda" class="search-input" @keydown.escape="busqueda = ''">
-              </div>
-            </div>
-            <button class="btn-limpiar-filtros" @click="busqueda = ''; paginaActual = 1">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-              Limpiar
-            </button>
-          </div>
-        </div>
-      </transition>
 
       <div class="table-container">
         <div v-if="cargando && prerrequisitos.length === 0" class="estado-cargando"><div class="spinner-tabla"></div><p>Cargando registros...</p></div>
@@ -148,7 +139,6 @@ const materias          = ref([])
 const cargando          = ref(false)
 const guardando         = ref(false)
 const busqueda          = ref('')
-const panelFiltros      = ref(false)
 const showModal         = ref(false)
 const showModalEliminar = ref(false)
 const preAEliminar      = ref(null)
@@ -263,38 +253,29 @@ const confirmarEliminar = async () => {
 .toast{position:fixed;bottom:2rem;right:2rem;display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:10px;color:white;font-weight:500;font-size:0.93rem;box-shadow:0 6px 20px rgba(0,0,0,0.18);z-index:3000;max-width:380px}.toast.exito{background:var(--azul)}.toast.error{background:var(--rojo)}.toast-icono{width:20px;height:20px;flex-shrink:0}
 .toast-slide-enter-active,.toast-slide-leave-active{transition:all 0.35s ease}.toast-slide-enter-from,.toast-slide-leave-to{opacity:0;transform:translateX(110%)}
 
-/* Barra de herramientas */
-.filters-bar{display:flex;align-items:center;gap:0.75rem;margin-bottom:0;flex-wrap:wrap}
-.btn-filtro{display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:8px;border:1.5px solid var(--borde);background:#FFFFFF;color:var(--texto);font-weight:600;font-size:0.88rem;font-family:'Montserrat',sans-serif;cursor:pointer;transition:all 0.2s;position:relative}
-.btn-filtro svg{width:16px;height:16px;stroke:var(--gris)}
-.btn-filtro:hover,.btn-filtro.activo{border-color:var(--azul);color:var(--azul);background:var(--azul-suave)}
-.btn-filtro.activo svg{stroke:var(--azul)}
-.filtro-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--azul);color:white;font-size:0.7rem;font-weight:700}
+/* ── Barra de herramientas: buscador siempre visible ─────────────── */
+.filters-bar{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.2rem;flex-wrap:wrap}
+
+.search-group{position:relative;flex:1;min-width:200px;max-width:360px}
+.search-input{width:100%;padding:9px 36px 9px 38px;border:1.5px solid var(--borde);border-radius:8px;font-size:0.9rem;background:#FFFFFF;color:var(--texto);font-family:'Montserrat',sans-serif;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box}
+.search-input:focus{border-color:var(--azul);box-shadow:0 0 0 3px #DBEAFE}
+.search-input::placeholder{color:#9CA3AF}
+.search-icon-svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gris);pointer-events:none}
+.search-clear{position:absolute;right:9px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:20px;height:20px;background:none;border:none;cursor:pointer;padding:0;color:#9CA3AF;transition:color 0.15s}
+.search-clear:hover{color:var(--texto)}
+.search-clear svg{width:14px;height:14px;stroke:currentColor}
+
 .btn-nuevo{background:var(--azul);color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'Montserrat',sans-serif;font-size:0.92rem;transition:background 0.2s;margin-left:auto}.btn-nuevo:hover{background:var(--azul-hover)}
 
-/* Panel de filtros */
-.panel-filtros{background:#FFFFFF;border:1.5px solid var(--borde);border-radius:10px;margin:0.6rem 0 1rem;overflow:hidden}
-.panel-filtros-inner{display:flex;align-items:flex-end;gap:1rem;padding:1rem 1.2rem;flex-wrap:wrap}
-.filtro-grupo{display:flex;flex-direction:column;gap:5px;flex:0 0 320px;min-width:200px}
-.filtro-label{font-size:0.82rem;font-weight:600;color:var(--gris)}
-.search-group{position:relative;width:100%}.search-input{width:100%;padding:9px 14px 9px 38px;border:1.5px solid var(--borde);border-radius:8px;font-size:0.9rem;background:#FFFFFF;color:var(--texto);font-family:'Montserrat',sans-serif;outline:none;transition:border-color 0.2s,box-shadow 0.2s;box-sizing:border-box}.search-input:focus{border-color:var(--azul);box-shadow:0 0 0 3px #DBEAFE}.search-input::placeholder{color:#9CA3AF}.search-icon-svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--gris);pointer-events:none}
-.btn-limpiar-filtros{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;border:1px solid var(--borde);background:#FFFFFF;color:var(--gris);font-size:0.88rem;font-weight:600;font-family:'Montserrat',sans-serif;cursor:pointer;white-space:nowrap;transition:all 0.15s;align-self:flex-end}
-.btn-limpiar-filtros svg{width:14px;height:14px}.btn-limpiar-filtros:hover{background:#FEF2F2;color:var(--rojo);border-color:#FECACA}
-
-/* Transición panel */
-.panel-slide-enter-active,.panel-slide-leave-active{transition:all 0.25s ease}
-.panel-slide-enter-from,.panel-slide-leave-to{opacity:0;transform:translateY(-8px)}
-
 /* Tabla */
-.table-container{background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.05);border:1px solid var(--borde);margin-top:1.2rem}
+.table-container{background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.05);border:1px solid var(--borde)}
 .data-table{width:100%;border-collapse:collapse}.data-table th{background:var(--fondo);padding:12px 16px;text-align:left;font-weight:600;font-size:0.88rem;color:var(--texto);border-bottom:1px solid var(--borde);font-family:'Montserrat',sans-serif}.th-centro{text-align:center}.data-table td{padding:11px 16px;border-bottom:1px solid var(--borde);color:var(--texto);font-size:0.93rem;font-family:'Montserrat',sans-serif}.data-table tbody tr:hover{background:#F8FAFC}.data-table tbody tr:last-child td{border-bottom:none}.celda-nombre{font-weight:600}
 
-/* Acciones — solo íconos */
+/* Acciones */
 .celda-acciones{text-align:center}
 .btn-icono{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:7px;border:none;cursor:pointer;transition:all 0.15s;position:relative}
 .btn-icono svg{width:16px;height:16px}
 .btn-icono.eliminar-pre{background:#FEF2F2;color:var(--rojo);border:1px solid #FECACA}.btn-icono.eliminar-pre:hover{background:#FEE2E2}
-/* Tooltip nativo via title — complementado con CSS para navegadores modernos */
 .btn-icono[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1A1A1A;color:white;font-size:0.72rem;font-weight:600;padding:3px 8px;border-radius:5px;white-space:nowrap;pointer-events:none;font-family:'Montserrat',sans-serif;z-index:10}
 .btn-icono[title]:hover::before{content:'';position:absolute;bottom:calc(100% + 2px);left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#1A1A1A;pointer-events:none;z-index:10}
 

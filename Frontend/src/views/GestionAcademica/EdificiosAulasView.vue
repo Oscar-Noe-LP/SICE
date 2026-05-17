@@ -43,34 +43,20 @@
               <p class="seccion-subtitulo">{{ edificios.length }} edificio(s) registrado(s)</p>
             </div>
           </div>
+          <!-- Buscador inline siempre visible (no necesita botón Filtros extra) -->
           <div class="seccion-acciones">
-            <button class="btn-filtro" @click="panelFiltrosEdificios = !panelFiltrosEdificios" :class="{ activo: panelFiltrosEdificios || busquedaEdificio }">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
-              Filtros
-              <span v-if="busquedaEdificio" class="filtro-badge">1</span>
-            </button>
+            <div class="search-group search-inline-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" placeholder="Buscar edificio..." v-model="busquedaEdificio" class="search-input" @keydown.escape="busquedaEdificio = ''">
+              <button v-if="busquedaEdificio" class="btn-limpiar-input" @click="busquedaEdificio = ''; paginaEdificios = 1" title="Limpiar">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
             <button class="btn-nuevo" @click="abrirModalNuevoEdificio">+ Nuevo edificio</button>
           </div>
         </div>
-
-        <!-- Panel filtros edificios -->
-        <transition name="panel-slide">
-          <div v-if="panelFiltrosEdificios" class="panel-filtros">
-            <div class="panel-filtros-inner">
-              <div class="filtro-grupo">
-                <label class="filtro-label">Buscar edificio</label>
-                <div class="search-group">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                  <input type="text" placeholder="Nombre del edificio..." v-model="busquedaEdificio" class="search-input" @keydown.escape="busquedaEdificio = ''">
-                </div>
-              </div>
-              <button class="btn-limpiar-filtros" @click="busquedaEdificio = ''; paginaEdificios = 1">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                Limpiar
-              </button>
-            </div>
-          </div>
-        </transition>
 
         <div class="tabla-interna">
           <div v-if="cargando && edificios.length === 0" class="estado-cargando">
@@ -169,27 +155,35 @@
               </p>
             </div>
           </div>
+          <!-- Buscador siempre visible + botón Filtros para el select Edificio (filtro real) -->
           <div class="seccion-acciones">
-            <button class="btn-filtro" @click="panelFiltrosAulas = !panelFiltrosAulas" :class="{ activo: panelFiltrosAulas || busquedaAula || filtroEdificioAula }">
+            <div class="search-group search-inline-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" placeholder="Buscar aula..." v-model="busquedaAula" class="search-input" @keydown.escape="busquedaAula = ''">
+              <button v-if="busquedaAula" class="btn-limpiar-input" @click="busquedaAula = ''" title="Limpiar">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <button
+              class="btn-filtro"
+              @click="panelFiltrosAulas = !panelFiltrosAulas"
+              :class="{ activo: panelFiltrosAulas || filtroEdificioAula }"
+              title="Filtrar por edificio"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
               Filtros
-              <span v-if="(busquedaAula ? 1 : 0) + (filtroEdificioAula ? 1 : 0) > 0" class="filtro-badge">{{ (busquedaAula ? 1 : 0) + (filtroEdificioAula ? 1 : 0) }}</span>
+              <span v-if="filtroEdificioAula" class="filtro-badge">1</span>
             </button>
             <button class="btn-nuevo" @click="abrirModalNuevaAula">+ Nueva aula</button>
           </div>
         </div>
 
-        <!-- Panel filtros aulas -->
+        <!-- Panel colapsable: solo el select Edificio (filtro real) -->
         <transition name="panel-slide">
           <div v-if="panelFiltrosAulas" class="panel-filtros">
             <div class="panel-filtros-inner">
-              <div class="filtro-grupo">
-                <label class="filtro-label">Buscar aula</label>
-                <div class="search-group">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                  <input type="text" placeholder="Nombre del aula..." v-model="busquedaAula" class="search-input" @keydown.escape="busquedaAula = ''">
-                </div>
-              </div>
               <div class="filtro-grupo filtro-grupo-sm">
                 <label class="filtro-label">Edificio</label>
                 <select v-model="filtroEdificioAula" class="filter-select" :disabled="!!edificioSeleccionado">
@@ -197,7 +191,7 @@
                   <option v-for="e in edificios" :key="e.id_edificio" :value="e.id_edificio">{{ e.nombre_edificio }}</option>
                 </select>
               </div>
-              <button class="btn-limpiar-filtros" @click="limpiarFiltrosAulas">
+              <button class="btn-limpiar-filtros" @click="filtroEdificioAula = ''">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 Limpiar
               </button>

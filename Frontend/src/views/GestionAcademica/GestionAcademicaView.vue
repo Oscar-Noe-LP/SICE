@@ -219,10 +219,8 @@
 import { ref, onMounted } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 
-// ── Variable de entorno — estandarización del proyecto ───────────
 const API = `${import.meta.env.VITE_API_URL}/api`
 
-// ── Estado ──────────────────────────────────────────────────────
 const cargando   = ref(false)
 const errorCarga = ref(false)
 
@@ -233,7 +231,6 @@ const resumen = ref({
   aulas:    0
 })
 
-// ── Carga de datos ───────────────────────────────────────────────
 const cargarResumen = async () => {
   cargando.value   = true
   errorCarga.value = false
@@ -291,9 +288,6 @@ onMounted(() => { cargarResumen() })
 
 /* ── Encabezado ─────────────────────────────────────────────────── */
 .page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   margin-bottom: 1.4rem;
 }
 .page-title {
@@ -376,7 +370,6 @@ onMounted(() => { cargarResumen() })
   gap: 1rem;
   margin-bottom: 2rem;
 }
-
 .kpi-card {
   background: #FFFFFF;
   border-radius: 12px;
@@ -393,7 +386,6 @@ onMounted(() => { cargarResumen() })
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0,0,0,0.09);
 }
-
 .kpi-icono-wrapper {
   width: 46px;
   height: 46px;
@@ -403,10 +395,7 @@ onMounted(() => { cargarResumen() })
   justify-content: center;
   flex-shrink: 0;
 }
-.kpi-icono-wrapper svg {
-  width: 22px;
-  height: 22px;
-}
+.kpi-icono-wrapper svg { width: 22px; height: 22px; }
 
 .kpi-azul     { background: #DBEAFE; }
 .kpi-azul     svg { stroke: var(--azul); }
@@ -417,11 +406,7 @@ onMounted(() => { cargarResumen() })
 .kpi-morado   { background: #EDE9FE; }
 .kpi-morado   svg { stroke: #7C3AED; }
 
-.kpi-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.kpi-info { display: flex; flex-direction: column; gap: 2px; }
 .kpi-etiqueta {
   font-size: 0.83rem;
   color: var(--gris);
@@ -452,22 +437,18 @@ onMounted(() => { cargarResumen() })
 }
 
 /* ── Secciones del módulo ────────────────────────────────────────── */
-.accesos-seccion {
-  margin-bottom: 2rem;
-}
+.accesos-seccion { margin-bottom: 2rem; }
 .seccion-titulo {
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--texto);
   margin: 0 0 1rem;
 }
-
 .accesos-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
 }
-
 .acceso-card {
   background: #FFFFFF;
   border-radius: 12px;
@@ -485,7 +466,6 @@ onMounted(() => { cargarResumen() })
   box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   border-color: var(--azul);
 }
-
 .acceso-icono {
   width: 44px;
   height: 44px;
@@ -495,10 +475,7 @@ onMounted(() => { cargarResumen() })
   justify-content: center;
   flex-shrink: 0;
 }
-.acceso-icono svg {
-  width: 22px;
-  height: 22px;
-}
+.acceso-icono svg { width: 22px; height: 22px; }
 
 .acceso-azul     { background: #DBEAFE; }
 .acceso-azul     svg { stroke: var(--azul); }
@@ -513,9 +490,7 @@ onMounted(() => { cargarResumen() })
 .acceso-gris     { background: #F3F4F6; }
 .acceso-gris     svg { stroke: var(--gris); }
 
-.acceso-contenido {
-  flex: 1;
-}
+.acceso-contenido { flex: 1; }
 .acceso-contenido h4 {
   font-size: 0.95rem;
   font-weight: 700;
@@ -528,7 +503,6 @@ onMounted(() => { cargarResumen() })
   margin: 0;
   line-height: 1.4;
 }
-
 .acceso-flecha {
   width: 18px;
   height: 18px;
