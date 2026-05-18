@@ -150,6 +150,7 @@
                 class="input-campo"
                 :class="{ 'borde-error': errors.nombre_usuario, 'borde-valido': campoValido('nombre_usuario') }"
                 placeholder="Ej. jgarcia26"
+                autocomplete="new-password"
                 @input="validarCampo('nombre_usuario')"
                 @blur="validarCampo('nombre_usuario')"
               >
@@ -189,6 +190,7 @@
                   class="input-campo input-pass"
                   :class="{ 'borde-error': errors.contrasena, 'borde-valido': campoValido('contrasena') }"
                   placeholder="Mínimo 8 caracteres"
+                  autocomplete="new-password"
                   @input="validarCampo('contrasena')"
                   @blur="validarCampo('contrasena')"
                 >

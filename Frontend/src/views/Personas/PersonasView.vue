@@ -41,30 +41,41 @@
           <span v-if="cargandoBusqueda" class="spinner-busqueda"></span>
         </div>
 
-        <select v-model="filtroTipo" class="filter-select" @change="currentPage = 1">
-          <option value="">Tipo</option>
-          <option value="Alumno">Alumno</option>
-          <option value="Empleado">Empleado</option>
-          <option value="Sin asignar">Sin asignar</option>
-        </select>
+        <button class="btn-toggle-filtros" @click="filtrosExpandidos = !filtrosExpandidos">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filtros
+          <span v-if="filtroTipo || filtroEstatus" class="filtros-badge">{{ [filtroTipo, filtroEstatus].filter(Boolean).length }}</span>
+        </button>
 
-        <select v-model="filtroEstatus" class="filter-select" @change="currentPage = 1">
-          <option value="">Estatus</option>
-          <option value="Activo">Activo</option>
-          <option value="Inactivo">Inactivo</option>
-        </select>
-
-        <button class="btn-limpiar" @click="resetFilters">
+        <button v-if="filtroTipo || filtroEstatus" class="btn-limpiar" @click="resetFilters">
           <svg xmlns="http://www.w3.org/2000/svg" class="reset-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
           </svg>
-          Limpiar
         </button>
 
         <button class="btn-nuevo" @click="nuevaPersona">
           + Nueva Persona
         </button>
       </div>
+
+      <!-- Filtros colapsables -->
+      <transition name="filtros-expand">
+        <div v-if="filtrosExpandidos" class="filtros-panel">
+          <select v-model="filtroTipo" class="filter-select" @change="currentPage = 1">
+            <option value="">Tipo</option>
+            <option value="Alumno">Alumno</option>
+            <option value="Empleado">Empleado</option>
+            <option value="Sin asignar">Sin asignar</option>
+          </select>
+          <select v-model="filtroEstatus" class="filter-select" @change="currentPage = 1">
+            <option value="">Estatus</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+        </div>
+      </transition>
 
       <div class="table-container">
         <div v-if="cargando && personas.length === 0" class="estado-cargando">
@@ -251,6 +262,7 @@ const dropdownAbierto  = ref(null)
 
 const busquedaPersona = ref('')
 const filtroTipo      = ref('')
+const filtrosExpandidos = ref(false)
 const filtroEstatus   = ref('')
 const filasPorPagina  = ref(10)
 const currentPage     = ref(1)
@@ -664,4 +676,25 @@ const navegarTeclado = (e) => {
 .btn-detalle:hover { background: #1D4ED8; }
 
 @keyframes girar { to { transform: rotate(360deg); } }
+
+.btn-toggle-filtros {
+  display: flex; align-items: center; gap: 6px;
+  background: #DBEAFE; color: #1B396A; border: none;
+  padding: 9px 14px; border-radius: 8px; font-weight: 600;
+  font-size: 0.875rem; cursor: pointer; font-family: 'Montserrat', sans-serif;
+  white-space: nowrap; transition: background 0.2s;
+}
+.btn-toggle-filtros:hover { background: #BFDBFE; }
+.filtros-badge {
+  background: #1B396A; color: #fff; border-radius: 50%;
+  width: 18px; height: 18px; font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.filtros-panel {
+  display: flex; gap: 0.75rem; flex-wrap: wrap;
+  background: #fff; border: 1px solid #E5E7EB; border-radius: 10px;
+  padding: 0.9rem 1.2rem; margin-bottom: 1rem;
+}
+.filtros-expand-enter-active, .filtros-expand-leave-active { transition: all 0.25s ease; }
+.filtros-expand-enter-from, .filtros-expand-leave-to { opacity: 0; transform: translateY(-6px); }
 </style>

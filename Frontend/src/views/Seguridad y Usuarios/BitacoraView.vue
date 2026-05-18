@@ -34,87 +34,69 @@
 
       <!-- ══ Tarjeta de filtros ══ -->
       <div class="filtros-card">
-        <div class="filtros-fila">
-
-          <!-- Buscador por usuario -->
-          <div class="filtro-grupo filtro-busqueda">
-            <label class="filtro-label">Buscar usuario</label>
-            <div class="search-group">
-              <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Nombre de usuario..."
-                v-model="filtros.usuario"
-                class="filtro-input"
-                @keydown.escape="filtros.usuario = ''"
-              >
-            </div>
-          </div>
-
-          <!-- Selector de módulo -->
-          <div class="filtro-grupo">
-            <label class="filtro-label">Módulo</label>
-            <select v-model="filtros.modulo" class="filtro-select" @change="currentPage = 1">
-              <option value="">Todos los módulos</option>
-              <option v-for="m in modulosDisponibles" :key="m" :value="m">{{ m }}</option>
-            </select>
-          </div>
-
-          <!-- Selector de tipo de acción -->
-          <div class="filtro-grupo">
-            <label class="filtro-label">Tipo de acción</label>
-            <select v-model="filtros.accion" class="filtro-select" @change="currentPage = 1">
-              <option value="">Todas las acciones</option>
-              <option value="Login">Login</option>
-              <option value="Creación">Creación</option>
-              <option value="Edición">Edición</option>
-              <option value="Eliminación">Eliminación</option>
-            </select>
-          </div>
-
-          <!-- Date picker: Fecha desde -->
-          <div class="filtro-grupo">
-            <label class="filtro-label">Fecha desde</label>
+        <!-- Fila siempre visible: buscador + botón Filtros -->
+        <div class="filtros-fila-principal">
+          <div class="search-group" style="flex:1; min-width:200px; position:relative;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="search-icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
-              type="date"
-              v-model="filtros.fechaDesde"
-              class="filtro-input filtro-fecha"
-              :max="filtros.fechaHasta || hoyISO"
-              @change="currentPage = 1"
+              type="text"
+              placeholder="Nombre de usuario..."
+              v-model="filtros.usuario"
+              class="filtro-input"
+              style="padding-left:38px; width:100%; box-sizing:border-box;"
+              @keydown.escape="filtros.usuario = ''"
             >
           </div>
-
-          <!-- Date picker: Fecha hasta -->
-          <div class="filtro-grupo">
-            <label class="filtro-label">Fecha hasta</label>
-            <input
-              type="date"
-              v-model="filtros.fechaHasta"
-              class="filtro-input filtro-fecha"
-              :min="filtros.fechaDesde"
-              :max="hoyISO"
-              @change="currentPage = 1"
-            >
-          </div>
-
-          <!-- Botón limpiar filtros -->
-          <div class="filtro-grupo filtro-accion">
-            <label class="filtro-label">&nbsp;</label>
-            <button class="btn-limpiar" @click="resetFiltros" title="Limpiar filtros">
-              <svg xmlns="http://www.w3.org/2000/svg" class="reset-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
+          <button class="btn-toggle-filtros" @click="filtrosExpandidos = !filtrosExpandidos">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Filtros
+            <span v-if="tieneFiltrosActivos" class="filtros-badge">{{ filtrosActivosCount }}</span>
+          </button>
+          <button v-if="tieneFiltrosActivos" class="btn-limpiar" @click="resetFiltros" title="Limpiar filtros">
+            <svg xmlns="http://www.w3.org/2000/svg" class="reset-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        <!-- Resumen de filtros activos -->
-        <div v-if="tieneFiltrosActivos" class="filtros-activos">
+        <!-- Filtros colapsables -->
+        <transition name="filtros-expand">
+          <div v-if="filtrosExpandidos" class="filtros-fila" style="margin-top:0.9rem; padding-top:0.9rem; border-top:1px solid #E5E7EB;">
+            <div class="filtro-grupo">
+              <label class="filtro-label">Módulo</label>
+              <select v-model="filtros.modulo" class="filtro-select" @change="currentPage = 1">
+                <option value="">Todos los módulos</option>
+                <option v-for="m in modulosDisponibles" :key="m" :value="m">{{ m }}</option>
+              </select>
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label">Tipo de acción</label>
+              <select v-model="filtros.accion" class="filtro-select" @change="currentPage = 1">
+                <option value="">Todas las acciones</option>
+                <option value="Login">Login</option>
+                <option value="Creación">Creación</option>
+                <option value="Edición">Edición</option>
+                <option value="Eliminación">Eliminación</option>
+              </select>
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label">Fecha desde</label>
+              <input type="date" v-model="filtros.fechaDesde" class="filtro-input filtro-fecha" :max="filtros.fechaHasta || hoyISO" @change="currentPage = 1">
+            </div>
+            <div class="filtro-grupo">
+              <label class="filtro-label">Fecha hasta</label>
+              <input type="date" v-model="filtros.fechaHasta" class="filtro-input filtro-fecha" :min="filtros.fechaDesde" :max="hoyISO" @change="currentPage = 1">
+            </div>
+          </div>
+        </transition>
+
+        <!-- Chips de filtros activos -->
+        <div v-if="tieneFiltrosActivos" class="filtros-activos" style="margin-top:0.6rem;">
           <span class="filtros-activos-label">Filtros activos:</span>
-          <span v-if="filtros.usuario"     class="filtro-chip">Usuario: {{ filtros.usuario }}</span>
           <span v-if="filtros.modulo"      class="filtro-chip">Módulo: {{ filtros.modulo }}</span>
           <span v-if="filtros.accion"      class="filtro-chip">Acción: {{ filtros.accion }}</span>
           <span v-if="filtros.fechaDesde"  class="filtro-chip">Desde: {{ filtros.fechaDesde }}</span>
@@ -296,6 +278,7 @@ const cargando   = ref(false)
 const filaActiva = ref(-1)
 const tablaRef   = ref(null)
 const ordenAsc   = ref(false)
+const filtrosExpandidos = ref(false)
 
 // ── Paginación ─────────────────────────────────────────────────────
 const filasPorPagina = ref(20)
@@ -438,6 +421,10 @@ const registrosFiltrados = computed(() => {
 
   return lista
 })
+
+const filtrosActivosCount = computed(() =>
+  [filtros.value.modulo, filtros.value.accion, filtros.value.fechaDesde, filtros.value.fechaHasta].filter(Boolean).length
+)
 
 const tieneFiltrosActivos = computed(() =>
   filtros.value.usuario || filtros.value.modulo ||
@@ -934,4 +921,27 @@ const navegarTeclado = (e) => {
 }
 
 @keyframes girar { to { transform: rotate(360deg); } }
+
+.filtros-fila-principal {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.btn-toggle-filtros {
+  display: flex; align-items: center; gap: 6px;
+  background: #DBEAFE; color: #1B396A; border: none;
+  padding: 9px 16px; border-radius: 8px; font-weight: 600;
+  font-size: 0.875rem; cursor: pointer; font-family: 'Montserrat', sans-serif;
+  white-space: nowrap; transition: background 0.2s;
+}
+.btn-toggle-filtros:hover { background: #BFDBFE; }
+.filtros-badge {
+  background: #1B396A; color: #fff; border-radius: 50%;
+  width: 18px; height: 18px; font-size: 0.7rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.filtros-expand-enter-active, .filtros-expand-leave-active { transition: all 0.25s ease; }
+.filtros-expand-enter-from, .filtros-expand-leave-to { opacity: 0; transform: translateY(-6px); }
+
 </style>

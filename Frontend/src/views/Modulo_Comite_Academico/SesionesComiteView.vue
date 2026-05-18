@@ -125,7 +125,7 @@
                 </td>
                 <td class="centrado">
                   <div class="acciones-fila">
-                    <button @click="router.push(`/comite/resoluciones?sesion=${ses.id}`)" class="btn-accion ver" title="Ver resoluciones">
+                    <button @click="abrirModalDetalle(ses)" class="btn-accion ver" title="Ver detalle">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
@@ -173,6 +173,44 @@
           <button @click="cambiarPagina(paginaActual + 1)" :disabled="paginaActual === totalPaginas" class="btn-pag">Siguiente</button>
         </div>
       </div>
+
+
+      <!-- Modal Detalle Sesión -->
+      <transition name="modal-fade">
+        <div v-if="mostrarModalDetalle" class="modal-fondo" @click.self="mostrarModalDetalle = false">
+          <div class="modal-caja">
+            <div class="modal-cabecera">
+              <h3>Detalle de Sesión</h3>
+              <button @click="mostrarModalDetalle = false" class="btn-cerrar-modal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="modal-cuerpo">
+              <div class="campo-form">
+                <label class="campo-label">Fecha</label>
+                <p class="detalle-valor">{{ formatearFechaLarga(sesionDetalle.fecha) }}</p>
+              </div>
+              <div class="campo-form">
+                <label class="campo-label">Descripción</label>
+                <p class="detalle-valor">{{ sesionDetalle.descripcion }}</p>
+              </div>
+              <div class="campo-form">
+                <label class="campo-label">Resoluciones</label>
+                <span class="badge-estado" :style="sesionDetalle.resoluciones > 0 ? { background: '#DCFCE7', color: '#16A34A' } : { background: '#F3F4F6', color: '#6B7280' }">
+                  {{ sesionDetalle.resoluciones }} resolución(es)
+                </span>
+              </div>
+            </div>
+            <div class="modal-pie">
+              <button @click="mostrarModalDetalle = false" class="btn-cancelar">Cerrar</button>
+              <button @click="abrirModalEditar(sesionDetalle); mostrarModalDetalle = false" class="btn-primario">Editar</button>
+            </div>
+          </div>
+        </div>
+      </transition>
 
       <!-- Modal Nueva/Editar Sesión -->
       <transition name="modal-fade">
@@ -266,6 +304,13 @@ const filtroFecha = ref('')
 const filtroActa = ref('')
 const mostrarFiltrosModal = ref(false)
 const mostrarModal = ref(false)
+const mostrarModalDetalle = ref(false)
+const sesionDetalle = ref({})
+
+const abrirModalDetalle = (ses) => {
+  sesionDetalle.value = { ...ses }
+  mostrarModalDetalle.value = true
+}
 const modoEdicion = ref(false)
 const sesionEditando = ref(null)
 const paginaActual = ref(1)
@@ -658,6 +703,8 @@ const formatearFechaLarga = (f) => {
 .toast-slide-leave-active { transition: all 0.25s ease; }
 .toast-slide-enter-from { transform: translateY(20px); opacity: 0; }
 .toast-slide-leave-to { transform: translateX(100%); opacity: 0; }
+
+.detalle-valor { margin: 0; font-size: 0.93rem; color: #1A1A1A; font-weight: 500; }
 
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
 

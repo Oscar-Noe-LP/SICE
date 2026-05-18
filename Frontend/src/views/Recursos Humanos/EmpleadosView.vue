@@ -134,7 +134,7 @@
                   </svg>
                 </button>
                 <!-- Editar -->
-                <button class="btn-icono editar" @click.stop="editarEmpleado(empleado)" title="Editar registro">
+                <button class="btn-icono editar" @click.stop="abrirModalEditar(empleado)" title="Editar registro">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
@@ -231,6 +231,41 @@
         </div>
         <div class="modal-footer">
           <button class="btn-secundario" @click="cerrarModalVer">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── Modal Editar Empleado ── -->
+    <div v-if="showEditModal" class="modal-overlay" @click.self="cerrarModalEditar">
+      <div class="modal-content modal-editar">
+        <div class="modal-header">
+          <h3>Editar Empleado</h3>
+          <button @click="cerrarModalEditar" class="btn-cerrar-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="detalle-fila">
+            <span class="detalle-label">Núm. de Empleado</span>
+            <span class="detalle-valor celda-control">{{ formEditar.numero_empleado }}</span>
+          </div>
+          <div class="detalle-fila">
+            <span class="detalle-label">Nombre completo</span>
+            <span class="detalle-valor">{{ formEditar.nombre }}</span>
+          </div>
+          <div class="campo-editar">
+            <label class="campo-label-editar">Estatus</label>
+            <select v-model="formEditar.estatus" class="campo-select-editar">
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secundario" @click="cerrarModalEditar">Cancelar</button>
+          <button class="btn-guardar" @click="guardarEdicion" :disabled="guardando">
+            <span v-if="guardando" class="spinner-btn"></span>
+            {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
         </div>
       </div>
     </div>
@@ -350,9 +385,41 @@ const abrirModalVer = (empleado) => {
 }
 const cerrarModalVer = () => { showViewModal.value = false }
 
+// ── Modal Editar ──
+const showEditModal = ref(false)
+const formEditar    = ref({})
+const guardando     = ref(false)
+
+const abrirModalEditar = (empleado) => {
+  formEditar.value = { ...empleado }
+  showEditModal.value = true
+}
+const cerrarModalEditar = () => { showEditModal.value = false }
+
+const guardarEdicion = async () => {
+  guardando.value = true
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+    const res = await fetch(`${API_URL}/api/empleados/${formEditar.value.id_empleado}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estatus: formEditar.value.estatus === 'Activo' })
+    })
+    if (!res.ok) throw new Error('Error al actualizar')
+    // Actualizar localmente
+    const idx = empleados.value.findIndex(e => e.id_empleado === formEditar.value.id_empleado)
+    if (idx !== -1) empleados.value[idx].estatus = formEditar.value.estatus
+    mostrarNotificacion('Empleado actualizado correctamente')
+    cerrarModalEditar()
+  } catch (error) {
+    mostrarNotificacion('No se pudo actualizar el empleado.', 'error')
+  } finally {
+    guardando.value = false
+  }
+}
+
 // ── Navegación ──
 const nuevoEmpleado   = () => router.push('/recursos-humanos/empleados/nuevo')
-const editarEmpleado  = (empleado) => router.push(`/recursos-humanos/empleados/${empleado.id_empleado}/editar`)
 
 // ── Filtrado ──
 const empleadosFiltrados = computed(() => {
@@ -554,4 +621,26 @@ const navegarTeclado = (e) => {
 .detalle-valor { font-weight: 500; }
 
 @keyframes girar { to { transform: rotate(360deg); } }
+
+.campo-editar { padding: 8px 0; border-bottom: 1px solid var(--borde); }
+.campo-label-editar { display: block; font-size: 0.82rem; font-weight: 600; color: var(--gris); margin-bottom: 5px; }
+.campo-select-editar {
+  width: 100%; padding: 8px 10px; border: 1.5px solid var(--borde); border-radius: 7px;
+  font-size: 0.88rem; font-family: 'Montserrat', sans-serif; color: var(--texto); outline: none;
+}
+.campo-select-editar:focus { border-color: #1B396A; }
+.btn-guardar {
+  display: flex; align-items: center; gap: 6px;
+  background: #1B396A; color: white; border: none;
+  padding: 8px 18px; border-radius: 7px; font-weight: 600;
+  cursor: pointer; font-family: 'Montserrat', sans-serif; font-size: 0.88rem;
+  transition: background 0.15s;
+}
+.btn-guardar:hover:not(:disabled) { background: #1D4ED8; }
+.btn-guardar:disabled { opacity: 0.65; cursor: not-allowed; }
+.spinner-btn {
+  width: 13px; height: 13px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+  animation: girar 0.7s linear infinite; flex-shrink: 0;
+}
 </style>
