@@ -207,10 +207,12 @@
       <footer class="pie-pagina">© 2026 Tecnológico Nacional de México | Todos los derechos reservados</footer>
     </div>
 
-    <!-- ══════════════════════════════════════════════════
-         MODAL VER DETALLE
-         Mejorado: tamaño generoso, centrado, con secciones.
-    ══════════════════════════════════════════════════ -->
+  </MainLayout>
+
+  <!-- Modales con Teleport para centrado garantizado independientemente del layout -->
+
+  <!-- MODAL VER DETALLE -->
+  <Teleport to="body">
     <transition name="modal-fade">
       <div v-if="showModalVer" class="modal-overlay" @click.self="showModalVer = false">
         <div class="modal-content modal-ver">
@@ -256,8 +258,10 @@
         </div>
       </div>
     </transition>
+  </Teleport>
 
-    <!-- Modal Crear / Editar -->
+  <!-- MODAL CREAR / EDITAR -->
+  <Teleport to="body">
     <transition name="modal-fade">
       <div v-if="showModal" class="modal-overlay" @click.self="cerrarModal">
         <div class="modal-content">
@@ -320,8 +324,10 @@
         </div>
       </div>
     </transition>
+  </Teleport>
 
-    <!-- Modal Confirmar Eliminar -->
+  <!-- MODAL CONFIRMAR ELIMINAR -->
+  <Teleport to="body">
     <transition name="modal-fade">
       <div v-if="showModalEliminar" class="modal-overlay" @click.self="showModalEliminar = false">
         <div class="modal-content modal-confirmar">
@@ -349,8 +355,8 @@
         </div>
       </div>
     </transition>
+  </Teleport>
 
-  </MainLayout>
 </template>
 
 <script setup>
