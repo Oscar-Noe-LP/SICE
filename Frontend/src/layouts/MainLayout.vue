@@ -811,7 +811,7 @@
     <!-- ══ CONTENIDO PRINCIPAL ══ -->
     <main class="area-contenido" :class="{ 'con-ribbon': tabActivo !== null }">
       <slot :busquedaGlobal="busquedaGlobal" />
-    </main>
+    </main> 
 
     <!-- ══ BOTÓN REGRESAR FLOTANTE ══ -->
     <Transition name="fab-back">
