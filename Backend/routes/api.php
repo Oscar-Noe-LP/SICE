@@ -101,6 +101,8 @@ Route::put('/departamentos/{id}',      [DepartamentoController::class, 'update']
 Route::delete('/departamentos/{id}',   [DepartamentoController::class, 'destroy']);
 Route::get('/niveles-carrera', [NivelCarreraController::class, 'index']);
 
+Route::get('/carreras/{id}/grupos', [CarreraController::class, 'grupos']);
+
 // EDIFICIOS Y AULAS
 use App\Http\Controllers\EdificioController;
 use App\Http\Controllers\AulaController;
