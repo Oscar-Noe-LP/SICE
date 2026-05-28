@@ -2,11 +2,10 @@ import { reactive } from 'vue'
 
 const API_URL = import.meta.env.VITE_API_URL
 
-// ── Estado global del dashboard ─────────────────────────────────────────────
 export const dashboardState = reactive({
   cargando:        false,
   error:           null,
-  carreraActiva:   null, // null = todas
+  carreraActiva:   null,
 
   kpis: {
     totalAlumnos:             0,
@@ -22,17 +21,15 @@ export const dashboardState = reactive({
     periodoActivo:            'ENE – JUN 2025',
   },
 
-  // Cada item: { id_carrera, nombre, grupos, matriculas, regulares, irregulares }
   carreras:    [],
-  carreraData: [],  // { carrera, total, porcentaje }
-  semestreData:[],  // { semestre, cantidad }
+  carreraData: [],
+  semestreData:[],
 
   bitacora:         [],
   cargandoBitacora: false,
   errorBitacora:    false,
 })
 
-// ── Paleta de colores por carrera (orden = id_carrera 1..7) ─────────────────
 export const COLORES_CARRERA = [
   '#132B4F',
   '#1A4184',
@@ -43,7 +40,6 @@ export const COLORES_CARRERA = [
   '#0B2545',
 ]
 
-// ── Datos fallback mientras el backend carga ─────────────────────────────────
 const FALLBACK_CARRERAS = [
   { id_carrera: 1, nombre: 'ING. SISTEMAS COMPUTACIONALES', grupos: 12, matriculas: 312, regulares: 268, irregulares: 44  },
   { id_carrera: 2, nombre: 'ING. INDUSTRIAL',               grupos: 10, matriculas: 268, regulares: 231, irregulares: 37  },
@@ -64,7 +60,6 @@ const FALLBACK_SEMESTRES = [
   { semestre: '8', cantidad: 172 },
 ]
 
-// ── Cargar KPIs y carreras desde el API ──────────────────────────────────────
 export async function cargarDashboard() {
   dashboardState.cargando = true
   dashboardState.error    = null
@@ -72,42 +67,41 @@ export async function cargarDashboard() {
     const res  = await fetch(`${API_URL}/api/dashboard/kpis`)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
-
     if (data.kpis)          Object.assign(dashboardState.kpis, data.kpis)
     if (data.carreras)      dashboardState.carreras     = data.carreras
     if (data.carrera_data)  dashboardState.carreraData  = data.carrera_data
     if (data.semestre_data) dashboardState.semestreData = data.semestre_data
-
   } catch (e) {
     console.warn('[dashboardStore] Fallback activado:', e.message)
-    _aplicarFallback()
+    _fallback()
   } finally {
     dashboardState.cargando = false
   }
 }
 
-function _aplicarFallback() {
-  dashboardState.carreras = FALLBACK_CARRERAS
-  dashboardState.carreraData = FALLBACK_CARRERAS.map((c, i) => ({
+function _fallback() {
+  dashboardState.carreras     = FALLBACK_CARRERAS
+  dashboardState.carreraData  = FALLBACK_CARRERAS.map((c) => ({
     carrera:    c.nombre,
     total:      c.matriculas,
     porcentaje: Math.round((c.matriculas / FALLBACK_CARRERAS[0].matriculas) * 100),
   }))
-  dashboardState.semestreData    = FALLBACK_SEMESTRES
-  const total                    = FALLBACK_CARRERAS.reduce((s, c) => s + c.matriculas, 0)
-  dashboardState.kpis.totalAlumnos            = total
-  dashboardState.kpis.inscripciones           = 1147
-  dashboardState.kpis.inscripcionesCompletas  = 1147
-  dashboardState.kpis.inscripcionesPendientes = 137
-  dashboardState.kpis.pctInscripciones        = 89
-  dashboardState.kpis.gruposActivos           = FALLBACK_CARRERAS.reduce((s, c) => s + c.grupos, 0)
-  dashboardState.kpis.numCarreras             = FALLBACK_CARRERAS.length
-  dashboardState.kpis.nuevosAlumnos           = 38
-  dashboardState.kpis.adeudosPendientes       = 23
-  dashboardState.kpis.consultasHoy            = 47
+  dashboardState.semestreData = FALLBACK_SEMESTRES
+  const total = FALLBACK_CARRERAS.reduce((s, c) => s + c.matriculas, 0)
+  Object.assign(dashboardState.kpis, {
+    totalAlumnos:             total,
+    inscripciones:            1147,
+    inscripcionesCompletas:   1147,
+    inscripcionesPendientes:  137,
+    pctInscripciones:         89,
+    gruposActivos:            FALLBACK_CARRERAS.reduce((s, c) => s + c.grupos, 0),
+    numCarreras:              FALLBACK_CARRERAS.length,
+    nuevosAlumnos:            38,
+    adeudosPendientes:        23,
+    consultasHoy:             47,
+  })
 }
 
-// ── Cargar bitácora ──────────────────────────────────────────────────────────
 export async function cargarBitacora() {
   dashboardState.cargandoBitacora = true
   dashboardState.errorBitacora    = false
@@ -123,32 +117,27 @@ export async function cargarBitacora() {
   }
 }
 
-// ── Filtro de carrera activa ─────────────────────────────────────────────────
-export function setCarreraActiva(idCarrera) {
-  // click en la misma = deseleccionar
-  dashboardState.carreraActiva =
-    idCarrera === dashboardState.carreraActiva ? null : idCarrera
+export function setCarreraActiva(id) {
+  dashboardState.carreraActiva = id === dashboardState.carreraActiva ? null : id
 }
 
-// ── Helpers reutilizables ────────────────────────────────────────────────────
 export const formatNum = (n) => n?.toLocaleString('es-MX') ?? '0'
 
-export const tiempoRelativo = (fechaStr) => {
-  if (!fechaStr) return ''
-  const diff = Date.now() - new Date(fechaStr).getTime()
-  const min  = Math.floor(diff / 60000)
-  if (min < 1)  return 'AHORA'
-  if (min < 60) return `HACE ${min} MIN`
-  const hrs = Math.floor(min / 60)
-  if (hrs < 24) return `HACE ${hrs} H`
-  return `HACE ${Math.floor(hrs / 24)} DIA(S)`
+export const tiempoRelativo = (f) => {
+  if (!f) return ''
+  const m = Math.floor((Date.now() - new Date(f).getTime()) / 60000)
+  if (m < 1)  return 'AHORA'
+  if (m < 60) return `HACE ${m} MIN`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `HACE ${h} H`
+  return `HACE ${Math.floor(h / 24)} DIA(S)`
 }
 
-export const claseBadge = (accion = '') => {
-  const a = accion.toLowerCase()
-  if (a.includes('login') || a.includes('acceso') || a.includes('consulta')) return 'bg-b'
-  if (a.includes('cre') || a.includes('registr') || a.includes('inscri'))    return 'bg-g'
-  if (a.includes('edit') || a.includes('actualiz'))                           return 'bg-a'
-  if (a.includes('elim') || a.includes('bor') || a.includes('baja'))         return 'bg-r'
+export const claseBadge = (a = '') => {
+  const s = a.toLowerCase()
+  if (s.includes('login') || s.includes('acceso') || s.includes('consulta')) return 'bg-b'
+  if (s.includes('cre') || s.includes('registr') || s.includes('inscri'))    return 'bg-g'
+  if (s.includes('edit') || s.includes('actualiz'))                           return 'bg-a'
+  if (s.includes('elim') || s.includes('bor') || s.includes('baja'))         return 'bg-r'
   return 'bg-b'
 }

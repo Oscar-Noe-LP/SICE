@@ -2,252 +2,309 @@
   <MainLayout v-slot="{ busquedaGlobal }">
     <div class="dashboard-page">
 
-      <!-- ── Barra de carga top ── -->
-      <div class="barra-carga" :class="{ activa: cargando }" aria-hidden="true">
+      <!-- Barra de carga top -->
+      <div class="barra-carga" :class="{ activa: state.cargando }" aria-hidden="true">
         <div class="barra-progreso"></div>
       </div>
 
-      <!-- ── Encabezado ── -->
-      <div class="inicio-header">
-        <div class="header-texto">
-          <h1 class="page-title">Inicio</h1>
-          <p class="welcome-text">
-            Bienvenido al Sistema Integral de Control Escolar
-          </p>
-        </div>
-        <time class="fecha-actual" :datetime="fechaISO">{{ fechaHoy }}</time>
+      <!-- BREADCRUMB -->
+      <div class="bc">
+        <span>SICE</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="bc-sep" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+        </svg>
+        <b>INICIO</b>
       </div>
 
-      <!-- ── Búsqueda rápida de alumno ── -->
-      <div class="busqueda-rapida-card" role="search" aria-label="Búsqueda rápida de alumno">
-        <div class="busqueda-rapida-texto">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-          </svg>
-          <div>
-            <p class="busqueda-label">Consulta rápida de alumno</p>
-            <p class="busqueda-sub">Ingresa el número de control para ver toda la información</p>
-          </div>
+      <!-- GREETING -->
+      <div class="greeting">
+        <div class="gr-left">
+          <h2>{{ saludo }}, {{ nombreUsuario }}</h2>
+          <p>ADMINISTRADOR DE CONTROL ESCOLAR · ULTIMA SESION: HOY {{ horaAcceso }}</p>
         </div>
-        <div class="busqueda-rapida-form">
-          <div class="busqueda-input-wrap">
-            <svg class="busqueda-icono-input" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="17" height="17" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        <div class="periodo-pill">
+          <div class="p-dot" aria-hidden="true"></div>
+          <span class="p-text">PERIODO ACTIVO:</span>
+          <span class="p-name">{{ state.kpis.periodoActivo }}</span>
+          <span class="p-text">· {{ fechaCorta }}</span>
+        </div>
+      </div>
+
+      <!-- KPI STATS GRID -->
+      <StatsGrid
+        :stats="statsConfig"
+        :cargando="state.cargando"
+        @navegar="router.push($event)"
+      />
+
+      <!-- ═══════════════════════════════════
+           SECCION CARRERAS
+      ═══════════════════════════════════ -->
+      <div class="carreras-seccion">
+
+        <div class="sec-header">
+          <div class="sec-titulo-wrap">
+            <h2 class="sec-titulo">CARRERAS</h2>
+            <span class="sec-sub">RESUMEN POR CARRERA DEL PERIODO ACTUAL</span>
+          </div>
+          <router-link to="/gestion-grupos" class="sec-link">
+            VER TODOS LOS GRUPOS
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
-            <input
-              type="text"
-              v-model.trim="busquedaControl"
-              class="busqueda-input"
-              placeholder="Ej. 25000001"
-              maxlength="8"
-              inputmode="numeric"
-              aria-label="Número de control del alumno"
-              @keydown.enter="irAKardex"
-              @input="busquedaControl = busquedaControl.replace(/\D/g, '')"
+          </router-link>
+        </div>
+
+        <!-- FILTROS CON ICONOS -->
+        <CareerFilters
+          :carreras="state.carreras"
+          :carrera-activa="state.carreraActiva"
+          :total-alumnos="state.kpis.totalAlumnos"
+          @filtrar="setCarreraActiva"
+        />
+
+        <!-- CARDS GRANDES POR CARRERA -->
+        <div class="carreras-wrap">
+
+          <!-- Skeletons carga -->
+          <template v-if="state.cargando">
+            <div v-for="i in 6" :key="'sk-'+i" class="cc-sk" aria-hidden="true">
+              <div class="sk-barra"></div>
+              <div class="sk-body"><div class="sk-ico"></div><div class="sk-lines"><div class="sk-line sk-lg"></div><div class="sk-line sk-sm"></div></div></div>
+              <div class="sk-num"></div>
+              <div class="sk-bar-h"></div>
+              <div class="sk-chips"><div class="sk-chip"></div><div class="sk-chip"></div></div>
+            </div>
+          </template>
+
+          <!-- Cards -->
+          <template v-else>
+            <CareerCard
+              v-for="(carrera, i) in carrerasMostradas"
+              :key="carrera.id_carrera"
+              :carrera="carrera"
+              :color="COLORES_CARRERA[i % COLORES_CARRERA.length]"
+              :icono="getIcono(carrera.nombre)"
+              :activa="state.carreraActiva === carrera.id_carrera"
+              @click="setCarreraActiva(carrera.id_carrera)"
             />
-          </div>
-          <button
-            class="btn-buscar"
-            @click="irAKardex"
-            :disabled="busquedaControl.length < 8"
-            type="button"
-            aria-label="Buscar alumno"
-          >
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </template>
+
+          <!-- Vacío -->
+          <div v-if="!state.cargando && state.carreras.length === 0" class="carreras-vacio">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#BDBDBD" stroke-width="1.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
             </svg>
-            Buscar
-          </button>
+            <p>SIN DATOS DE CARRERAS DISPONIBLES</p>
+          </div>
+
         </div>
       </div>
 
-      <!-- ── Alerta de error general ── -->
-      <transition name="fade">
-        <div v-if="error" class="alerta-error" role="alert">
-          <svg class="alerta-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          {{ error }}
-        </div>
-      </transition>
+      <!-- FILA GRAFICAS + BITACORA -->
+      <div class="row-graficas">
 
-      <!-- ── Gráficas ── -->
-      <div class="fila-graficas">
         <!-- Alumnos por carrera -->
-        <div class="grafica-card">
-          <h3 class="grafica-titulo">Alumnos por Carrera</h3>
-          <div v-if="carreraData.length > 0" class="grafica-barras">
-            <div v-for="(item, i) in carreraData" :key="i" class="barra-item">
-              <div class="barra-etiqueta" :title="item.carrera">{{ item.carrera }}</div>
-              <div class="barra-contenedor" role="progressbar" :aria-valuenow="item.total" :aria-label="item.carrera">
-                <div class="barra-relleno" :style="{ width: item.porcentaje + '%' }"></div>
-              </div>
-              <div class="barra-valor">{{ item.total }}</div>
-            </div>
-          </div>
-          <div v-else class="estado-vacio-grafica" aria-live="polite">
-            <p>Sin datos disponibles</p>
-          </div>
-        </div>
-
-        <!-- Alumnos por semestre -->
-        <div class="grafica-card">
-          <h3 class="grafica-titulo">Alumnos por Semestre</h3>
-          <div v-if="semestreData.length > 0" class="grafica-barras">
-            <div v-for="(item, i) in semestreData" :key="i" class="barra-item">
-              <div class="barra-etiqueta">{{ item.semestre }}°</div>
-              <div class="barra-contenedor" role="progressbar" :aria-valuenow="item.cantidad" :aria-label="`${item.semestre}° semestre`">
-                <div class="barra-relleno barra-acento" :style="{ width: calcularPorcentajeSemestre(item.cantidad) + '%' }"></div>
-              </div>
-              <div class="barra-valor">{{ item.cantidad }}</div>
-            </div>
-          </div>
-          <div v-else class="estado-vacio-grafica">
-            <p>Sin datos disponibles</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── Fila inferior ── -->
-      <div class="fila-inferior">
-
-        <!-- Actividad reciente / Bitácora -->
-        <div class="panel-card">
-          <div class="bitacora-header">
-            <h3 class="panel-titulo">Actividad Reciente</h3>
-            <router-link to="/bitacora" class="btn-ver-bitacora" aria-label="Ver bitácora completa">
-              Ver todo →
+        <div class="card">
+          <div class="ch">
+            <span class="ct">ALUMNOS POR CARRERA</span>
+            <router-link to="/alumnos" class="cl">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+              </svg>
+              VER DETALLE
             </router-link>
           </div>
-
-          <!-- Estado: cargando bitácora -->
-          <div v-if="cargandoBitacora" class="bitacora-cargando" aria-busy="true">
-            <div class="spinner-bitacora" aria-hidden="true"></div>
-            <span>Cargando actividad...</span>
-          </div>
-
-          <!-- Estado: error de bitácora (placeholder) -->
-          <div v-else-if="errorBitacora" class="lista-bitacora">
-            <div v-for="i in 3" :key="'ph-'+i" class="item-bitacora item-placeholder">
-              <div class="avatar-bitacora avatar-gris" aria-hidden="true">?</div>
-              <div class="info-bitacora">
-                <p class="bitacora-desc" style="color:#9CA3AF">Esperando conexión con el servidor...</p>
-              </div>
+          <div v-if="state.carreraData.length > 0" class="grafica-barras">
+            <div v-for="(item, i) in state.carreraData" :key="i" class="bar-r">
+              <div class="bl" :title="item.carrera">{{ item.carrera }}</div>
+              <div class="bt"><div class="bf" :style="{ width: item.porcentaje+'%', background: COLORES_CARRERA[i%COLORES_CARRERA.length] }"></div></div>
+              <div class="bv">{{ item.total }}</div>
             </div>
           </div>
+          <div v-else class="ev">SIN DATOS DISPONIBLES</div>
+        </div>
 
-          <!-- Estado: sin actividad -->
-          <div v-else-if="bitacoraReciente.length === 0" class="estado-vacio-grafica" aria-live="polite">
-            <p>Sin actividad reciente</p>
+        <!-- Por semestre -->
+        <div class="card">
+          <div class="ch">
+            <span class="ct">DISTRIBUCION POR SEMESTRE</span>
+            <span class="cl">ANALITICA</span>
+          </div>
+          <div v-if="state.semestreData.length > 0" class="grafica-barras">
+            <div v-for="(item, i) in state.semestreData" :key="i" class="bar-r">
+              <div class="bl">{{ item.semestre }}° SEMESTRE</div>
+              <div class="bt"><div class="bf bf-blue" :style="{ width: calcPctSem(item.cantidad)+'%' }"></div></div>
+              <div class="bv">{{ item.cantidad }}</div>
+            </div>
+          </div>
+          <div v-else class="ev">SIN DATOS DISPONIBLES</div>
+        </div>
+
+        <!-- Bitácora -->
+        <div class="card card-bit">
+          <div class="ch">
+            <span class="ct">ACTIVIDAD RECIENTE</span>
+            <router-link to="/bitacora" class="cl">VER TODO</router-link>
           </div>
 
-          <!-- Lista de actividad — click abre modal -->
-          <div v-else class="lista-bitacora" role="list">
+          <div v-if="state.cargandoBitacora" class="bit-loading">
+            <div class="spinner" aria-hidden="true"></div>
+            <span>CARGANDO...</span>
+          </div>
+
+          <template v-else-if="state.bitacora.length > 0">
             <div
-              v-for="(item, i) in bitacoraReciente"
+              v-for="(item, i) in state.bitacora"
               :key="item.id_bitacora || i"
-              class="item-bitacora item-bitacora-clickeable"
-              role="listitem"
-              @click="abrirModalBitacora(item)"
+              class="bit-item"
+              @click="modalItem = item"
+              role="button"
+              tabindex="0"
+              @keydown.enter="modalItem = item"
             >
-              <div class="avatar-bitacora" aria-hidden="true">
-                {{ item.usuario ? item.usuario.charAt(0).toUpperCase() : '?' }}
+              <div class="bit-av" aria-hidden="true">
+                {{ (item.usuario || item.nombre_usuario || '?').slice(0,2).toUpperCase() }}
               </div>
-              <div class="info-bitacora">
-                <div class="bitacora-fila-superior">
-                  <span class="bitacora-usuario">{{ item.usuario }}</span>
-                  <span class="accion-badge-mini" :class="claseAccion(item.accion)">{{ item.accion }}</span>
+              <div class="bit-body">
+                <div class="bit-r1">
+                  <span class="bit-usr">{{ (item.usuario || item.nombre_usuario || '—').toUpperCase() }}</span>
+                  <span class="bdg" :class="claseBadge(item.accion)">{{ item.accion?.toUpperCase() }}</span>
                 </div>
-                <p class="bitacora-desc">{{ item.descripcion }}</p>
-                <div class="bitacora-fila-inferior">
-                  <span class="bitacora-modulo">{{ item.modulo }}</span>
-                  <time class="bitacora-tiempo" :datetime="item.fecha_hora">{{ tiempoRelativo(item.fecha_hora) }}</time>
-                </div>
+                <div class="bit-desc">{{ item.accion?.toUpperCase() }}</div>
+                <div class="bit-t">{{ tiempoRelativo(item.fecha_hora) }}</div>
               </div>
             </div>
+          </template>
+
+          <template v-else-if="state.errorBitacora">
+            <div class="bit-item" v-for="i in 3" :key="'ph-'+i">
+              <div class="bit-av bit-av-gris" aria-hidden="true">?</div>
+              <div class="bit-body"><div class="bit-desc" style="color:#BDBDBD">ESPERANDO CONEXION CON EL SERVIDOR...</div></div>
+            </div>
+          </template>
+
+          <div v-else class="ev">SIN ACTIVIDAD RECIENTE</div>
+        </div>
+
+      </div>
+
+      <!-- FILA BUSQUEDA + ACCIONES + INSCRIPCIONES -->
+      <div class="row-bottom">
+
+        <!-- Hero búsqueda -->
+        <div class="hero">
+          <div class="hero-top">
+            <div class="hero-ico" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+              </svg>
+            </div>
+            <div>
+              <div class="hero-title">CONSULTA RAPIDA DE ALUMNO</div>
+              <div class="hero-sub">NUMERO DE CONTROL → KARDEX COMPLETO AL INSTANTE</div>
+            </div>
+          </div>
+          <div class="hero-form">
+            <input
+              class="hero-input"
+              v-model.trim="busquedaControl"
+              placeholder="EJ. 25000001"
+              maxlength="8"
+              inputmode="numeric"
+              type="text"
+              aria-label="NUMERO DE CONTROL DEL ALUMNO"
+              @keydown.enter="irAKardex"
+              @input="busquedaControl = busquedaControl.replace(/\D/g,'')"
+            />
+            <button class="hero-btn" @click="irAKardex" :disabled="busquedaControl.length < 8" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              BUSCAR
+            </button>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat-n">{{ state.kpis.consultasHoy }}</div><div class="hero-stat-l">CONSULTAS HOY</div></div>
+            <div class="hero-stat"><div class="hero-stat-n">{{ formatNum(state.kpis.totalAlumnos) }}</div><div class="hero-stat-l">ALUMNOS REGISTRADOS</div></div>
           </div>
         </div>
 
-        <!-- Acciones rápidas — click abre modal de confirmación -->
-        <div class="panel-card">
-          <h3 class="panel-titulo">Acciones Rápidas</h3>
-          <div class="grilla-acciones" role="list">
+        <!-- Acciones rápidas -->
+        <div class="card">
+          <div class="ch"><span class="ct">ACCIONES RAPIDAS</span></div>
+          <div class="acc-grid">
             <button
-              v-for="accion in accionesRapidas"
-              :key="accion.label"
-              class="btn-accion"
-              :class="{ 'btn-primario-accion': accion.primario }"
-              @click="abrirModalAccion(accion)"
+              v-for="acc in accionesRapidas"
+              :key="acc.label"
+              class="acc"
+              :class="{ 'acc--prim': acc.primario }"
+              @click="router.push(acc.ruta)"
               type="button"
-              role="listitem"
-              :aria-label="accion.label"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="accion-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path :d="accion.iconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path :d="acc.d" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              {{ accion.label }}
+              <span class="acc-lbl">{{ acc.label }}</span>
             </button>
           </div>
         </div>
 
-      </div><!-- /fila-inferior -->
-
-      <!-- ── Modal detalle de registro de bitácora ── -->
-      <Teleport to="body">
-        <Transition name="fade">
-          <div v-if="modalBitacora" class="modal-overlay" @click.self="cerrarModalBitacora">
-            <div class="modal-caja">
-              <div class="modal-header">
-                <h3 class="modal-titulo">Detalle de actividad</h3>
-                <button class="modal-cerrar" @click="cerrarModalBitacora" aria-label="Cerrar">✕</button>
-              </div>
-              <div class="modal-body">
-                <div class="modal-fila">
-                  <span class="modal-etiqueta">Usuario</span>
-                  <span class="modal-valor">{{ modalBitacora.usuario || '—' }}</span>
-                </div>
-                <div class="modal-fila">
-                  <span class="modal-etiqueta">Acción</span>
-                  <span class="accion-badge-mini" :class="claseAccion(modalBitacora.accion)">{{ modalBitacora.accion }}</span>
-                </div>
-                <div class="modal-fila">
-                  <span class="modal-etiqueta">Módulo</span>
-                  <span class="modal-valor">{{ modalBitacora.modulo || '—' }}</span>
-                </div>
-                <div class="modal-fila">
-                  <span class="modal-etiqueta">Descripción</span>
-                  <span class="modal-valor">{{ modalBitacora.descripcion || '—' }}</span>
-                </div>
-                <div class="modal-fila">
-                  <span class="modal-etiqueta">Fecha y hora</span>
-                  <span class="modal-valor">{{ formatearFecha(modalBitacora.fecha_hora) }}</span>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button class="btn-modal-secundario" @click="cerrarModalBitacora">Cerrar</button>
-              </div>
-            </div>
+        <!-- Estado inscripciones -->
+        <div class="card">
+          <div class="ch">
+            <span class="ct">ESTADO DE INSCRIPCIONES</span>
+            <span class="bdg bg-g" style="font-size:9px;font-weight:700;letter-spacing:.04em">ACTIVO</span>
           </div>
-        </Transition>
-      </Teleport>
+          <div class="ins-section">
+            <div class="ins-row"><span class="ins-lbl">COMPLETADAS</span><span class="ins-val">{{ formatNum(state.kpis.inscripcionesCompletas) }} ({{ state.kpis.pctInscripciones }}%)</span></div>
+            <div class="ins-bar"><div class="ins-fill" :style="{ width: state.kpis.pctInscripciones+'%', background:'#27AE60' }"></div></div>
+            <div class="ins-row"><span class="ins-lbl">PENDIENTES</span><span class="ins-val" style="color:#F2994A">{{ formatNum(state.kpis.inscripcionesPendientes) }} ({{ 100-state.kpis.pctInscripciones }}%)</span></div>
+            <div class="ins-bar"><div class="ins-fill" :style="{ width: (100-state.kpis.pctInscripciones)+'%', background:'#F2994A' }"></div></div>
+          </div>
+          <div class="ins-mini-grid">
+            <div class="ins-mini"><div class="ins-mini-v">{{ state.kpis.numCarreras }}</div><div class="ins-mini-l">CARRERAS</div></div>
+            <div class="ins-mini"><div class="ins-mini-v">3</div><div class="ins-mini-l">TURNOS</div></div>
+            <div class="ins-mini"><div class="ins-mini-v">{{ state.kpis.gruposActivos }}</div><div class="ins-mini-l">GRUPOS</div></div>
+            <div class="ins-mini"><div class="ins-mini-v">{{ state.kpis.pctInscripciones }}%</div><div class="ins-mini-l">COMPLETADO</div></div>
+          </div>
+        </div>
 
-      <!-- ── Modal confirmación de acción rápida ── -->
+      </div>
+
+      <!-- ALERTA ERROR -->
+      <Transition name="fade">
+        <div v-if="state.error" class="alerta-error" role="alert">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          {{ state.error?.toUpperCase() }}
+        </div>
+      </Transition>
+
+      <!-- MODAL BITACORA -->
       <Teleport to="body">
         <Transition name="fade">
-          <div v-if="modalAccion" class="modal-overlay" @click.self="cerrarModalAccion">
-            <div class="modal-caja">
+          <div v-if="modalItem" class="modal-overlay" @click.self="modalItem = null">
+            <div class="modal-caja" role="dialog" aria-modal="true">
               <div class="modal-header">
-                <h3 class="modal-titulo">{{ modalAccion.label }}</h3>
-                <button class="modal-cerrar" @click="cerrarModalAccion" aria-label="Cerrar">✕</button>
+                <h3 class="modal-titulo">DETALLE DE ACTIVIDAD</h3>
+                <button class="modal-cerrar" @click="modalItem = null" aria-label="CERRAR">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
               </div>
               <div class="modal-body">
-                <p class="modal-descripcion">{{ modalAccion.descripcion }}</p>
+                <div class="modal-fila"><span class="modal-etiqueta">USUARIO</span><span class="modal-valor">{{ (modalItem.usuario || modalItem.nombre_usuario || '—').toUpperCase() }}</span></div>
+                <div class="modal-fila"><span class="modal-etiqueta">ACCION</span><span class="bdg" :class="claseBadge(modalItem.accion)">{{ modalItem.accion?.toUpperCase() }}</span></div>
+                <div class="modal-fila"><span class="modal-etiqueta">MODULO</span><span class="modal-valor">{{ (modalItem.nombre_modulo || '—').toUpperCase() }}</span></div>
+                <div class="modal-fila"><span class="modal-etiqueta">IP</span><span class="modal-valor dd-mono">{{ modalItem.direccion_ip || '—' }}</span></div>
+                <div class="modal-fila"><span class="modal-etiqueta">FECHA Y HORA</span><span class="modal-valor">{{ formatFecha(modalItem.fecha_hora) }}</span></div>
               </div>
               <div class="modal-footer">
-                <button class="btn-modal-secundario" @click="cerrarModalAccion">Cancelar</button>
-                <button class="btn-modal-primario" @click="ejecutarAccion(modalAccion)">
-                  Ir ahora →
-                </button>
+                <button class="btn-modal-sec" @click="modalItem = null">CERRAR</button>
               </div>
             </div>
           </div>
@@ -261,542 +318,314 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import MainLayout from '@/layouts/MainLayout.vue'
+import MainLayout    from '@/layouts/MainLayout.vue'
+import StatsGrid     from '@/components/dashboard/StatsGrid.vue'
+import CareerCard    from '@/components/dashboard/CareerCard.vue'
+import CareerFilters from '@/components/dashboard/CareerFilters.vue'
+import {
+  dashboardState as state,
+  cargarDashboard,
+  cargarBitacora,
+  setCarreraActiva,
+  COLORES_CARRERA,
+  formatNum,
+  tiempoRelativo,
+  claseBadge,
+} from '@/stores/dashboardStore.js'
 
-const router  = useRouter()
-const API_URL = import.meta.env.VITE_API_URL
+const router = useRouter()
 
-// ── Estado general ──────────────────────────────────────────────────────
-const cargando = ref(true)
-const error    = ref(null)
+// ── Saludo ────────────────────────────────────────────────────────────
+const saludo = computed(() => {
+  const h = new Date().getHours()
+  if (h < 12) return 'BUENOS DIAS'
+  if (h < 19) return 'BUENAS TARDES'
+  return 'BUENAS NOCHES'
+})
+const nombreUsuario = ref('USUARIO')
+const horaAcceso    = ref('—')
+const fechaCorta    = computed(() =>
+  new Date().toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' }).toUpperCase()
+)
 
-// ── Búsqueda rápida de alumno ───────────────────────────────────────────
-const busquedaControl = ref('')
+// ── StatsGrid config ──────────────────────────────────────────────────
+const statsConfig = computed(() => [
+  {
+    key:'alumnos', featured:true, label:'TOTAL ALUMNOS',
+    valor: state.kpis.totalAlumnos, iconoTipo:'users', icoClass:'ico-azul',
+    ruta:'/alumnos', linkLabel:'VER ALUMNOS',
+    cambio:{ tipo:'up', texto:`+${state.kpis.nuevosAlumnos} VS ANTERIOR`, clase:'cambio-up' },
+  },
+  {
+    key:'inscripciones', label:'INSCRIPCIONES',
+    valor: state.kpis.inscripciones, iconoTipo:'list', icoClass:'ico-verde',
+    ruta:'/inscripciones', linkLabel:'VER INSCRIPCIONES',
+    cambio:{ tipo:'up', texto:`${state.kpis.pctInscripciones}% COMPLETADAS`, clase:'cambio-up' },
+  },
+  {
+    key:'grupos', label:'GRUPOS ACTIVOS',
+    valor: state.kpis.gruposActivos, iconoTipo:'grid', icoClass:'ico-naranja',
+    ruta:'/gestion-grupos', linkLabel:'VER GRUPOS',
+    cambio:{ tipo:'ne', texto:`${state.kpis.numCarreras} CARRERAS · 3 TURNOS`, clase:'cambio-ne' },
+  },
+  {
+    key:'adeudos', label:'ADEUDOS PENDIENTES',
+    valor: state.kpis.adeudosPendientes, iconoTipo:'alert', icoClass:'ico-rojo',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'dn', texto:'REQUIEREN ATENCION', clase:'cambio-dn' },
+  },
+])
 
-const irAKardex = () => {
-  const nc = busquedaControl.value.trim()
-  if (nc.length < 8) return
-  router.push(`/kardex/${nc}`)
+// ── Cards filtradas ───────────────────────────────────────────────────
+const carrerasMostradas = computed(() =>
+  state.carreraActiva === null
+    ? state.carreras
+    : state.carreras.filter(c => c.id_carrera === state.carreraActiva)
+)
+
+const getIcono = (nombre = '') => {
+  const n = nombre.toLowerCase()
+  if (n.includes('sistem') || n.includes('comput')) return 'monitor'
+  if (n.includes('industrial'))                      return 'settings'
+  if (n.includes('electr'))                          return 'zap'
+  if (n.includes('mecani'))                          return 'wrench'
+  if (n.includes('empresa') || n.includes('gesti')) return 'briefcase'
+  return 'flask'
 }
 
-// ── Fechas ──────────────────────────────────────────────────────────────
-const fechaHoy = computed(() =>
-  new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-)
-const fechaISO = computed(() => new Date().toISOString().split('T')[0])
-
-// ── Datos de gráficas (fallback si backend no responde) ─────────────────
-const carreraDataDefault = [
-  { carrera: 'Sist. Computacional', total: 312, porcentaje: 100 },
-  { carrera: 'Industrial',          total: 268, porcentaje: 86  },
-  { carrera: 'Eléctrica',           total: 198, porcentaje: 63  },
-  { carrera: 'Mecánica',            total: 174, porcentaje: 56  },
-  { carrera: 'Gest. Empresarial',   total: 156, porcentaje: 50  },
-  { carrera: 'Bioquímica',          total: 176, porcentaje: 56  }
-]
-const semestreDataDefault = [
-  { semestre: '1', cantidad: 180 },
-  { semestre: '2', cantidad: 165 },
-  { semestre: '3', cantidad: 158 },
-  { semestre: '4', cantidad: 144 },
-  { semestre: '5', cantidad: 152 },
-  { semestre: '6', cantidad: 138 },
-  { semestre: '7', cantidad: 175 },
-  { semestre: '8', cantidad: 172 }
-]
-
-const carreraData  = ref([...carreraDataDefault])
-const semestreData = ref([...semestreDataDefault])
-
-const calcularPorcentajeSemestre = (cant) => {
-  const max = Math.max(...semestreData.value.map(s => s.cantidad), 1)
+// ── Gráficas ──────────────────────────────────────────────────────────
+const calcPctSem = (cant) => {
+  const max = Math.max(...state.semestreData.map(s => s.cantidad), 1)
   return Math.round((cant / max) * 100)
 }
 
-// ── Bitácora reciente ────────────────────────────────────────────────────
-const bitacoraReciente  = ref([])
-const cargandoBitacora  = ref(false)
-const errorBitacora     = ref(false)
-
-const cargarBitacoraReciente = async () => {
-  cargandoBitacora.value = true
-  errorBitacora.value    = false
-  try {
-    const res  = await fetch(`${API_URL}/api/bitacora?limit=5`)
-    if (!res.ok) throw new Error()
-    const data = await res.json()
-    bitacoraReciente.value = Array.isArray(data) ? data : (data.bitacora || [])
-  } catch {
-    errorBitacora.value = true
-  } finally {
-    cargandoBitacora.value = false
-  }
+// ── Búsqueda ──────────────────────────────────────────────────────────
+const busquedaControl = ref('')
+const irAKardex = () => {
+  if (busquedaControl.value.length < 8) return
+  router.push(`/kardex/${busquedaControl.value.trim()}`)
 }
 
-const tiempoRelativo = (fechaStr) => {
-  if (!fechaStr) return ''
-  const diff = Date.now() - new Date(fechaStr).getTime()
-  const min  = Math.floor(diff / 60000)
-  if (min < 1)   return 'Ahora'
-  if (min < 60)  return `Hace ${min} min`
-  const hrs = Math.floor(min / 60)
-  if (hrs < 24)  return `Hace ${hrs} h`
-  const dias = Math.floor(hrs / 24)
-  return `Hace ${dias} día${dias > 1 ? 's' : ''}`
+// ── Modal ─────────────────────────────────────────────────────────────
+const modalItem = ref(null)
+const formatFecha = (f) => {
+  if (!f) return '—'
+  return new Date(f).toLocaleString('es-MX', {
+    year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit',
+  }).toUpperCase()
 }
 
-const claseAccion = (accion = '') => {
-  const a = accion.toLowerCase()
-  if (a.includes('login') || a.includes('acceso'))  return 'accion-login'
-  if (a.includes('cre') || a.includes('registr'))   return 'accion-creacion'
-  if (a.includes('edit') || a.includes('actualiz')) return 'accion-edicion'
-  if (a.includes('elim') || a.includes('bor'))      return 'accion-eliminacion'
-  return 'accion-default'
-}
-
-// ── Modal de bitácora ────────────────────────────────────────────────────
-const modalBitacora = ref(null)
-
-const abrirModalBitacora = (item) => {
-  modalBitacora.value = item
-}
-const cerrarModalBitacora = () => {
-  modalBitacora.value = null
-}
-const formatearFecha = (fechaStr) => {
-  if (!fechaStr) return '—'
-  return new Date(fechaStr).toLocaleString('es-MX', {
-    year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  })
-}
-
-// ── Modal de acción rápida ───────────────────────────────────────────────
-const modalAccion = ref(null)
-
-const abrirModalAccion = (accion) => {
-  modalAccion.value = accion
-}
-const cerrarModalAccion = () => {
-  modalAccion.value = null
-}
-const ejecutarAccion = (accion) => {
-  cerrarModalAccion()
-  accion.handler()
-}
-
-// ── Carga de datos desde el backend ─────────────────────────────────────
-const cargarKPIs = async () => {
-  cargando.value = true
-  error.value    = null
-  try {
-    const res  = await fetch(`${API_URL}/api/dashboard/kpis`)
-    if (!res.ok) throw new Error('Error al cargar datos')
-    const data = await res.json()
-    if (data.carrera_data)  carreraData.value  = data.carrera_data
-    if (data.semestre_data) semestreData.value = data.semestre_data
-  } catch (err) {
-    console.error('[Dashboard] Error:', err)
-  } finally {
-    cargando.value = false
-  }
-}
-
-// ── Acciones rápidas ─────────────────────────────────────────────────────
+// ── Acciones rápidas ──────────────────────────────────────────────────
 const accionesRapidas = [
-  {
-    label:       'Nueva inscripción',
-    descripcion: 'Registrar un nuevo alumno en el sistema.',
-    primario:    true,
-    iconPath:    'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z',
-    handler:     () => router.push('/formulario-alumno')
-  },
-  {
-    label:       'Lista de alumnos',
-    descripcion: 'Ver el listado completo de alumnos registrados.',
-    iconPath:    'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-    handler:     () => router.push('/alumnos')
-  },
-  {
-    label:       'Gestión de grupos',
-    descripcion: 'Administrar grupos y horarios del periodo actual.',
-    iconPath:    'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
-    handler:     () => router.push('/gestion-grupos')
-  },
-  {
-    label:       'Cargar calificaciones',
-    descripcion: 'Registrar o actualizar calificaciones de alumnos.',
-    iconPath:    'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-    handler:     () => router.push('/calificaciones')
-  }
+  { label:'NUEVA INSCRIPCION', primario:true,  ruta:'/formulario-alumno', d:'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' },
+  { label:'LISTA DE ALUMNOS',  primario:false, ruta:'/alumnos',           d:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
+  { label:'GESTION DE GRUPOS', primario:false, ruta:'/gestion-grupos',    d:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+  { label:'CALIFICACIONES',    primario:false, ruta:'/calificaciones',    d:'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+  { label:'GENERAR REPORTE',   primario:false, ruta:'/reportes',          d:'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+  { label:'COMITE ACADEMICO',  primario:false, ruta:'/comite',            d:'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
 ]
 
-// ── Lifecycle ────────────────────────────────────────────────────────────
+// ── Lifecycle ─────────────────────────────────────────────────────────
 onMounted(() => {
-  cargarKPIs()
-  cargarBitacoraReciente()
+  cargarDashboard()
+  cargarBitacora()
+  horaAcceso.value = new Date().toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })
+  const u = JSON.parse(localStorage.getItem('usuario') || 'null')
+  if (u?.nombre_usuario) nombreUsuario.value = u.nombre_usuario.toUpperCase()
 })
 </script>
 
 <style scoped>
 /* ══════════════════════════════════════════════════════
-   VARIABLES — paleta SICE
+   BASE
 ══════════════════════════════════════════════════════ */
 .dashboard-page {
-  --azul:       #1B396A;
-  --azul-hover: #15305A;
-  --azul-suave: #DBEAFE;
-  --verde:      #16A34A;
-  --rojo:       #DC2626;
-  --amarillo:   #F59E0B;
-  --borde:      #E5E7EB;
-  --fondo:      #F9FAFB;
-  --texto:      #111827;
-  --gris:       #6B7280;
-  --radio:      12px;
-
-  font-family: 'Montserrat', sans-serif;
-  padding-bottom: 2rem;
+  font-family:'Montserrat',system-ui,sans-serif;
+  background:#F4F6F9;
+  display:flex; flex-direction:column; gap:14px;
+  padding-bottom:2rem;
 }
 
-/* ── Barra de carga ── */
-.barra-carga { position:fixed; top:0; left:0; right:0; height:3px; z-index:9999; opacity:0; transition:opacity 0.2s; pointer-events:none; }
+/* Barra carga */
+.barra-carga { position:fixed; top:0; left:0; right:0; height:3px; z-index:9999; opacity:0; transition:opacity .2s; pointer-events:none; }
 .barra-carga.activa { opacity:1; }
-.barra-progreso { height:100%; background:#1B396A; animation:progreso-carga 1.5s ease-in-out infinite; }
-@keyframes progreso-carga { 0%{width:0%;opacity:1} 70%{width:85%;opacity:1} 100%{width:100%;opacity:0} }
+.barra-progreso { height:100%; background:#1D52B7; animation:progreso 1.5s ease-in-out infinite; }
+@keyframes progreso { 0%{width:0%;opacity:1} 70%{width:85%;opacity:1} 100%{width:100%;opacity:0} }
 
-/* ── Encabezado ── */
-.inicio-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.4rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.page-title { font-size: 1.75rem; font-weight: 700; color: #111827; margin: 0 0 4px; }
-.welcome-text { font-size: 0.9rem; color: #6B7280; margin: 0; }
-.fecha-actual {
-  font-size: 0.85rem;
-  color: #6B7280;
-  font-weight: 500;
-  text-transform: capitalize;
-  white-space: nowrap;
-  background: #F9FAFB;
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid #E5E7EB;
-}
+/* Breadcrumb */
+.bc { display:flex; align-items:center; gap:4px; font-size:10px; color:#828282; padding:0 2px; font-family:'Montserrat',sans-serif; font-weight:500; letter-spacing:.04em; }
+.bc-sep { color:#BDBDBD; }
+.bc b { color:#1D52B7; font-weight:700; }
 
-/* ── Búsqueda rápida ── */
-.busqueda-rapida-card {
-  background: linear-gradient(135deg, #1B396A 0%, #1D4ED8 100%);
-  border-radius: 12px;
-  padding: 1.2rem 1.6rem;
-  margin-bottom: 1.4rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  box-shadow: 0 6px 20px rgba(27,57,106,0.25);
-}
-.busqueda-rapida-texto {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 200px;
-}
-.busqueda-rapida-texto svg { stroke: rgba(255,255,255,0.8); flex-shrink: 0; }
-.busqueda-label { font-size: 0.95rem; font-weight: 700; color: #FFFFFF; margin: 0 0 2px; }
-.busqueda-sub   { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin: 0; }
-.busqueda-rapida-form { display: flex; gap: 8px; align-items: center; }
-.busqueda-input-wrap { position: relative; display: flex; align-items: center; }
-.busqueda-icono-input { position: absolute; left: 12px; stroke: #9CA3AF; pointer-events: none; }
-.busqueda-input {
-  padding: 10px 14px 10px 38px;
-  border-radius: 8px;
-  border: 1.5px solid rgba(255,255,255,0.3);
-  background: rgba(255,255,255,0.12);
-  color: white;
-  font-family: 'Montserrat', monospace;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  width: 180px;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s;
-  backdrop-filter: blur(4px);
-}
-.busqueda-input::placeholder { color: rgba(255,255,255,0.5); font-weight: 400; letter-spacing: 0; }
-.busqueda-input:focus { border-color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.18); }
-.btn-buscar {
-  display: flex; align-items: center; gap: 6px;
-  padding: 10px 18px;
-  background: #FFFFFF; color: #1B396A;
-  border: none; border-radius: 8px;
-  font-weight: 700; font-size: 0.875rem;
-  cursor: pointer; font-family: inherit;
-  transition: background 0.15s, transform 0.1s;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.btn-buscar:hover:not(:disabled) { background: #F0F7FF; transform: translateY(-1px); }
-.btn-buscar:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn-buscar svg { stroke: #1B396A; }
+/* Greeting */
+.greeting { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.gr-left h2 { font-size:24px; font-weight:700; color:#333333; font-family:'Montserrat',sans-serif; margin:0 0 3px; letter-spacing:-.3px; }
+.gr-left p  { font-size:11px; color:#4F4F4F; margin:0; letter-spacing:.03em; }
+.periodo-pill { display:flex; align-items:center; gap:6px; background:#FFFFFF; border:1px solid #E0E0E0; border-radius:20px; padding:6px 14px; font-size:10px; font-family:'Montserrat',sans-serif; font-weight:500; letter-spacing:.04em; }
+.p-dot  { width:7px; height:7px; border-radius:50%; background:#27AE60; flex-shrink:0; }
+.p-text { color:#4F4F4F; }
+.p-name { font-weight:700; color:#333333; }
 
-/* ── Alerta de error ── */
-.alerta-error {
-  display: flex; align-items: center; gap: 10px;
-  background: #FEF2F2; border: 1px solid #FECACA;
-  border-radius: 12px; padding: 12px 16px;
-  margin-bottom: 1.2rem; font-size: 0.875rem;
-  color: #DC2626; font-weight: 500;
+/* ═══ SECCION CARRERAS ═══ */
+.carreras-seccion {
+  background:#FFFFFF; border:1px solid #E0E0E0; border-radius:14px;
+  padding:20px; box-shadow:0 2px 8px rgba(29,82,183,0.05);
+  display:flex; flex-direction:column; gap:16px;
 }
-.alerta-icono { width: 20px; height: 20px; flex-shrink: 0; stroke: #DC2626; }
+.sec-header { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.sec-titulo-wrap { display:flex; flex-direction:column; gap:2px; }
+.sec-titulo { font-size:16px; font-weight:700; color:#333333; font-family:'Montserrat',sans-serif; margin:0; letter-spacing:.02em; }
+.sec-sub    { font-size:11px; color:#828282; font-family:'Montserrat',sans-serif; letter-spacing:.03em; }
+.sec-link { font-size:10px; font-weight:700; color:#2F80ED; letter-spacing:.04em; text-decoration:none; display:flex; align-items:center; gap:3px; font-family:'Montserrat',sans-serif; transition:color .15s; white-space:nowrap; }
+.sec-link:hover { color:#1A4184; }
 
-/* ── Gráficas ── */
-.fila-graficas { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-.grafica-card {
-  background: #FFFFFF; border-radius: 12px;
-  border: 1px solid #E5E7EB; padding: 1.4rem 1.6rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+/* Grid cards */
+.carreras-wrap {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
 }
-.grafica-titulo { font-size: 0.95rem; font-weight: 700; color: #111827; margin: 0 0 1.2rem; }
-.grafica-barras { display: flex; flex-direction: column; gap: 10px; }
-.barra-item { display: flex; align-items: center; gap: 10px; }
-.barra-etiqueta { width: 130px; font-size: 0.8rem; color: #6B7280; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
-.barra-contenedor { flex: 1; background: #F9FAFB; border-radius: 4px; height: 8px; overflow: hidden; }
-.barra-relleno { height: 100%; background: #1B396A; border-radius: 4px; transition: width 0.6s ease; }
-.barra-acento  { background: #16A34A; }
-.barra-valor   { font-size: 0.8rem; font-weight: 700; color: #111827; min-width: 30px; text-align: right; flex-shrink: 0; }
-.estado-vacio-grafica { display: flex; align-items: center; justify-content: center; padding: 2rem; color: #6B7280; font-size: 0.875rem; }
+.carreras-vacio { grid-column:1/-1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:3rem; color:#828282; font-size:11px; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
 
-/* ── Fila inferior ── */
-.fila-inferior { display: grid; grid-template-columns: 1fr 380px; gap: 1rem; }
-.panel-card {
-  background: #FFFFFF; border-radius: 12px;
-  border: 1px solid #E5E7EB; padding: 1.4rem 1.6rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.panel-titulo { font-size: 0.95rem; font-weight: 700; color: #111827; margin: 0; }
+/* Skeletons */
+.cc-sk { background:#FFFFFF; border:1.5px solid #E0E0E0; border-radius:14px; overflow:hidden; animation:pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+.sk-barra  { height:4px; background:#F2F4F7; }
+.sk-body   { display:flex; align-items:center; gap:10px; padding:15px 15px 8px; }
+.sk-ico    { width:40px; height:40px; border-radius:10px; background:#F2F4F7; flex-shrink:0; }
+.sk-lines  { flex:1; display:flex; flex-direction:column; gap:6px; }
+.sk-line   { background:#F2F4F7; border-radius:4px; height:9px; }
+.sk-lg { width:80%; } .sk-sm { width:38%; }
+.sk-num   { height:32px; margin:0 15px 11px; background:#F2F4F7; border-radius:6px; width:55px; }
+.sk-bar-h { height:7px; margin:0 15px 12px; background:#F2F4F7; border-radius:99px; }
+.sk-chips { display:grid; grid-template-columns:1fr 1fr; gap:7px; padding:0 15px 15px; }
+.sk-chip  { height:42px; background:#F2F4F7; border-radius:8px; }
 
-/* ── Bitácora ── */
-.bitacora-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.btn-ver-bitacora { font-size: 0.82rem; font-weight: 600; color: #1B396A; text-decoration: none; transition: color 0.15s; }
-.btn-ver-bitacora:hover { color: #1D4ED8; }
+/* ═══ GRAFICAS ═══ */
+.row-graficas { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) 250px; gap:14px; }
 
-.bitacora-cargando { display: flex; align-items: center; gap: 10px; padding: 1.5rem 0; color: #6B7280; font-size: 0.875rem; }
-.spinner-bitacora { width: 18px; height: 18px; border: 2px solid #E5E7EB; border-top-color: #1B396A; border-radius: 50%; animation: girar 0.75s linear infinite; flex-shrink: 0; }
-@keyframes girar { to { transform: rotate(360deg); } }
+/* Card base */
+.card { background:#FFFFFF; border:1px solid #E0E0E0; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(29,82,183,0.05); }
+.card-bit { padding:14px; }
+.ch   { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.ct   { font-size:13px; font-weight:700; color:#333333; font-family:'Montserrat',sans-serif; letter-spacing:.03em; }
+.cl   { font-size:10px; font-weight:600; color:#2F80ED; cursor:pointer; display:flex; align-items:center; gap:3px; text-decoration:none; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
+.cl:hover { color:#1A4184; }
 
-.lista-bitacora { display: flex; flex-direction: column; gap: 2px; }
-.item-bitacora { display: flex; gap: 10px; align-items: flex-start; padding: 8px; border-radius: 8px; transition: background 0.15s; }
-.item-bitacora-clickeable { cursor: pointer; }
-.item-bitacora-clickeable:hover { background: #DBEAFE !important; }
-.item-placeholder { opacity: 0.5; }
-.avatar-bitacora { width: 32px; height: 32px; border-radius: 50%; background: #1B396A; color: white; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.avatar-gris { background: #9CA3AF; }
-.info-bitacora { flex: 1; min-width: 0; }
-.bitacora-fila-superior { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: wrap; }
-.bitacora-usuario { font-weight: 600; font-size: 0.85rem; color: #111827; }
-.bitacora-desc { margin: 0 0 3px; font-size: 0.8rem; color: #6B7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bitacora-fila-inferior { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-.bitacora-modulo { font-size: 0.75rem; color: #9CA3AF; font-weight: 500; }
-.bitacora-tiempo { font-size: 0.75rem; color: #9CA3AF; white-space: nowrap; }
-.accion-badge-mini { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.accion-login       { background: #DBEAFE; color: #1B396A; }
-.accion-creacion    { background: #DCFCE7; color: #16A34A; }
-.accion-edicion     { background: #FEF3C7; color: #F59E0B; }
-.accion-eliminacion { background: #FEF2F2; color: #DC2626; }
-.accion-default     { background: #F9FAFB; color: #6B7280; }
+/* Gráficas barras */
+.grafica-barras { display:flex; flex-direction:column; gap:9px; }
+.bar-r { display:flex; align-items:center; gap:8px; }
+.bl    { font-size:10px; color:#4F4F4F; width:120px; flex-shrink:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Montserrat',sans-serif; font-weight:500; letter-spacing:.02em; }
+.bt    { flex:1; height:6px; background:#F2F4F7; border-radius:3px; overflow:hidden; }
+.bf    { height:100%; border-radius:3px; transition:width .6s ease; }
+.bf-blue { background:#1D52B7; }
+.bv    { font-size:10px; font-weight:700; color:#333333; min-width:28px; text-align:right; flex-shrink:0; font-family:'Montserrat',sans-serif; }
+.ev    { display:flex; align-items:center; justify-content:center; padding:2rem; color:#828282; font-size:11px; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
 
-/* ── Acciones rápidas ── */
-.grilla-acciones { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
-.btn-accion {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px; padding: 1rem; min-height: 80px;
-  background: #F9FAFB; border: 1.5px solid #E5E7EB;
-  border-radius: 12px; font-size: 0.82rem; font-weight: 600;
-  color: #111827; cursor: pointer; font-family: inherit;
-  transition: all 0.2s; text-align: center;
-}
-.btn-accion:hover { background: #DBEAFE; border-color: #1B396A; color: #1B396A; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(27,57,106,0.1); }
-.btn-accion.btn-primario-accion { background: #1B396A; color: white; border-color: #1B396A; }
-.btn-accion.btn-primario-accion:hover { background: #15305A; }
-.accion-icono { width: 22px; height: 22px; stroke: currentColor; }
+/* Bitácora */
+.bit-loading { display:flex; align-items:center; gap:8px; padding:1rem 0; color:#828282; font-size:11px; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
+.spinner { width:15px; height:15px; border:2px solid #E0E0E0; border-top-color:#1D52B7; border-radius:50%; animation:girar .75s linear infinite; flex-shrink:0; }
+@keyframes girar { to { transform:rotate(360deg); } }
+.bit-item { display:flex; align-items:flex-start; gap:8px; padding:8px 4px; border-bottom:1px solid #F4F6F9; cursor:pointer; border-radius:6px; transition:background .12s; }
+.bit-item:last-child { border-bottom:none; }
+.bit-item:hover { background:#F4F6F9; }
+.bit-av  { width:26px; height:26px; border-radius:50%; background:#0B2545; color:#FFFFFF; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:'Montserrat',sans-serif; }
+.bit-av-gris { background:#BDBDBD; }
+.bit-body { flex:1; min-width:0; }
+.bit-r1   { display:flex; align-items:center; gap:5px; margin-bottom:2px; flex-wrap:wrap; }
+.bit-usr  { font-size:10px; font-weight:700; color:#333333; font-family:'Montserrat',sans-serif; letter-spacing:.02em; }
+.bit-desc { font-size:9px; color:#4F4F4F; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'Montserrat',sans-serif; letter-spacing:.02em; }
+.bit-t    { font-size:9px; color:#828282; margin-top:1px; font-family:'Montserrat',sans-serif; letter-spacing:.03em; }
 
-/* ══ MODALES (con valores hexadecimales directos) ══ */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-.modal-caja {
-  background: #FFFFFF;
-  border-radius: 14px;
-  width: 100%;
-  max-width: 480px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  overflow: hidden;
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.2rem 1.5rem;
-  border-bottom: 1px solid #E5E7EB;
-  background: #F8FAFC;
-}
-.modal-titulo {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-}
-.modal-cerrar {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  cursor: pointer;
-  color: #6B7280;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition: background 0.15s;
-  min-height: unset;
-  line-height: 1;
-}
-.modal-cerrar:hover { background: #F1F5F9; }
-.modal-body {
-  padding: 1.4rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.modal-descripcion {
-  color: #6B7280;
-  font-size: 0.9rem;
-  margin: 0;
-  line-height: 1.6;
-}
-.modal-fila {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.modal-etiqueta {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #6B7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.modal-valor {
-  font-size: 0.9rem;
-  color: #111827;
-  font-weight: 500;
-}
-.modal-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #E5E7EB;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.75rem;
-}
+/* Badges */
+.bdg  { font-size:8px; font-weight:700; padding:2px 7px; border-radius:20px; font-family:'Montserrat',sans-serif; white-space:nowrap; letter-spacing:.04em; }
+.bg-g { background:rgba(39,174,96,0.10);  color:#27AE60; }
+.bg-b { background:rgba(47,128,237,0.10); color:#1D52B7; }
+.bg-a { background:rgba(242,153,74,0.10); color:#F2994A; }
+.bg-r { background:rgba(235,87,87,0.10);  color:#EB5757; }
 
-/* Botones del modal con valores directos */
-.btn-modal-primario {
-  padding: 8px 20px;
-  background: #1B396A;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  transition: background 0.15s;
-}
-.btn-modal-primario:hover { background: #15305A; }
+/* ═══ FILA BOTTOM ═══ */
+.row-bottom { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) 250px; gap:14px; }
 
-.btn-modal-secundario {
-  padding: 8px 20px;
-  background: #F1F5F9;
-  color: #111827;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  transition: background 0.15s;
-}
-.btn-modal-secundario:hover { background: #E2E8F0; }
+/* Hero */
+.hero        { background:#0B2545; border-radius:12px; padding:18px; display:flex; flex-direction:column; gap:12px; }
+.hero-top    { display:flex; align-items:center; gap:9px; }
+.hero-ico    { width:36px; height:36px; border-radius:9px; background:rgba(47,128,237,0.18); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#2F80ED; }
+.hero-ico svg { stroke:#2F80ED; }
+.hero-title  { font-size:12px; font-weight:700; color:#FFFFFF; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
+.hero-sub    { font-size:10px; color:#828282; margin-top:2px; font-family:'Montserrat',sans-serif; letter-spacing:.03em; }
+.hero-form   { display:flex; gap:8px; }
+.hero-input  { flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:9px 12px; font-size:11px; color:#FFFFFF; font-family:'Montserrat',sans-serif; outline:none; letter-spacing:.05em; }
+.hero-input::placeholder { color:#828282; font-size:10px; letter-spacing:.03em; }
+.hero-input:focus { border-color:rgba(255,255,255,0.45); background:rgba(255,255,255,0.12); }
+.hero-btn    { background:#1D52B7; border:none; border-radius:8px; padding:9px 14px; color:#FFFFFF; font-size:10px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; font-family:'Montserrat',sans-serif; white-space:nowrap; transition:background .15s; letter-spacing:.05em; }
+.hero-btn:hover:not(:disabled) { background:#1A4184; }
+.hero-btn:disabled { opacity:.5; cursor:not-allowed; }
+.hero-btn svg { stroke:#FFFFFF; }
+.hero-stats  { display:flex; gap:8px; }
+.hero-stat   { flex:1; background:rgba(255,255,255,0.05); border-radius:8px; padding:8px 12px; }
+.hero-stat-n { font-size:18px; font-weight:700; color:#FFFFFF; font-family:'Montserrat',sans-serif; }
+.hero-stat-l { font-size:9px; color:#828282; font-family:'Montserrat',sans-serif; letter-spacing:.04em; margin-top:1px; }
 
-/* ── Transición fade ── */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.25s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+/* Acciones */
+.acc-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:4px; }
+.acc { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; border:1px solid #E0E0E0; background:#F2F4F7; cursor:pointer; font-family:'Montserrat',sans-serif; transition:all .12s; }
+.acc:hover { border-color:#2F80ED; background:rgba(29,82,183,0.05); }
+.acc--prim  { background:#0B2545; border-color:#0B2545; }
+.acc--prim:hover { background:#1A4184; }
+.acc svg   { stroke:#828282; flex-shrink:0; }
+.acc--prim svg { stroke:#2F80ED; }
+.acc-lbl   { font-size:10px; font-weight:700; color:#333333; font-family:'Montserrat',sans-serif; text-align:left; letter-spacing:.04em; }
+.acc--prim .acc-lbl { color:#FFFFFF; }
+
+/* Inscripciones */
+.ins-section { margin-bottom:12px; }
+.ins-row   { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+.ins-lbl   { font-size:10px; font-weight:600; color:#4F4F4F; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
+.ins-val   { font-size:11px; font-weight:700; color:#333333; font-family:'Montserrat',sans-serif; }
+.ins-bar   { height:5px; background:#F2F4F7; border-radius:3px; overflow:hidden; margin-bottom:10px; }
+.ins-fill  { height:100%; border-radius:3px; transition:width .6s ease; }
+.ins-mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.ins-mini  { background:#F4F6F9; border:1px solid #E0E0E0; border-radius:8px; padding:9px; text-align:center; }
+.ins-mini-v { font-size:15px; font-weight:700; color:#333333; font-family:'Montserrat',sans-serif; }
+.ins-mini-l { font-size:9px; color:#828282; margin-top:2px; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
+
+/* Alerta */
+.alerta-error { display:flex; align-items:center; gap:10px; background:#FFF0F0; border:1px solid rgba(235,87,87,0.20); border-radius:10px; padding:12px 16px; font-size:12px; color:#EB5757; font-weight:600; font-family:'Montserrat',sans-serif; letter-spacing:.03em; }
+.alerta-error svg { stroke:#EB5757; flex-shrink:0; }
+
+/* Modal */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:2000; display:flex; align-items:center; justify-content:center; padding:1rem; }
+.modal-caja    { background:#FFFFFF; border-radius:14px; width:100%; max-width:480px; box-shadow:0 20px 60px rgba(0,0,0,0.2); overflow:hidden; }
+.modal-header  { display:flex; align-items:center; justify-content:space-between; padding:1.1rem 1.5rem; border-bottom:1px solid #E0E0E0; background:#F4F6F9; }
+.modal-titulo  { font-size:13px; font-weight:700; color:#333333; margin:0; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
+.modal-cerrar  { background:none; border:none; cursor:pointer; color:#828282; padding:4px; border-radius:6px; display:flex; align-items:center; transition:background .15s; }
+.modal-cerrar:hover { background:#F2F4F7; }
+.modal-body    { padding:1.3rem 1.5rem; display:flex; flex-direction:column; gap:.9rem; }
+.modal-fila    { display:flex; flex-direction:column; gap:3px; }
+.modal-etiqueta { font-size:9px; font-weight:700; color:#828282; text-transform:uppercase; letter-spacing:.07em; font-family:'Montserrat',sans-serif; }
+.modal-valor   { font-size:13px; color:#333333; font-weight:600; font-family:'Montserrat',sans-serif; }
+.dd-mono       { font-family:monospace; font-size:12px; }
+.modal-footer  { padding:.9rem 1.5rem; border-top:1px solid #E0E0E0; display:flex; justify-content:flex-end; }
+.btn-modal-sec { padding:7px 18px; background:#F2F4F7; color:#333333; border:none; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
+.btn-modal-sec:hover { background:#E0E0E0; }
+
+/* Transiciones */
+.fade-enter-active,.fade-leave-active { transition:opacity .25s; }
+.fade-enter-from,.fade-leave-to { opacity:0; }
 
 /* ══ RESPONSIVE ══ */
-
-/* ── Tablet grande (≤1200px) ── */
-@media (max-width: 1200px) {
-  .fila-graficas { grid-template-columns: 1fr; }
+@media (max-width:1200px) {
+  .carreras-wrap { grid-template-columns:repeat(2,1fr); }
+  .row-graficas,.row-bottom { grid-template-columns:1fr 1fr; }
+  .card-bit,.row-bottom .card:last-child { grid-column:1/-1; }
 }
-
-/* ── Tablet (≤900px) ── */
-@media (max-width: 900px) {
-  .fila-graficas { grid-template-columns: 1fr; }
-  .fila-inferior { grid-template-columns: 1fr; }
-  .barra-etiqueta { width: 90px; }
+@media (max-width:768px) {
+  .carreras-wrap { grid-template-columns:1fr; }
+  .row-graficas,.row-bottom { grid-template-columns:1fr; }
+  .greeting { flex-direction:column; align-items:flex-start; }
+  .gr-left h2 { font-size:20px; }
+  .acc-grid { grid-template-columns:1fr 1fr; }
 }
-
-/* ── Móvil grandee (≤640px) ── */
-@media (max-width: 640px) {
-  .inicio-header { flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
-  .page-title { font-size: 1.35rem; }
-  .welcome-text { font-size: 0.82rem; }
-  .fecha-actual { font-size: 0.78rem; white-space: normal; align-self: flex-start; }
-
-  .busqueda-rapida-card { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1rem 1.2rem; }
-  .busqueda-rapida-form { width: 100%; flex-wrap: wrap; gap: 8px; }
-  .busqueda-input-wrap { flex: 1; }
-  .busqueda-input { width: 100%; font-size: 16px; }
-  .btn-buscar { width: 100%; justify-content: center; }
-
-  .grafica-card { padding: 1rem 1.2rem; }
-  .barra-etiqueta { width: 80px; font-size: 0.75rem; }
-
-  .grilla-acciones { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
-  .btn-accion { min-height: 72px; font-size: 0.78rem; padding: 0.8rem; }
-  .accion-icono { width: 18px; height: 18px; }
-
-  .panel-card { padding: 1rem 1.2rem; }
-  .bitacora-desc {
-    white-space: normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-}
-
-/* ── Móvil pequeño (≤480px) ── */
-@media (max-width: 480px) {
-  .page-title { font-size: 1.2rem; }
-  .grilla-acciones { grid-template-columns: 1fr; }
-  .btn-accion { flex-direction: row; min-height: 52px; justify-content: flex-start; padding: 12px 14px; gap: 10px; }
-  .busqueda-label { font-size: 0.88rem; }
-  .busqueda-sub { display: none; }
-  .bitacora-fila-inferior { flex-direction: column; align-items: flex-start; gap: 2px; }
-  .modal-footer { flex-direction: column; gap: 0.5rem; }
-  .btn-modal-secundario, .btn-modal-primario { width: 100%; justify-content: center; }
+@media (max-width:480px) {
+  .acc-grid { grid-template-columns:1fr; }
 }
 </style>

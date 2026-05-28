@@ -3,55 +3,57 @@
     <div
       v-for="stat in stats"
       :key="stat.key"
-      class="sg-card"
-      :class="{ 'sg-card--featured': stat.featured }"
+      class="sg"
+      :class="{ 'sg--featured': stat.featured }"
       @click="stat.ruta ? $emit('navegar', stat.ruta) : null"
       :role="stat.ruta ? 'button' : 'region'"
       :tabindex="stat.ruta ? 0 : -1"
-      :aria-label="stat.label"
       @keydown.enter="stat.ruta ? $emit('navegar', stat.ruta) : null"
     >
       <!-- Icono -->
-      <div
-        class="sg-ico"
-        :class="!stat.featured ? stat.icoClass : ''"
-        :style="stat.featured ? { background: 'rgba(255,255,255,0.15)', color: '#FFFFFF' } : {}"
-        aria-hidden="true"
-      >
-        <component :is="stat.icono" :size="22" />
+      <div class="sg-ico" :class="!stat.featured ? stat.icoClass : 'sg-ico--white'" aria-hidden="true">
+        <!-- users -->
+        <svg v-if="stat.iconoTipo==='users'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+        <!-- list -->
+        <svg v-else-if="stat.iconoTipo==='list'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+        </svg>
+        <!-- grid -->
+        <svg v-else-if="stat.iconoTipo==='grid'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+        </svg>
+        <!-- alert -->
+        <svg v-else xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
       </div>
 
       <!-- Cuerpo -->
       <div class="sg-body">
         <p class="sg-lbl">{{ stat.label }}</p>
-
-        <!-- Skeleton -->
-        <div
-          v-if="cargando"
-          class="sg-skeleton"
-          :class="{ 'sg-skeleton--dark': stat.featured }"
-        ></div>
+        <div v-if="cargando" class="sg-sk" :class="{ 'sg-sk--dark': stat.featured }"></div>
         <p v-else class="sg-val">{{ formatNum(stat.valor) }}</p>
-
-        <span
-          v-if="stat.ruta"
-          class="sg-link"
-          :style="stat.featured ? { color: 'rgba(255,255,255,0.7)' } : {}"
-        >
+        <span v-if="stat.ruta" class="sg-link" :style="stat.featured ? { color:'rgba(255,255,255,0.7)' } : {}">
           {{ stat.linkLabel }} →
         </span>
       </div>
 
       <!-- Tendencia -->
-      <div
-        v-if="stat.cambio"
-        class="sg-cambio"
-        :class="stat.cambio.clase"
-        :style="stat.featured ? { color: 'rgba(255,255,255,0.6)' } : {}"
-      >
-        <TrendingUp  v-if="stat.cambio.tipo === 'up'" :size="11" />
-        <TrendingDown v-else-if="stat.cambio.tipo === 'dn'" :size="11" />
-        <Minus        v-else :size="11" />
+      <div v-if="stat.cambio" class="sg-cambio" :class="stat.cambio.clase" :style="stat.featured ? { color:'rgba(255,255,255,0.55)' } : {}">
+        <!-- up -->
+        <svg v-if="stat.cambio.tipo==='up'" xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+        <!-- dn -->
+        <svg v-else-if="stat.cambio.tipo==='dn'" xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>
+        </svg>
+        <!-- ne -->
+        <svg v-else xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/>
+        </svg>
         {{ stat.cambio.texto }}
       </div>
 
@@ -60,7 +62,6 @@
 </template>
 
 <script setup>
-import { TrendingUp, TrendingDown, Minus } from 'lucide-vue-next'
 import { formatNum } from '@/stores/dashboardStore.js'
 
 defineProps({
@@ -72,160 +73,79 @@ defineEmits(['navegar'])
 </script>
 
 <style scoped>
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+
+.sg {
+  background:#FFFFFF; border:1px solid #E0E0E0; border-radius:12px;
+  padding:16px; display:flex; align-items:flex-start; gap:12px;
+  box-shadow:0 2px 8px rgba(29,82,183,0.05);
+  transition:all 0.15s ease; position:relative; overflow:hidden;
+}
+.sg[tabindex="0"] { cursor:pointer; }
+.sg[tabindex="0"]:hover { border-color:#2F80ED; box-shadow:0 0 0 3px rgba(29,82,183,0.07); transform:translateY(-2px); }
+
+.sg--featured { background:#0B2545; border-color:#0B2545; }
+.sg--featured::after {
+  content:''; position:absolute; right:-20px; top:-20px;
+  width:80px; height:80px; border-radius:50%;
+  background:rgba(47,128,237,0.08); pointer-events:none;
 }
 
-/* ── Card base ── */
-.sg-card {
-  background: #FFFFFF;
-  border: 1px solid #E0E0E0;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  box-shadow: 0 2px 8px rgba(29,82,183,0.05);
-  transition: all 0.15s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.sg-card[tabindex="0"] { cursor: pointer; }
-
-.sg-card[tabindex="0"]:hover {
-  border-color: #2F80ED;
-  box-shadow: 0 0 0 3px rgba(29,82,183,0.07);
-  transform: translateY(-2px);
-}
-
-/* Card destacada (primera) */
-.sg-card--featured {
-  background: #0B2545;
-  border-color: #0B2545;
-}
-
-.sg-card--featured::after {
-  content: '';
-  position: absolute;
-  right: -20px;
-  top: -20px;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: rgba(47,128,237,0.08);
-  pointer-events: none;
-}
-
-/* ── Icono ── */
 .sg-ico {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  width:40px; height:40px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
 }
+.sg-ico svg { stroke:currentColor; }
+.sg-ico--white { background:rgba(255,255,255,0.15); color:#FFFFFF; }
+.ico-azul    { background:rgba(47,128,237,0.10); color:#1D52B7; }
+.ico-verde   { background:rgba(39,174,96,0.10);  color:#27AE60; }
+.ico-naranja { background:rgba(242,153,74,0.10); color:#F2994A; }
+.ico-rojo    { background:rgba(235,87,87,0.10);  color:#EB5757; }
 
-.ico-azul    { background: rgba(47,128,237,0.10);  color: #1D52B7; }
-.ico-verde   { background: rgba(39,174,96,0.10);   color: #27AE60; }
-.ico-naranja { background: rgba(242,153,74,0.10);  color: #F2994A; }
-.ico-rojo    { background: rgba(235,87,87,0.10);   color: #EB5757; }
-
-/* ── Cuerpo ── */
-.sg-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+.sg-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
 
 .sg-lbl {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #828282;
-  margin: 0 0 4px;
-  font-family: 'Montserrat', sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.07em; color:#828282; margin:0 0 4px;
+  font-family:'Montserrat',sans-serif; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
 }
-
-.sg-card--featured .sg-lbl { color: rgba(255,255,255,0.5); }
+.sg--featured .sg-lbl { color:rgba(255,255,255,0.5); }
 
 .sg-val {
-  font-size: 32px;
-  font-weight: 700;
-  color: #333333;
-  line-height: 1;
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;
+  font-size:32px; font-weight:700; color:#333333;
+  line-height:1; margin:0; font-family:'Montserrat',sans-serif;
 }
-
-.sg-card--featured .sg-val { color: #FFFFFF; }
+.sg--featured .sg-val { color:#FFFFFF; }
 
 .sg-link {
-  font-size: 10px;
-  font-weight: 600;
-  color: #2F80ED;
-  cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  margin-top: 4px;
-  transition: color 0.15s;
-  letter-spacing: 0.03em;
+  font-size:10px; font-weight:600; color:#2F80ED;
+  cursor:pointer; font-family:'Montserrat',sans-serif;
+  margin-top:4px; transition:color 0.15s; letter-spacing:.03em;
 }
+.sg-link:hover { color:#1A4184; }
 
-.sg-link:hover { color: #1A4184; }
-
-/* ── Skeleton ── */
-.sg-skeleton {
-  width: 80px;
-  height: 32px;
-  border-radius: 6px;
-  margin: 2px 0;
-  background: linear-gradient(90deg, #E0E0E0 25%, #F2F4F7 50%, #E0E0E0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+.sg-sk {
+  width:80px; height:32px; border-radius:6px; margin:2px 0;
+  background:linear-gradient(90deg,#E0E0E0 25%,#F2F4F7 50%,#E0E0E0 75%);
+  background-size:200% 100%; animation:shimmer 1.4s infinite;
 }
-
-.sg-skeleton--dark {
-  background: linear-gradient(90deg,
-    rgba(255,255,255,0.10) 25%,
-    rgba(255,255,255,0.20) 50%,
-    rgba(255,255,255,0.10) 75%);
-  background-size: 200% 100%;
+.sg-sk--dark {
+  background:linear-gradient(90deg,rgba(255,255,255,.10) 25%,rgba(255,255,255,.20) 50%,rgba(255,255,255,.10) 75%);
+  background-size:200% 100%;
 }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ── Tendencia ── */
 .sg-cambio {
-  position: absolute;
-  bottom: 10px;
-  right: 12px;
-  font-size: 9px;
-  font-weight: 700;
-  font-family: 'Montserrat', sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  letter-spacing: 0.03em;
+  position:absolute; bottom:9px; right:11px;
+  font-size:9px; font-weight:700; font-family:'Montserrat',sans-serif;
+  display:flex; align-items:center; gap:3px; letter-spacing:.03em;
 }
+.sg-cambio svg { stroke:currentColor; }
+.cambio-up { color:#27AE60; }
+.cambio-dn { color:#EB5757; }
+.cambio-ne { color:#828282; }
 
-.cambio-up { color: #27AE60; }
-.cambio-dn { color: #EB5757; }
-.cambio-ne { color: #828282; }
-
-/* ── Responsive ── */
-@media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 500px)  { .stats-grid { grid-template-columns: 1fr; } .sg-val { font-size: 28px; } }
+@media (max-width:1100px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
+@media (max-width:500px)  { .stats-grid { grid-template-columns:1fr; } .sg-val { font-size:28px; } }
 </style>
