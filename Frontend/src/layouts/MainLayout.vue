@@ -1,18 +1,18 @@
 <template>
-  <div class="sistema-layout" :class="{ 'sidebar-collapsed': isCollapsed }" @click="cerrarMenus">
+  <div class="sistema-layout" @click="cerrarMenus">
 
     <!-- ══ ENCABEZADO FIJO ══ -->
     <header class="encabezado-superior">
       <div class="encabezado-izquierda">
+        <!-- Hamburguesa solo en móvil -->
         <button
-          class="btn-toggle-menu"
-          @click.stop="toggleSidebar"
-          aria-label="Ocultar o mostrar menú lateral"
-          title="Ocultar/Mostrar menú"
+          class="btn-hamburguesa"
+          @click.stop="toggleDrawer"
+          aria-label="Abrir menú"
+          title="Menú"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="icono-toggle" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                  :d="isCollapsed ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'" />
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
         <img src="/logo-tecnm.png" alt="Logo TecNM" class="logo-encabezado">
@@ -20,7 +20,7 @@
       </div>
 
       <div class="encabezado-derecha">
-
+        <!-- Buscador -->
         <div class="grupo-busqueda">
           <svg xmlns="http://www.w3.org/2000/svg" class="icono-busqueda" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -86,13 +86,11 @@
           <span class="flecha-desplegable" :class="{ rotada: mostrarMenuUsuario }">▼</span>
 
           <div v-if="mostrarMenuUsuario" class="desplegable-usuario" @click.stop>
-            <!-- Info del usuario logueado -->
             <div style="padding: 10px 16px 8px; border-bottom: 1px solid #E5E7EB;">
               <p style="margin:0; font-size:0.85rem; font-weight:600; color:#1A1A1A;">{{ nombreUsuarioActual }}</p>
               <p style="margin:2px 0 0; font-size:0.78rem; color:#6B7280;">{{ etiquetaRol }}</p>
             </div>
             <div class="separador-desplegable"></div>
-            <!-- Cerrar sesión -->
             <div class="elemento-desplegable elemento-cerrar-sesion" @click="cerrarSesion">
               <svg xmlns="http://www.w3.org/2000/svg" class="icono-rol" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -102,235 +100,587 @@
             </div>
           </div>
         </div>
-
       </div>
     </header>
 
-    <!-- Franja de hover para expandir sidebar colapsado -->
-    <div
-      v-if="!isFixed && isCollapsed && !esMobil"
-      class="franja-hover-sidebar"
-      @mouseenter="onSidebarEnter"
-    ></div>
+    <!-- ══ BARRA DE NAVEGACIÓN HORIZONTAL (solo desktop) ══ -->
+    <nav class="barra-nav-horizontal" @click.stop aria-label="Menú principal" style="overflow-y: visible;">
+      <div class="nav-scroll-inner" ref="navScrollRef">
 
+      <!-- Inicio -->
+      <router-link to="/inicio" class="nav-item nav-item-link" active-class="nav-activo">
+        <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        <span>Inicio</span>
+      </router-link>
 
-    <!-- ══ MENÚ LATERAL ══ -->
-    <aside
-      ref="sidebarRef"
-      class="menu-lateral"
-      :class="{ 'colapsando': colapsandoSuave }"
-      @click.stop
-      @mouseleave="onSidebarLeave"
-    >
-      <nav class="navegacion" role="navigation" aria-label="Menú principal">
-
-        <!-- Inicio -->
-        <router-link to="/inicio" class="elemento-menu" active-class="activo">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          <span class="etiqueta-menu">Inicio</span>
-        </router-link>
-
-        <!-- ── Servicios Escolares ── -->
-        <template v-if="puedeVer.serviciosEscolares">
-        <div class="elemento-menu elemento-padre" @click.stop="toggleServicios" :aria-expanded="isServiciosOpen" aria-label="Servicios Escolares">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <!-- ── Servicios Escolares ── -->
+      <template v-if="puedeVer.serviciosEscolares">
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'servicios' }"
+          @mouseenter="abrirDropdown('servicios')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('servicios')"
+          aria-haspopup="true"
+          :aria-expanded="dropdownActivo === 'servicios'"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
-          <span class="etiqueta-menu">Servicios Escolares</span>
-          <span class="flecha-submenu" :class="{ abierto: isServiciosOpen }">›</span>
-        </div>
-        <div v-if="isServiciosOpen" class="submenu">
-          <router-link v-if="puedeVerItem('/servicios-escolares')" to="/servicios-escolares" class="elemento-menu elemento-submenu" active-class="activo">Principal</router-link>
-          <router-link v-if="puedeVerItem('/alumnos')"             to="/alumnos"             class="elemento-menu elemento-submenu" active-class="activo">Alumnos</router-link>
-          <router-link v-if="puedeVerItem('/evaluaciones')"        to="/evaluaciones"        class="elemento-menu elemento-submenu" active-class="activo">Evaluaciones</router-link>
-          <router-link v-if="puedeVerItem('/calificaciones')"      to="/calificaciones"      class="elemento-menu elemento-submenu" active-class="activo">Calificaciones</router-link>
-          <router-link v-if="puedeVerItem('/inscripcion')"         to="/inscripcion"         class="elemento-menu elemento-submenu" active-class="activo">Inscripción</router-link>
-          <router-link v-if="puedeVerItem('/gestion-grupos')"      to="/gestion-grupos"      class="elemento-menu elemento-submenu" active-class="activo">Grupos y Horarios</router-link>
-          <!-- Inscripciones Detalladas: sub-submenú colapsable -->
-          <template v-if="puedeVerItem('/inscripciones')">
-          <div class="elemento-menu elemento-submenu elemento-padre" @click.stop="toggleInscripcionesDetalladas">
-            <span style="flex:1">Inscripciones Detalladas</span>
-            <span class="flecha-submenu" :class="{ abierto: isInscripcionesDetalladasOpen }">›</span>
-          </div>
-          <div v-if="isInscripcionesDetalladasOpen" class="submenu">
-            <router-link to="/inscripciones"           class="elemento-menu elemento-submenu elemento-submenu-anidado" active-class="activo">Panel General</router-link>
-            <router-link to="/inscripciones/historial" class="elemento-menu elemento-submenu elemento-submenu-anidado" active-class="activo">Historial</router-link>
-          </div>
-          </template>
-        </div>
-        </template><!-- /serviciosEscolares -->
+          <span>Servicios Escolares</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
 
-        <!-- ── Gestión Académica ── -->
-        <template v-if="puedeVer.gestionAcademica">
-        <div class="elemento-menu elemento-padre" @click.stop="toggleGestionAcademica" :aria-expanded="isGestionAcademicaOpen" aria-label="Gestión Académica">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <!-- Dropdown Panel Servicios Escolares -->
+          <Transition name="dropdown">
+            <div
+              v-if="dropdownActivo === 'servicios'"
+              class="dropdown-panel"
+              @mouseenter="cancelarCierreDropdown"
+              @mouseleave="cerrarDropdownConDelay"
+              @click.stop
+            >
+              <!-- Fila de íconos grandes -->
+              <div class="dropdown-iconos-grid">
+                <router-link v-if="puedeVerItem('/servicios-escolares')" to="/servicios-escolares" class="dropdown-icono-item" @click="cerrarMenus">
+                  <div class="icono-grande-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                  </div>
+                  <span>Principal</span>
+                </router-link>
+                <router-link v-if="puedeVerItem('/alumnos')" to="/alumnos" class="dropdown-icono-item" @click="cerrarMenus">
+                  <div class="icono-grande-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                  </div>
+                  <span>Alumnos</span>
+                </router-link>
+                <router-link v-if="puedeVerItem('/evaluaciones')" to="/evaluaciones" class="dropdown-icono-item" @click="cerrarMenus">
+                  <div class="icono-grande-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                  </div>
+                  <span>Evaluaciones</span>
+                </router-link>
+                <router-link v-if="puedeVerItem('/calificaciones')" to="/calificaciones" class="dropdown-icono-item" @click="cerrarMenus">
+                  <div class="icono-grande-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  </div>
+                  <span>Calificaciones</span>
+                </router-link>
+                <router-link v-if="puedeVerItem('/inscripcion')" to="/inscripcion" class="dropdown-icono-item" @click="cerrarMenus">
+                  <div class="icono-grande-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                  </div>
+                  <span>Inscripción</span>
+                </router-link>
+                <router-link v-if="puedeVerItem('/gestion-grupos')" to="/gestion-grupos" class="dropdown-icono-item" @click="cerrarMenus">
+                  <div class="icono-grande-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  </div>
+                  <span>Grupos y Horarios</span>
+                </router-link>
+                <template v-if="puedeVerItem('/inscripciones')">
+                  <router-link to="/inscripciones" class="dropdown-icono-item" @click="cerrarMenus">
+                    <div class="icono-grande-wrap">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    </div>
+                    <span>Inscripciones Detalladas</span>
+                  </router-link>
+                  <router-link to="/inscripciones/historial" class="dropdown-icono-item" @click="cerrarMenus">
+                    <div class="icono-grande-wrap">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span>Historial</span>
+                  </router-link>
+                </template>
+              </div>
+
+            </div>
+          </Transition>
+        </div>
+      </template>
+
+      <!-- ── Gestión Académica ── -->
+      <template v-if="puedeVer.gestionAcademica">
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'academica' }"
+          @mouseenter="abrirDropdown('academica')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('academica')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 14l9-5-9-5-9 5 9 5zM12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
           </svg>
-          <span class="etiqueta-menu">Gestión Académica</span>
-          <span class="flecha-submenu" :class="{ abierto: isGestionAcademicaOpen }">›</span>
-        </div>
-        <div v-if="isGestionAcademicaOpen" class="submenu">
-          <router-link to="/gestion-academica"                 class="elemento-menu elemento-submenu" active-class="activo">Panel Principal</router-link>
-          <router-link to="/gestion-academica/carreras"        class="elemento-menu elemento-submenu" active-class="activo">Carreras</router-link>
-          <router-link to="/gestion-academica/planes"          class="elemento-menu elemento-submenu" active-class="activo">Planes de Estudio</router-link>
-          <router-link to="/gestion-academica/materias"        class="elemento-menu elemento-submenu" active-class="activo">Materias</router-link>
-          <router-link to="/gestion-academica/prerrequisitos"  class="elemento-menu elemento-submenu" active-class="activo">Prerrequisitos</router-link>
-          <router-link to="/gestion-academica/periodos"        class="elemento-menu elemento-submenu" active-class="activo">Periodos Académicos</router-link>
-          <router-link to="/gestion-academica/edificios-aulas" class="elemento-menu elemento-submenu" active-class="activo">Edificios y Aulas</router-link>
-        </div>
-        </template><!-- /gestionAcademica -->
+          <span>Gestión Académica</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
 
-        <!-- ── Eventos ── -->
-        <template v-if="puedeVer.eventos">
-        <div class="elemento-menu elemento-padre" @click.stop="toggleEventos" :aria-expanded="isEventosOpen" aria-label="Eventos">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'academica'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link to="/gestion-academica"                 class="dropdown-lista-item" @click="cerrarMenus">Panel Principal</router-link>
+              <router-link to="/gestion-academica/carreras"        class="dropdown-lista-item" @click="cerrarMenus">Carreras</router-link>
+              <router-link to="/gestion-academica/planes"          class="dropdown-lista-item" @click="cerrarMenus">Planes de Estudio</router-link>
+              <router-link to="/gestion-academica/materias"        class="dropdown-lista-item" @click="cerrarMenus">Materias</router-link>
+              <router-link to="/gestion-academica/prerrequisitos"  class="dropdown-lista-item" @click="cerrarMenus">Prerrequisitos</router-link>
+              <router-link to="/gestion-academica/periodos"        class="dropdown-lista-item" @click="cerrarMenus">Periodos Académicos</router-link>
+              <router-link to="/gestion-academica/edificios-aulas" class="dropdown-lista-item" @click="cerrarMenus">Edificios y Aulas</router-link>
+            </div>
+          </Transition>
+        </div>
+      </template>
+
+      <!-- ── Eventos ── -->
+      <template v-if="puedeVer.eventos">
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'eventos' }"
+          @mouseenter="abrirDropdown('eventos')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('eventos')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span class="etiqueta-menu">Eventos</span>
-          <span class="flecha-submenu" :class="{ abierto: isEventosOpen }">›</span>
-        </div>
-        <div v-if="isEventosOpen" class="submenu">
-          <router-link to="/eventos"       class="elemento-menu elemento-submenu" active-class="activo">Lista de Eventos</router-link>
-          <router-link to="/eventos/nuevo" class="elemento-menu elemento-submenu" active-class="activo">Nuevo Evento</router-link>
-        </div>
-        </template><!-- /eventos -->
+          <span>Eventos</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
 
-        <!-- ── Comité Académico ── -->
-        <template v-if="puedeVer.comite">
-        <div class="elemento-menu elemento-padre" @click.stop="toggleComite" :aria-expanded="isComiteOpen" aria-label="Comité Académico">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'eventos'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link to="/eventos"       class="dropdown-lista-item" @click="cerrarMenus">Lista de Eventos</router-link>
+              <router-link to="/eventos/nuevo" class="dropdown-lista-item" @click="cerrarMenus">Nuevo Evento</router-link>
+            </div>
+          </Transition>
+        </div>
+      </template>
+
+      <!-- ── Comité Académico ── -->
+      <template v-if="puedeVer.comite">
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'comite' }"
+          @mouseenter="abrirDropdown('comite')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('comite')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
           </svg>
-          <span class="etiqueta-menu">Comité Académico</span>
-          <span class="flecha-submenu" :class="{ abierto: isComiteOpen }">›</span>
+          <span>Comité Académico</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'comite'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link to="/comite"                   class="dropdown-lista-item" @click="cerrarMenus">Panel Principal</router-link>
+              <router-link to="/comite/solicitudes"       class="dropdown-lista-item" @click="cerrarMenus">Solicitudes</router-link>
+              <router-link to="/comite/solicitudes/nueva" class="dropdown-lista-item" @click="cerrarMenus">Nueva Solicitud</router-link>
+              <router-link to="/comite/sesiones"          class="dropdown-lista-item" @click="cerrarMenus">Sesiones</router-link>
+              <router-link to="/comite/resoluciones"      class="dropdown-lista-item" @click="cerrarMenus">Resoluciones</router-link>
+            </div>
+          </Transition>
         </div>
-        <div v-if="isComiteOpen" class="submenu">
-          <router-link to="/comite"                   class="elemento-menu elemento-submenu" active-class="activo">Panel Principal</router-link>
-          <router-link to="/comite/solicitudes"       class="elemento-menu elemento-submenu" active-class="activo">Solicitudes</router-link>
-          <router-link to="/comite/solicitudes/nueva" class="elemento-menu elemento-submenu" active-class="activo">Nueva Solicitud</router-link>
-          <router-link to="/comite/sesiones"          class="elemento-menu elemento-submenu" active-class="activo">Sesiones</router-link>
-          <router-link to="/comite/resoluciones"      class="elemento-menu elemento-submenu" active-class="activo">Resoluciones</router-link>
+      </template>
+
+      <!-- ══ ADMINISTRACIÓN (solo admin) ══ -->
+      <template v-if="rolActual === 'admin'">
+        <div class="nav-separador-admin">
+          <span class="nav-separador-admin-label">ADMINISTRACIÓN</span>
         </div>
-        </template><!-- /comite -->
 
-        <!-- ══════════════════════════════════════
-             ADMINISTRACIÓN (solo admin)
-        ══════════════════════════════════════ -->
-        <template v-if="rolActual === 'admin'">
+        <!-- Seguridad y Usuarios -->
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'seguridad' }"
+          @mouseenter="abrirDropdown('seguridad')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('seguridad')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span>Seguridad y Usuarios</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
 
-          <div class="separador-menu"><span>Administración</span></div>
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'seguridad'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link to="/roles"         class="dropdown-lista-item" @click="cerrarMenus">Roles</router-link>
+              <router-link to="/permisos"      class="dropdown-lista-item" @click="cerrarMenus">Permisos</router-link>
+              <router-link to="/usuarios"      class="dropdown-lista-item" @click="cerrarMenus">Usuarios</router-link>
+              <router-link to="/bitacora"      class="dropdown-lista-item" @click="cerrarMenus">Bitácora</router-link>
+              <router-link to="/nuevo-usuario" class="dropdown-lista-item" @click="cerrarMenus">Nuevo Usuario</router-link>
+            </div>
+          </Transition>
+        </div>
 
-          <!-- ── Seguridad y Usuarios ── -->
-          <div class="elemento-menu elemento-padre" @click.stop="toggleSeguridad" :aria-expanded="isSeguridadOpen" aria-label="Seguridad y Usuarios">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        <!-- Recursos Humanos -->
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'rrhh' }"
+          @mouseenter="abrirDropdown('rrhh')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('rrhh')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          <span>Recursos Humanos</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'rrhh'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link to="/recursos-humanos"               class="dropdown-lista-item" @click="cerrarMenus">Principal</router-link>
+              <router-link to="/recursos-humanos/empleados"     class="dropdown-lista-item" @click="cerrarMenus">Empleados</router-link>
+              <router-link to="/recursos-humanos/docentes"      class="dropdown-lista-item" @click="cerrarMenus">Docentes</router-link>
+              <router-link to="/recursos-humanos/adscripciones" class="dropdown-lista-item" @click="cerrarMenus">Adscripciones</router-link>
+              <router-link to="/recursos-humanos/puestos"       class="dropdown-lista-item" @click="cerrarMenus">Puestos</router-link>
+              <router-link to="/recursos-humanos/departamentos" class="dropdown-lista-item" @click="cerrarMenus">Departamentos</router-link>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- Personas -->
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'personas' }"
+          @mouseenter="abrirDropdown('personas')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('personas')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Personas</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'personas'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link to="/personas"       class="dropdown-lista-item" @click="cerrarMenus">Catálogo</router-link>
+              <router-link to="/personas/nueva" class="dropdown-lista-item" @click="cerrarMenus">Nueva Persona</router-link>
+            </div>
+          </Transition>
+        </div>
+      </template>
+
+      <!-- ── Asignación Docente ── -->
+      <template v-if="puedeVer.asignacionDocente">
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'asignacion' }"
+          @mouseenter="abrirDropdown('asignacion')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('asignacion')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span>Asignación Docente</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'asignacion'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link v-if="rolActual === 'admin'" to="/asignacion-docente" class="dropdown-lista-item" @click="cerrarMenus">Asignación de Grupos</router-link>
+              <router-link to="/asignacion-docente/carga" class="dropdown-lista-item" @click="cerrarMenus">Carga Académica</router-link>
+            </div>
+          </Transition>
+        </div>
+      </template>
+
+      <!-- Kardex e Historial solo admin -->
+      <template v-if="rolActual === 'admin'">
+        <!-- Kardex -->
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'kardex' }"
+          @mouseenter="abrirDropdown('kardex')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('kardex')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Kardex</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'kardex'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link to="/kardex" class="dropdown-lista-item" @click="cerrarMenus">Consulta de Kardex</router-link>
+            </div>
+          </Transition>
+        </div>
+
+        <!-- Historial Académico -->
+        <div
+          class="nav-item nav-item-dropdown"
+          :class="{ 'nav-abierto': dropdownActivo === 'historial' }"
+          @mouseenter="abrirDropdown('historial')"
+          @mouseleave="cerrarDropdownConDelay"
+          @click.stop="toggleDropdown('historial')"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <span>Historial Académico</span>
+          <svg class="nav-flecha" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+          </svg>
+
+          <Transition name="dropdown">
+            <div v-if="dropdownActivo === 'historial'" class="dropdown-panel dropdown-panel--lista"
+              @mouseenter="cancelarCierreDropdown" @mouseleave="cerrarDropdownConDelay" @click.stop>
+              <router-link to="/historial-academico" class="dropdown-lista-item" @click="cerrarMenus">Avance Curricular</router-link>
+            </div>
+          </Transition>
+        </div>
+      </template>
+      </div>
+    </nav>
+
+    <!-- ══ DRAWER MÓVIL ══ -->
+    <Transition name="drawer">
+      <aside v-if="drawerAbierto" ref="sidebarRef" class="drawer-movil" @click.stop>
+        <div class="drawer-encabezado">
+          <span class="drawer-titulo">Menú</span>
+          <button class="drawer-cerrar" @click="drawerAbierto = false" aria-label="Cerrar menú">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <span class="etiqueta-menu">Seguridad y Usuarios</span>
-            <span class="flecha-submenu" :class="{ abierto: isSeguridadOpen }">›</span>
-          </div>
-          <div v-if="isSeguridadOpen" class="submenu">
-            <router-link to="/roles"         class="elemento-menu elemento-submenu" active-class="activo">Roles</router-link>
-            <router-link to="/permisos"      class="elemento-menu elemento-submenu" active-class="activo">Permisos</router-link>
-            <router-link to="/usuarios"      class="elemento-menu elemento-submenu" active-class="activo">Usuarios</router-link>
-            <router-link to="/bitacora"      class="elemento-menu elemento-submenu" active-class="activo">Bitácora</router-link>
-            <router-link to="/nuevo-usuario" class="elemento-menu elemento-submenu" active-class="activo">Nuevo Usuario</router-link>
-          </div>
-
-          <!-- ── Recursos Humanos ── -->
-          <div class="elemento-menu elemento-padre" @click.stop="toggleRecursosHumanos" :aria-expanded="isRecursosHumanosOpen" aria-label="Recursos Humanos">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </button>
+        </div>
+        <nav class="drawer-nav">
+          <router-link to="/inicio" class="drawer-item" @click="drawerAbierto = false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <span class="etiqueta-menu">Recursos Humanos</span>
-            <span class="flecha-submenu" :class="{ abierto: isRecursosHumanosOpen }">›</span>
-          </div>
-          <div v-if="isRecursosHumanosOpen" class="submenu">
-            <router-link to="/recursos-humanos"               class="elemento-menu elemento-submenu" active-class="activo">Principal</router-link>
-            <router-link to="/recursos-humanos/empleados"     class="elemento-menu elemento-submenu" active-class="activo">Empleados</router-link>
-            <router-link to="/recursos-humanos/docentes"      class="elemento-menu elemento-submenu" active-class="activo">Docentes</router-link>
-            <router-link to="/recursos-humanos/adscripciones" class="elemento-menu elemento-submenu" active-class="activo">Adscripciones</router-link>
-            <router-link to="/recursos-humanos/puestos"       class="elemento-menu elemento-submenu" active-class="activo">Puestos</router-link>
-            <router-link to="/recursos-humanos/departamentos" class="elemento-menu elemento-submenu" active-class="activo">Departamentos</router-link>
-          </div>
+            Inicio
+          </router-link>
 
-          <!-- ── Personas ── -->
-          <div class="elemento-menu elemento-padre" @click.stop="togglePersonas" :aria-expanded="isPersonasOpen" aria-label="Personas">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span class="etiqueta-menu">Personas</span>
-            <span class="flecha-submenu" :class="{ abierto: isPersonasOpen }">›</span>
-          </div>
-          <div v-if="isPersonasOpen" class="submenu">
-            <router-link to="/personas"       class="elemento-menu elemento-submenu" active-class="activo">Catálogo</router-link>
-            <router-link to="/personas/nueva" class="elemento-menu elemento-submenu" active-class="activo">Nueva Persona</router-link>
-          </div>
+          <!-- Servicios Escolares -->
+          <template v-if="puedeVer.serviciosEscolares">
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('servicios')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+              <span>Servicios Escolares</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'servicios' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'servicios'" class="drawer-submenu">
+              <router-link v-if="puedeVerItem('/servicios-escolares')" to="/servicios-escolares" class="drawer-subitem" @click="drawerAbierto = false">Principal</router-link>
+              <router-link v-if="puedeVerItem('/alumnos')"             to="/alumnos"             class="drawer-subitem" @click="drawerAbierto = false">Alumnos</router-link>
+              <router-link v-if="puedeVerItem('/evaluaciones')"        to="/evaluaciones"        class="drawer-subitem" @click="drawerAbierto = false">Evaluaciones</router-link>
+              <router-link v-if="puedeVerItem('/calificaciones')"      to="/calificaciones"      class="drawer-subitem" @click="drawerAbierto = false">Calificaciones</router-link>
+              <router-link v-if="puedeVerItem('/inscripcion')"         to="/inscripcion"         class="drawer-subitem" @click="drawerAbierto = false">Inscripción</router-link>
+              <router-link v-if="puedeVerItem('/gestion-grupos')"      to="/gestion-grupos"      class="drawer-subitem" @click="drawerAbierto = false">Grupos y Horarios</router-link>
+              <template v-if="puedeVerItem('/inscripciones')">
+                <router-link to="/inscripciones"           class="drawer-subitem" @click="drawerAbierto = false">Inscripciones Detalladas</router-link>
+                <router-link to="/inscripciones/historial" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Historial</router-link>
+              </template>
+            </div>
+          </template>
 
-        </template><!-- /admin -->
+          <!-- Gestión Académica -->
+          <template v-if="puedeVer.gestionAcademica">
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('academica')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zM12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+              </svg>
+              <span>Gestión Académica</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'academica' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'academica'" class="drawer-submenu">
+              <router-link to="/gestion-academica"                 class="drawer-subitem" @click="drawerAbierto = false">Panel Principal</router-link>
+              <router-link to="/gestion-academica/carreras"        class="drawer-subitem" @click="drawerAbierto = false">Carreras</router-link>
+              <router-link to="/gestion-academica/planes"          class="drawer-subitem" @click="drawerAbierto = false">Planes de Estudio</router-link>
+              <router-link to="/gestion-academica/materias"        class="drawer-subitem" @click="drawerAbierto = false">Materias</router-link>
+              <router-link to="/gestion-academica/prerrequisitos"  class="drawer-subitem" @click="drawerAbierto = false">Prerrequisitos</router-link>
+              <router-link to="/gestion-academica/periodos"        class="drawer-subitem" @click="drawerAbierto = false">Periodos Académicos</router-link>
+              <router-link to="/gestion-academica/edificios-aulas" class="drawer-subitem" @click="drawerAbierto = false">Edificios y Aulas</router-link>
+            </div>
+          </template>
 
-        <!-- ── Asignación Docente a Grupos ── -->
-        <!-- Visible para admin y docente -->
-        <template v-if="puedeVer.asignacionDocente">
-          <div class="elemento-menu elemento-padre" @click.stop="toggleAsignacionDocente" :aria-expanded="isAsignacionDocenteOpen" aria-label="Asignación Docente a Grupos">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-            <span class="etiqueta-menu">Asignación Docente</span>
-            <span class="flecha-submenu" :class="{ abierto: isAsignacionDocenteOpen }">›</span>
-          </div>
-          <div v-if="isAsignacionDocenteOpen" class="submenu">
-            <router-link v-if="rolActual === 'admin'" to="/asignacion-docente" class="elemento-menu elemento-submenu" active-class="activo">Asignación de Grupos</router-link>
-            <router-link to="/asignacion-docente/carga" class="elemento-menu elemento-submenu" active-class="activo">Carga Académica</router-link>
-          </div>
-        </template><!-- /asignacionDocente -->
+          <!-- Eventos -->
+          <template v-if="puedeVer.eventos">
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('eventos')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span>Eventos</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'eventos' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'eventos'" class="drawer-submenu">
+              <router-link to="/eventos"       class="drawer-subitem" @click="drawerAbierto = false">Lista de Eventos</router-link>
+              <router-link to="/eventos/nuevo" class="drawer-subitem" @click="drawerAbierto = false">Nuevo Evento</router-link>
+            </div>
+          </template>
 
-        <!-- Kardex e Historial solo admin -->
-        <template v-if="rolActual === 'admin'">
+          <!-- Comité -->
+          <template v-if="puedeVer.comite">
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('comite')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+              </svg>
+              <span>Comité Académico</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'comite' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'comite'" class="drawer-submenu">
+              <router-link to="/comite"                   class="drawer-subitem" @click="drawerAbierto = false">Panel Principal</router-link>
+              <router-link to="/comite/solicitudes"       class="drawer-subitem" @click="drawerAbierto = false">Solicitudes</router-link>
+              <router-link to="/comite/solicitudes/nueva" class="drawer-subitem" @click="drawerAbierto = false">Nueva Solicitud</router-link>
+              <router-link to="/comite/sesiones"          class="drawer-subitem" @click="drawerAbierto = false">Sesiones</router-link>
+              <router-link to="/comite/resoluciones"      class="drawer-subitem" @click="drawerAbierto = false">Resoluciones</router-link>
+            </div>
+          </template>
 
-          <!-- ── Kardex ── -->
-          <div class="elemento-menu elemento-padre" @click.stop="toggleKardex" :aria-expanded="isKardexOpen" aria-label="Kardex">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span class="etiqueta-menu">Kardex</span>
-            <span class="flecha-submenu" :class="{ abierto: isKardexOpen }">›</span>
-          </div>
-          <div v-if="isKardexOpen" class="submenu">
-            <router-link to="/kardex" class="elemento-menu elemento-submenu" active-class="activo">Consulta de Kardex</router-link>
-          </div>
+          <!-- Admin -->
+          <template v-if="rolActual === 'admin'">
+            <div class="drawer-separador"><span>ADMINISTRACIÓN</span></div>
 
-          <!-- ── Historial Académico ── -->
-          <div class="elemento-menu elemento-padre" @click.stop="toggleHistorialAcademico" :aria-expanded="isHistorialAcademicoOpen" aria-label="Historial Académico">
-            <svg xmlns="http://www.w3.org/2000/svg" class="icono-menu" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <span class="etiqueta-menu">Historial Académico</span>
-            <span class="flecha-submenu" :class="{ abierto: isHistorialAcademicoOpen }">›</span>
-          </div>
-          <div v-if="isHistorialAcademicoOpen" class="submenu">
-            <router-link to="/historial-academico" class="elemento-menu elemento-submenu" active-class="activo">Avance Curricular</router-link>
-          </div>
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('seguridad')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+              </svg>
+              <span>Seguridad y Usuarios</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'seguridad' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'seguridad'" class="drawer-submenu">
+              <router-link to="/roles"         class="drawer-subitem" @click="drawerAbierto = false">Roles</router-link>
+              <router-link to="/permisos"      class="drawer-subitem" @click="drawerAbierto = false">Permisos</router-link>
+              <router-link to="/usuarios"      class="drawer-subitem" @click="drawerAbierto = false">Usuarios</router-link>
+              <router-link to="/bitacora"      class="drawer-subitem" @click="drawerAbierto = false">Bitácora</router-link>
+              <router-link to="/nuevo-usuario" class="drawer-subitem" @click="drawerAbierto = false">Nuevo Usuario</router-link>
+            </div>
 
-        </template><!-- /admin kardex historial -->
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('rrhh')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              <span>Recursos Humanos</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'rrhh' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'rrhh'" class="drawer-submenu">
+              <router-link to="/recursos-humanos"               class="drawer-subitem" @click="drawerAbierto = false">Principal</router-link>
+              <router-link to="/recursos-humanos/empleados"     class="drawer-subitem" @click="drawerAbierto = false">Empleados</router-link>
+              <router-link to="/recursos-humanos/docentes"      class="drawer-subitem" @click="drawerAbierto = false">Docentes</router-link>
+              <router-link to="/recursos-humanos/adscripciones" class="drawer-subitem" @click="drawerAbierto = false">Adscripciones</router-link>
+              <router-link to="/recursos-humanos/puestos"       class="drawer-subitem" @click="drawerAbierto = false">Puestos</router-link>
+              <router-link to="/recursos-humanos/departamentos" class="drawer-subitem" @click="drawerAbierto = false">Departamentos</router-link>
+            </div>
 
-      </nav>
-    </aside>
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('personas')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span>Personas</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'personas' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'personas'" class="drawer-submenu">
+              <router-link to="/personas"       class="drawer-subitem" @click="drawerAbierto = false">Catálogo</router-link>
+              <router-link to="/personas/nueva" class="drawer-subitem" @click="drawerAbierto = false">Nueva Persona</router-link>
+            </div>
+
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('kardex')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <span>Kardex</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'kardex' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'kardex'" class="drawer-submenu">
+              <router-link to="/kardex" class="drawer-subitem" @click="drawerAbierto = false">Consulta de Kardex</router-link>
+            </div>
+
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('historial')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+              <span>Historial Académico</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'historial' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'historial'" class="drawer-submenu">
+              <router-link to="/historial-academico" class="drawer-subitem" @click="drawerAbierto = false">Avance Curricular</router-link>
+            </div>
+          </template>
+
+          <!-- Asignación Docente -->
+          <template v-if="puedeVer.asignacionDocente">
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('asignacion')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+              </svg>
+              <span>Asignación Docente</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'asignacion' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'asignacion'" class="drawer-submenu">
+              <router-link v-if="rolActual === 'admin'" to="/asignacion-docente" class="drawer-subitem" @click="drawerAbierto = false">Asignación de Grupos</router-link>
+              <router-link to="/asignacion-docente/carga" class="drawer-subitem" @click="drawerAbierto = false">Carga Académica</router-link>
+            </div>
+          </template>
+        </nav>
+      </aside>
+    </Transition>
+
+    <!-- Overlay drawer móvil -->
+    <Transition name="overlay">
+      <div v-if="drawerAbierto" class="drawer-overlay" @click="drawerAbierto = false"></div>
+    </Transition>
 
     <!-- ══ CONTENIDO PRINCIPAL ══ -->
-    <main class="area-contenido" :class="{ 'contenido-retrasado': contenidoMoviendo }">
+    <main class="area-contenido">
       <slot :busquedaGlobal="busquedaGlobal" />
     </main>
 
@@ -344,8 +694,7 @@
         title="Regresar"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="fab-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                d="M15 19l-7-7 7-7" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
     </Transition>
@@ -358,8 +707,7 @@
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 useKeyboardShortcuts()
 
-
-import { ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
@@ -368,192 +716,95 @@ const route  = useRoute()
 // ── Estado global ─────────────────────────────────────────────────────
 const busquedaGlobal = ref('')
 
-// ── Control del buscador en móvil ────────────────────────────────────
-const anchoVentana   = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
-const esMobil = computed(() => anchoVentana.value <= 768)
+// ── Control de ventana ────────────────────────────────────────────────
+const anchoVentana = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
+const esMobil      = computed(() => anchoVentana.value <= 768)
 const busquedaOculta = computed(() => anchoVentana.value <= 480)
 
-// Actualizar ancho al redimensionar
 let resizeTimer = null
 const onResize = () => {
   if (resizeTimer) clearTimeout(resizeTimer)
-  resizeTimer = setTimeout(() => {
-    anchoVentana.value = window.innerWidth
-  }, 100)
+  resizeTimer = setTimeout(() => { anchoVentana.value = window.innerWidth }, 100)
 }
+if (typeof window !== 'undefined') window.addEventListener('resize', onResize, { passive: true })
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('resize', onResize, { passive: true })
-}
-
-// Limpiar el listener cuando el componente se desmonta
 onUnmounted(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', onResize)
-  }
-  if (resizeTimer)  clearTimeout(resizeTimer)
-  if (timerColapso) clearTimeout(timerColapso)
-  if (timerStorage) clearTimeout(timerStorage)
-  if (sidebarRef.value) {
-    sidebarRef.value.style.overscrollBehavior = 'contain'
-  }
+  if (typeof window !== 'undefined') window.removeEventListener('resize', onResize)
+  if (resizeTimer) clearTimeout(resizeTimer)
+  if (dropdownTimer) clearTimeout(dropdownTimer)
 })
 
-const isCollapsed    = ref(false)
-
-
-// ── Fijado del sidebar ────────────────────────────────────────────────
-
-const isFixed       = ref(false)
-const isHovered     = ref(false)
-const colapsandoSuave = ref(false)
-const contenidoMoviendo = ref(false)
-const sidebarRef = ref(null)
+// ── Dropdown horizontal (desktop) ────────────────────────────────────
+const dropdownActivo = ref(null)
 const SIDEBAR_SCROLL_KEY = 'sice_sidebar_scroll'
-const sidebarVisible = computed(() => isFixed.value || isHovered.value)
+const sidebarRef = ref(null)
+const navScrollRef = ref(null)          // ← Nueva referencia para scroll horizontal
+let dropdownTimer = null
 
+const abrirDropdown = (nombre) => {
+  if (esMobil.value) return
+  if (dropdownTimer) { clearTimeout(dropdownTimer); dropdownTimer = null }
+  dropdownActivo.value = nombre
+}
+const cerrarDropdownConDelay = () => {
+  if (esMobil.value) return
+  dropdownTimer = setTimeout(() => { dropdownActivo.value = null }, 200)
+}
+const cancelarCierreDropdown = () => {
+  if (dropdownTimer) { clearTimeout(dropdownTimer); dropdownTimer = null }
+}
+const toggleDropdown = (nombre) => {
+  dropdownActivo.value = dropdownActivo.value === nombre ? null : nombre
+}
 
-// ── Estados de submenús ───────────────────────────────────────────────
-const isServiciosOpen          = ref(true)
-const isGestionAcademicaOpen   = ref(false)
-const isEventosOpen            = ref(false)
-const isComiteOpen             = ref(false)
-const isSeguridadOpen          = ref(false)
-const isRecursosHumanosOpen    = ref(false)
-const isPersonasOpen           = ref(false)
-const isAsignacionDocenteOpen  = ref(false)
-const isKardexOpen             = ref(false)
-const isHistorialAcademicoOpen      = ref(false)
-const isInscripcionesDetalladasOpen = ref(false)
+// ── Drawer móvil ──────────────────────────────────────────────────────
+const drawerAbierto       = ref(false)
+const drawerSeccionAbierta = ref(null)
+
+const toggleDrawer = () => { drawerAbierto.value = !drawerAbierto.value }
+const toggleDrawerSeccion = (nombre) => {
+  drawerSeccionAbierta.value = drawerSeccionAbierta.value === nombre ? null : nombre
+}
 
 // ── Encabezado ────────────────────────────────────────────────────────
 const mostrarMenuUsuario    = ref(false)
 const mostrarNotificaciones = ref(false)
 const notificaciones        = ref([])
 
-// ── Datos del usuario logueado (leídos desde localStorage) ───────────
+// ── Datos del usuario logueado ────────────────────────────────────────
 const usuarioLogueado = ref(JSON.parse(localStorage.getItem('usuario') || 'null'))
 const rolActual       = computed(() => usuarioLogueado.value?.rol ?? 'servicios-escolares')
 
-// ── Persistencia en localStorage ─────────────────────────────────────
-onMounted(() => {
-  const load = (key, refVar, parse = true) => {
-    const val = localStorage.getItem(key)
-    if (val !== null) refVar.value = parse ? JSON.parse(val) : val
-  }
-  load('isServiciosOpen',               isServiciosOpen)
-  load('isGestionAcademicaOpen',        isGestionAcademicaOpen)
-  load('isEventosOpen',                 isEventosOpen)
-  load('isComiteOpen',                  isComiteOpen)
-  load('isSeguridadOpen',               isSeguridadOpen)
-  load('isRecursosHumanosOpen',         isRecursosHumanosOpen)
-  load('isPersonasOpen',                isPersonasOpen)
-  load('isAsignacionDocenteOpen',       isAsignacionDocenteOpen)
-  load('isKardexOpen',                  isKardexOpen)
-  load('isHistorialAcademicoOpen',      isHistorialAcademicoOpen)
-  load('isInscripcionesDetalladasOpen', isInscripcionesDetalladasOpen)
-  load('isFixed',                       isFixed)
-
-  // Si estaba fijado, mostrar sidebar inmediatamente
-  if (isFixed.value) {
-    isCollapsed.value = false
-  } else {
-    // Si no estaba fijado, colapsar al cargar
-    isCollapsed.value = true
-  }
-
-  nextTick(() => {
-    const saved = parseInt(sessionStorage.getItem(SIDEBAR_SCROLL_KEY) || '0', 10)
-    if (sidebarRef.value && saved > 0) {
-      sidebarRef.value.scrollTop = saved
-    }
-  })
-})
-
-onBeforeUnmount(() => {
-  if (sidebarRef.value) {
-    sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(sidebarRef.value.scrollTop))
-  }
-})
-
-let timerStorage = null
-
-watch(
-  [
-    isServiciosOpen, isGestionAcademicaOpen, isEventosOpen,
-    isComiteOpen, isSeguridadOpen, isRecursosHumanosOpen,
-    isPersonasOpen, isAsignacionDocenteOpen, isKardexOpen,
-    isHistorialAcademicoOpen, isInscripcionesDetalladasOpen, isFixed
-  ],
-  () => {
-    if (timerStorage) clearTimeout(timerStorage)
-    timerStorage = setTimeout(() => {
-      localStorage.setItem('isServiciosOpen',               JSON.stringify(isServiciosOpen.value))
-      localStorage.setItem('isGestionAcademicaOpen',        JSON.stringify(isGestionAcademicaOpen.value))
-      localStorage.setItem('isEventosOpen',                 JSON.stringify(isEventosOpen.value))
-      localStorage.setItem('isComiteOpen',                  JSON.stringify(isComiteOpen.value))
-      localStorage.setItem('isSeguridadOpen',               JSON.stringify(isSeguridadOpen.value))
-      localStorage.setItem('isRecursosHumanosOpen',         JSON.stringify(isRecursosHumanosOpen.value))
-      localStorage.setItem('isPersonasOpen',                JSON.stringify(isPersonasOpen.value))
-      localStorage.setItem('isAsignacionDocenteOpen',       JSON.stringify(isAsignacionDocenteOpen.value))
-      localStorage.setItem('isKardexOpen',                  JSON.stringify(isKardexOpen.value))
-      localStorage.setItem('isHistorialAcademicoOpen',      JSON.stringify(isHistorialAcademicoOpen.value))
-      localStorage.setItem('isInscripcionesDetalladasOpen', JSON.stringify(isInscripcionesDetalladasOpen.value))
-      localStorage.setItem('isFixed',                       JSON.stringify(isFixed.value))
-      timerStorage = null
-    }, 300)
-  },
-  { deep: true }
-)
-
-// ── Computed ──────────────────────────────────────────────────────────
 const ETIQUETAS_ROL = {
   'admin':               'Administrador',
   'docente':             'Docente',
   'servicios-escolares': 'Servicios Escolares',
 }
-const etiquetaRol       = computed(() => ETIQUETAS_ROL[rolActual.value] ?? rolActual.value)
-const nombreUsuarioActual = computed(() =>
-  usuarioLogueado.value?.nombre_usuario ?? etiquetaRol.value
-)
+const etiquetaRol         = computed(() => ETIQUETAS_ROL[rolActual.value] ?? rolActual.value)
+const nombreUsuarioActual = computed(() => usuarioLogueado.value?.nombre_usuario ?? etiquetaRol.value)
 
-// ── Visibilidad de módulos en el sidebar por rol ──────────────────────
+// ── Permisos por módulo ───────────────────────────────────────────────
 const MODULOS_POR_ROL = {
-  'docente': ['servicios-escolares', 'eventos', 'asignacion-docente'],
+  'docente':             ['servicios-escolares', 'eventos', 'asignacion-docente'],
   'servicios-escolares': ['servicios-escolares', 'gestion-academica', 'eventos', 'comite'],
 }
 
 const puedeVer = computed(() => {
   const rol = rolActual.value
-  if (rol === 'admin') {
-    // Admin ve todos los módulos
-    return {
-      serviciosEscolares:   true,
-      gestionAcademica:     true,
-      eventos:              true,
-      comite:               true,
-      asignacionDocente:    true,
-    }
-  }
+  if (rol === 'admin') return { serviciosEscolares: true, gestionAcademica: true, eventos: true, comite: true, asignacionDocente: true }
   const modulos = MODULOS_POR_ROL[rol] ?? []
   return {
-    serviciosEscolares:   modulos.includes('servicios-escolares'),
-    gestionAcademica:     modulos.includes('gestion-academica'),
-    eventos:              modulos.includes('eventos'),
-    comite:               modulos.includes('comite'),
-    asignacionDocente:    modulos.includes('asignacion-docente'),
+    serviciosEscolares: modulos.includes('servicios-escolares'),
+    gestionAcademica:   modulos.includes('gestion-academica'),
+    eventos:            modulos.includes('eventos'),
+    comite:             modulos.includes('comite'),
+    asignacionDocente:  modulos.includes('asignacion-docente'),
   }
 })
 
-
-// ── Visibilidad de ítems dentro de submenús por rol ──────────────────
-
 const ITEMS_POR_ROL = {
-  'docente': [
-    '/evaluaciones', '/calificaciones', '/gestion-grupos',
-    '/asignacion-docente/carga', '/eventos',
-  ],
-  'servicios-escolares': null, // null = ve todo
+  'docente': ['/evaluaciones', '/calificaciones', '/gestion-grupos', '/asignacion-docente/carga', '/eventos'],
+  'servicios-escolares': null,
 }
 
 const puedeVerItem = computed(() => (ruta) => {
@@ -561,121 +812,15 @@ const puedeVerItem = computed(() => (ruta) => {
   if (rol === 'admin') return true
   const items = ITEMS_POR_ROL[rol]
   if (items === null || items === undefined) return true
-  // startsWith para cubrir rutas con parámetros
   return items.some(r => ruta.startsWith(r))
 })
-// El botón de hamburguesa ahora alterna entre fijado y no fijado
-const toggleSidebar = () => {
-  if (esMobil.value) {
-    // En móvil: el botón simplemente abre/cierra el drawer
-    isCollapsed.value = !isCollapsed.value
-    return
-  }
-  // En escritorio: comportamiento original de fijado
-  isFixed.value = !isFixed.value
-  if (isFixed.value) {
-    isCollapsed.value = false
-  } else {
-    if (!isHovered.value) {
-      isCollapsed.value = true
-    }
-  }
+
+// ── Cerrar menús ──────────────────────────────────────────────────────
+const cerrarMenus = () => {
+  mostrarMenuUsuario.value    = false
+  mostrarNotificaciones.value = false
+  dropdownActivo.value        = null
 }
-
-// ── Hover del sidebar ─────────────────────────────────────────────────
-const onSidebarEnter = () => {
-  if (!isFixed.value && !esMobil.value) {
-    isHovered.value   = true
-    isCollapsed.value = false
-  }
-}
-
-const onSidebarLeave = () => {
-  // En móvil el hover no aplica
-  if (!isFixed.value && !esMobil.value) {
-    isHovered.value   = false
-    isCollapsed.value = true
-  }
-}
-
-// ── Auto-colapso al navegar ───────────────────────────────────────────
-let timerColapso = null
-
-watch(
-  () => router.currentRoute.value.fullPath,
-  (newPath, oldPath) => {
-    // Ignorar si es navegación a la misma ruta
-    if (newPath === oldPath) return
-
-    if (sidebarRef.value) {
-      sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(sidebarRef.value.scrollTop))
-    }
-
-    if (timerColapso) {
-      clearTimeout(timerColapso)
-      timerColapso            = null
-      colapsandoSuave.value   = false
-      contenidoMoviendo.value = false
-    }
-
-    if (esMobil.value) {
-      isCollapsed.value = true
-      isHovered.value   = false
-    } else if (!isFixed.value) {
-      isHovered.value         = false
-      colapsandoSuave.value   = true
-      contenidoMoviendo.value = true
-      timerColapso = setTimeout(() => {
-        isCollapsed.value       = true
-        colapsandoSuave.value   = false
-        contenidoMoviendo.value = false
-        timerColapso            = null
-      }, 280)
-    }
-
-    cerrarMenus()
-  }
-)
-
-
-watch(esMobil, (ahoraMobil, antesEraMovil) => {
-  if (!ahoraMobil && antesEraMovil) {
-    // Pasó a escritorio: restaurar lógica de isFixed
-    isCollapsed.value = !isFixed.value
-    isHovered.value   = false
-  }
-  if (ahoraMobil && !antesEraMovil) {
-    // Pasó a móvil: colapsar siempre
-    isCollapsed.value = true
-    isHovered.value   = false
-  }
-})
-
-
-watch(isCollapsed, (nowCollapsed, wasCollapsed) => {
-  if (wasCollapsed && !nowCollapsed) {
-    const saved = parseInt(sessionStorage.getItem(SIDEBAR_SCROLL_KEY) || '0', 10)
-    if (saved > 0) {
-      setTimeout(() => {
-        if (sidebarRef.value) sidebarRef.value.scrollTop = saved
-      }, 360)
-    }
-  }
-})
-
-
-// ── Toggles de submenús ───────────────────────────────────────────────
-const toggleServicios           = () => { isServiciosOpen.value          = !isServiciosOpen.value }
-const toggleGestionAcademica    = () => { isGestionAcademicaOpen.value   = !isGestionAcademicaOpen.value }
-const toggleEventos             = () => { isEventosOpen.value            = !isEventosOpen.value }
-const toggleComite              = () => { isComiteOpen.value             = !isComiteOpen.value }
-const toggleSeguridad           = () => { isSeguridadOpen.value          = !isSeguridadOpen.value }
-const toggleRecursosHumanos     = () => { isRecursosHumanosOpen.value    = !isRecursosHumanosOpen.value }
-const togglePersonas            = () => { isPersonasOpen.value           = !isPersonasOpen.value }
-const toggleAsignacionDocente   = () => { isAsignacionDocenteOpen.value  = !isAsignacionDocenteOpen.value }
-const toggleKardex              = () => { isKardexOpen.value             = !isKardexOpen.value }
-const toggleHistorialAcademico  = () => { isHistorialAcademicoOpen.value = !isHistorialAcademicoOpen.value }
-const toggleInscripcionesDetalladas = () => { isInscripcionesDetalladasOpen.value = !isInscripcionesDetalladasOpen.value }
 
 const toggleMenuUsuario = () => {
   mostrarMenuUsuario.value    = !mostrarMenuUsuario.value
@@ -685,14 +830,11 @@ const toggleNotificaciones = () => {
   mostrarNotificaciones.value = !mostrarNotificaciones.value
   mostrarMenuUsuario.value    = false
 }
-const cerrarMenus = () => {
-  mostrarMenuUsuario.value    = false
-  mostrarNotificaciones.value = false
-}
 const marcarTodasLeidas = () => {
   notificaciones.value        = []
   mostrarNotificaciones.value = false
 }
+
 // ── Cerrar sesión ─────────────────────────────────────────────────────
 const cerrarSesion = async () => {
   try {
@@ -709,406 +851,624 @@ const cerrarSesion = async () => {
   router.push('/login')
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// ── BOTÓN REGRESAR FLOTANTE ───────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════
-
-// Rutas principales donde el botón NO debe mostrarse.
-// Son las "pantallas raíz" de cada módulo; en subrutas sí aparece.
-const RUTAS_PRINCIPALES = new Set([
-  '/inicio',
-  '/dashboard',
-  '/servicios-escolares',
-  '/alumnos',
-  '/evaluaciones',
-  '/calificaciones',
-  '/inscripcion',
-  '/inscripciones',
-  '/gestion-grupos',
-  '/gestion-academica',
-  '/eventos',
-  '/comite',
-  '/kardex',
-  '/historial-academico',
-  '/asignacion-docente',
-  '/roles',
-  '/permisos',
-  '/usuarios',
-  '/bitacora',
-  '/nuevo-usuario',
-  '/recursos-humanos',
-  '/personas',
-])
-
-// El botón aparece cuando:
-//   1. La ruta actual NO es una ruta principal exacta.
-//   2. El historial del navegador tiene al menos una página atrás.
-const mostrarBotonRegresar = computed(() => {
-  const path = route.path.replace(/\/$/, '') // quitar trailing slash
-  const esRutaPrincipal = RUTAS_PRINCIPALES.has(path)
-  const hayHistorial    = window.history.length > 1
-  return !esRutaPrincipal && hayHistorial
+// ── Cerrar al navegar ─────────────────────────────────────────────────
+watch(() => router.currentRoute.value.fullPath, () => {
+  cerrarMenus()
+  drawerAbierto.value = false
 })
 
-const regresarPagina = () => {
-  router.back()
-}
+// ── Cerrar drawer al pasar a desktop ─────────────────────────────────
+watch(esMobil, (ahoraMobil) => {
+  if (!ahoraMobil) drawerAbierto.value = false
+})
+
+
+onMounted(() => {
+  const saved = parseInt(sessionStorage.getItem(SIDEBAR_SCROLL_KEY) || '0', 10)
+  if (saved > 0) {
+  }
+
+  // Scroll horizontal con rueda del ratón en el nav
+  if (navScrollRef.value) {
+    navScrollRef.value.addEventListener('wheel', (e) => {
+      if (e.deltaY !== 0) {
+        e.preventDefault()
+        navScrollRef.value.scrollLeft += e.deltaY
+      }
+    }, { passive: false })
+  }
+})
+
+onBeforeUnmount(() => {
+  if (sidebarRef.value) {
+    sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(sidebarRef.value.scrollTop))
+  }
+})
+
+watch(drawerAbierto, (abierto) => {
+  if (abierto) {
+    const saved = parseInt(sessionStorage.getItem(SIDEBAR_SCROLL_KEY) || '0', 10)
+    if (saved > 0) {
+      setTimeout(() => {
+        if (sidebarRef.value) sidebarRef.value.scrollTop = saved
+      }, 320)
+    }
+  } else {
+    if (sidebarRef.value) {
+      sessionStorage.setItem(SIDEBAR_SCROLL_KEY, String(sidebarRef.value.scrollTop))
+    }
+  }
+})
+
+
+const RUTAS_PRINCIPALES = new Set([
+  '/inicio', '/dashboard', '/servicios-escolares', '/alumnos', '/evaluaciones',
+  '/calificaciones', '/inscripcion', '/inscripciones', '/gestion-grupos',
+  '/gestion-academica', '/eventos', '/comite', '/kardex', '/historial-academico',
+  '/asignacion-docente', '/roles', '/permisos', '/usuarios', '/bitacora',
+  '/nuevo-usuario', '/recursos-humanos', '/personas',
+])
+
+const mostrarBotonRegresar = computed(() => {
+  const path = route.path.replace(/\/$/, '')
+  return !RUTAS_PRINCIPALES.has(path) && window.history.length > 1
+})
+
+const regresarPagina = () => router.back()
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
+/* ══════════════════════════════════════
+   VARIABLES GLOBALES
+══════════════════════════════════════ */
 .sistema-layout {
-  --fondo-general:     #F5F5F5;
-  --borde:             #E5E7EB;
-  --texto-principal:   #1A1A1A;
-  --texto-secundario:  #6B7280;
-  --texto-placeholder: #9CA3AF;
-  --azul-principal:    #1B396A;
-  --azul-hover:        #1D4ED8;
-  --azul-suave:        #DBEAFE;
+  --azul:           #1B396A;
+  --azul-hover:     #1D4ED8;
+  --azul-suave:     #DBEAFE;
+  --azul-text:      #1B396A;
+  --borde:          #E5E7EB;
+  --fondo:          #F5F5F5;
+  --blanco:         #FFFFFF;
+  --texto:          #1A1A1A;
+  --gris:           #6B7280;
+  --header-h:       62px;
+  --nav-h:          50px;
+  --total-h:        calc(var(--header-h) + var(--nav-h));
 
   font-family: 'Montserrat', sans-serif;
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background: var(--fondo-general);
-  position: relative;
+  background: var(--fondo);
 }
 
-/* ══ Encabezado ══ */
+/* ══════════════════════════════════════
+   HEADER SUPERIOR
+══════════════════════════════════════ */
 .encabezado-superior {
-  background: #1B396A;
-  padding: 0 2rem;
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 74px;
+  background: var(--azul);
+  padding: 0 1.5rem;
+  height: var(--header-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: fixed;
+  top: 0; left: 0; right: 0;
   z-index: 1000;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
 }
-.encabezado-izquierda { display: flex; align-items: center; gap: 0.9rem; }
-.logo-encabezado { height: 52px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.9)); }
-.titulo-sistema { font-size: 1.05rem; font-weight: 700; color: #FFFFFF; letter-spacing: 0.01em; white-space: nowrap; }
+.encabezado-izquierda { display: flex; align-items: center; gap: 0.75rem; }
+.logo-encabezado { height: 44px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.8)); }
+.titulo-sistema  { font-size: 0.98rem; font-weight: 700; color: #fff; letter-spacing: 0.01em; white-space: nowrap; }
 
-.btn-toggle-menu {
+/* Hamburguesa: solo visible en móvil */
+.btn-hamburguesa {
+  display: none;
   background: none; border: none; color: white;
-  width: 38px; height: 38px;
-  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  align-items: center; justify-content: center;
   cursor: pointer; border-radius: 6px; transition: background 0.2s; flex-shrink: 0;
 }
-.btn-toggle-menu:hover { background: rgba(255,255,255,0.15); }
-.icono-toggle { width: 22px; height: 22px; stroke: white; }
+.btn-hamburguesa svg { width: 22px; height: 22px; stroke: white; }
+.btn-hamburguesa:hover { background: rgba(255,255,255,0.15); }
 
-.encabezado-derecha { display: flex; align-items: center; gap: 2rem; height: 100%; }
+.encabezado-derecha { display: flex; align-items: center; gap: 1.5rem; height: 100%; }
 
-.grupo-busqueda { position: relative; width: 300px; }
+/* Buscador */
+.grupo-busqueda { position: relative; width: 280px; }
 .grupo-busqueda input {
-  width: 100%; padding: 9px 16px 9px 44px;
+  width: 100%; padding: 8px 14px 8px 40px;
   border: none; border-radius: 8px;
-  background: #FFFFFF; color: #1A1A1A;
-  font-size: 0.92rem; font-family: 'Montserrat', sans-serif;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  background: #fff; color: var(--texto);
+  font-size: 0.88rem; font-family: 'Montserrat', sans-serif;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
   outline: none; transition: box-shadow 0.2s; box-sizing: border-box;
 }
 .grupo-busqueda input::placeholder { color: #9CA3AF; }
-.grupo-busqueda input:focus { box-shadow: 0 0 0 3px #DBEAFE; }
+.grupo-busqueda input:focus { box-shadow: 0 0 0 3px var(--azul-suave); }
 .icono-busqueda {
-  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-  width: 18px; height: 18px; stroke: #6B7280; pointer-events: none;
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; stroke: #6B7280; pointer-events: none;
 }
 
+/* Campana */
 .campana-notificaciones {
   position: relative; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   width: 36px; height: 36px; border-radius: 8px; transition: background 0.2s;
 }
 .campana-notificaciones:hover { background: rgba(255,255,255,0.15); }
-.icono-campana { width: 24px; height: 24px; stroke: white; }
+.icono-campana { width: 22px; height: 22px; stroke: white; }
 .contador-notificaciones {
-  position: absolute; top: -4px; right: -4px;
+  position: absolute; top: -3px; right: -3px;
   background: #EF4444; color: white;
-  font-size: 0.7rem; font-weight: 700;
-  min-width: 18px; height: 18px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; padding: 0 4px;
-}
-.panel-notificaciones {
-  position: absolute; top: 56px; right: 0;
-  width: 360px; background: #FFFFFF;
-  border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.18);
-  border: 1px solid #E5E7EB; overflow: hidden; z-index: 1100;
-}
-.panel-encabezado {
-  padding: 14px 18px; background: #F8FAFC;
-  border-bottom: 1px solid #E5E7EB;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.panel-encabezado h4 { margin: 0; font-size: 1rem; font-weight: 600; color: #1A1A1A; }
-.marcar-todo { font-size: 0.82rem; color: #1B396A; cursor: pointer; font-weight: 500; }
-.lista-notificaciones { max-height: 320px; overflow-y: auto; }
-.elemento-notificacion {
-  display: flex; gap: 12px; padding: 14px 18px;
-  border-bottom: 1px solid #F1F5F9; transition: background 0.2s;
-}
-.elemento-notificacion:hover { background: #F8FAFC; }
-.icono-notif { width: 22px; height: 22px; stroke: #1B396A; flex-shrink: 0; }
-.contenido-notif p { margin: 0; line-height: 1.4; color: #1A1A1A; }
-.tiempo-notif { font-size: 0.8rem; color: #6B7280; margin-top: 3px !important; }
-.sin-notificaciones { padding: 48px 20px; text-align: center; color: #6B7280; }
-.icono-vacio { width: 52px; height: 52px; stroke: #9CA3AF; margin-bottom: 12px; }
-.titulo-vacio { font-size: 1rem; font-weight: 600; margin: 0 0 4px; }
-.subtitulo-vacio { font-size: 0.85rem; margin: 0; }
-.pie-notificaciones {
-  padding: 12px 18px; text-align: center;
-  color: #1B396A; font-weight: 600; font-size: 0.9rem;
-  border-top: 1px solid #E5E7EB; cursor: pointer;
+  font-size: 0.65rem; font-weight: 700;
+  min-width: 16px; height: 16px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; padding: 0 3px;
 }
 
+/* Panel notificaciones */
+.panel-notificaciones {
+  position: absolute; top: calc(var(--header-h) - 10px); right: 0;
+  width: 340px; background: #fff;
+  border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.16);
+  border: 1px solid var(--borde); overflow: hidden; z-index: 1100;
+}
+.panel-encabezado {
+  padding: 12px 16px; background: #F8FAFC;
+  border-bottom: 1px solid var(--borde);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.panel-encabezado h4 { margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--texto); }
+.marcar-todo { font-size: 0.8rem; color: var(--azul); cursor: pointer; font-weight: 500; }
+.lista-notificaciones { max-height: 300px; overflow-y: auto; }
+.elemento-notificacion {
+  display: flex; gap: 10px; padding: 12px 16px;
+  border-bottom: 1px solid #F1F5F9; transition: background 0.15s;
+}
+.elemento-notificacion:hover { background: #F8FAFC; }
+.icono-notif { width: 20px; height: 20px; stroke: var(--azul); flex-shrink: 0; }
+.contenido-notif p { margin: 0; line-height: 1.4; color: var(--texto); font-size: 0.88rem; }
+.tiempo-notif { font-size: 0.76rem; color: var(--gris); margin-top: 2px !important; }
+.sin-notificaciones { padding: 40px 20px; text-align: center; color: var(--gris); }
+.icono-vacio { width: 44px; height: 44px; stroke: #9CA3AF; margin-bottom: 10px; }
+.titulo-vacio { font-size: 0.95rem; font-weight: 600; margin: 0 0 4px; }
+.subtitulo-vacio { font-size: 0.82rem; margin: 0; }
+.pie-notificaciones {
+  padding: 10px 16px; text-align: center;
+  color: var(--azul); font-weight: 600; font-size: 0.86rem;
+  border-top: 1px solid var(--borde); cursor: pointer;
+}
+
+/* Menú usuario */
 .menu-usuario {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 7px;
   color: white; font-weight: 500; cursor: pointer;
-  position: relative; padding: 6px 10px;
+  position: relative; padding: 5px 9px;
   border-radius: 8px; transition: background 0.2s;
 }
 .menu-usuario:hover { background: rgba(255,255,255,0.15); }
-.icono-usuario { width: 24px; height: 24px; stroke: white; }
-.nombre-usuario { font-size: 0.95rem; }
-.flecha-desplegable { font-size: 0.7rem; opacity: 0.8; transition: transform 0.25s; }
+.icono-usuario { width: 22px; height: 22px; stroke: white; }
+.nombre-usuario { font-size: 0.9rem; }
+.flecha-desplegable { font-size: 0.65rem; opacity: 0.8; transition: transform 0.25s; }
 .flecha-desplegable.rotada { transform: rotate(180deg); }
 .desplegable-usuario {
-  position: absolute; top: calc(100% + 8px); right: 0;
-  background: #FFFFFF; border-radius: 10px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  padding: 6px 0; min-width: 200px; z-index: 1100;
-  border: 1px solid #E5E7EB;
+  position: absolute; top: calc(100% + 6px); right: 0;
+  background: #fff; border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+  padding: 6px 0; min-width: 190px; z-index: 1100;
+  border: 1px solid var(--borde);
 }
 .elemento-desplegable {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px; cursor: pointer;
-  color: #1A1A1A; font-size: 0.93rem; transition: background 0.15s;
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 14px; cursor: pointer;
+  color: var(--texto); font-size: 0.9rem; transition: background 0.15s;
 }
 .elemento-desplegable:hover { background: #F5F5F5; }
-.icono-rol { width: 18px; height: 18px; stroke: #6B7280; flex-shrink: 0; }
-.separador-desplegable { height: 1px; background: #E5E7EB; margin: 4px 0; }
+.icono-rol { width: 16px; height: 16px; stroke: var(--gris); flex-shrink: 0; }
+.separador-desplegable { height: 1px; background: var(--borde); margin: 4px 0; }
 .elemento-cerrar-sesion { color: #DC2626; }
 .elemento-cerrar-sesion .icono-rol { stroke: #DC2626; }
 
-/* ══ Menú lateral ══ */
-
-.menu-lateral {
-  width: 260px;
-  background: #D6D6D6;
+/* ══════════════════════════════════════
+   BARRA NAVEGACIÓN HORIZONTAL
+══════════════════════════════════════ */
+.barra-nav-horizontal {
   position: fixed;
-  top: 74px; bottom: 0; left: 0;
-  overflow-y: auto;
-  overflow-x: clip;  /* clip no afecta el scroll context, hidden sí */
-  overscroll-behavior: contain;
-  padding-top: 0.5rem;
-  transition: transform 0.35s ease, opacity 0.3s ease;
-  z-index: 900;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.07);
+  top: var(--header-h);
+  left: 0; right: 0;
+  height: var(--nav-h);
+  background: #fff;
+  border-bottom: 1px solid var(--borde);
+  z-index: 995;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  overflow: visible;
 }
 
-.menu-lateral.colapsando {
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.35s ease, opacity 0.28s ease;
+.nav-scroll-inner {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  padding: 0 1rem;
+  overflow-x: auto;
+  overflow-y: clip;
+  scrollbar-width: thin;
+  scrollbar-color: #D1D5DB transparent;
+}
+.nav-scroll-inner::-webkit-scrollbar { display: block; height: 2px; }
+.nav-scroll-inner::-webkit-scrollbar-track { background: transparent; }
+.nav-scroll-inner::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 2px; }
+.nav-scroll-inner::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+/* Item base */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  padding-bottom: 3px;
+  font-size: 0.84rem;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+  cursor: pointer;
+  position: relative;
+  border-bottom: 3px solid transparent;
+  transition: color 0.18s, border-color 0.18s, background 0.18s;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.nav-item:hover { color: var(--azul); background: #F8FAFC; }
+.nav-item.nav-activo { color: var(--azul); font-weight: 600; border-bottom-color: var(--azul); }
+.nav-item.nav-abierto { color: var(--azul); background: #F0F4FF; border-bottom-color: var(--azul); }
+
+.nav-icono { width: 16px; height: 16px; stroke: currentColor; flex-shrink: 0; }
+.nav-flecha {
+  width: 12px; height: 12px; stroke: currentColor; flex-shrink: 0;
+  transition: transform 0.22s;
+  margin-left: 2px;
+}
+.nav-item.nav-abierto .nav-flecha { transform: rotate(180deg); }
+
+/* Separador admin en la barra */
+.nav-separador-admin {
+  display: flex; align-items: center;
+  padding: 0 6px 0 10px;
+  flex-shrink: 0;
+}
+.nav-separador-admin-label {
+  font-size: 0.65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: #9CA3AF;
+  white-space: nowrap;
+  padding: 2px 8px;
+  background: #F3F4F6;
+  border-radius: 20px;
 }
 
-/* Colapsado: se desliza fuera de pantalla hacia la izquierda */
-.sistema-layout.sidebar-collapsed .menu-lateral {
-  transform: translateX(-260px);
+/* ══════════════════════════════════════
+   DROPDOWN PANEL
+══════════════════════════════════════ */
+.dropdown-panel {
+  position: fixed;
+  top: var(--total-h);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 2px solid var(--azul);
+  border-bottom: 1px solid var(--borde);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 3000;
+  padding: 0;
+  min-width: unset;
 }
 
-/* Expandido: posición normal */
-.sistema-layout:not(.sidebar-collapsed) .menu-lateral {
-  transform: translateX(0);
+/* Puente de hover */
+.dropdown-panel::before {
+  content: '';
+  position: absolute;
+  top: -14px;
+  left: 0;
+  right: 0;
+  height: 14px;
 }
 
-.navegacion { width: 260px; display: flex; flex-direction: column; }
-
-.elemento-menu {
-  display: flex; align-items: center; gap: 11px;
-  padding: 12px 20px;
-  color: #1A1A1A; text-decoration: none;
-  font-size: 0.93rem; font-weight: 500; cursor: pointer;
-  transition: background 0.18s, color 0.18s;
-  white-space: nowrap; border-left: 3px solid transparent;
+.dropdown-panel--lista {
+  padding: 12px 2rem;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: flex-start;
 }
-.elemento-menu:hover { background: #E5E7EB; color: #1B396A; }
-.elemento-menu.activo {
-  background: #FFFFFF; color: #1B396A;
-  font-weight: 600; border-left-color: #1B396A;
+
+.dropdown-panel:not(.dropdown-panel--lista) {
+  min-width: unset;
+  display: flex;
+  flex-direction: column;
 }
-.elemento-menu.activo .icono-menu { stroke: #1B396A; }
 
-.icono-menu { width: 20px; height: 20px; stroke: #6B7280; flex-shrink: 0; transition: stroke 0.18s; }
-.etiqueta-menu { flex: 1; }
+.dropdown-iconos-grid {
+  display: flex;
+  flex-wrap: nowrap;          /* una sola fila */
+  padding: 10px 2rem;
+  gap: 4px;
+  background: #FAFBFF;
+  align-items: center;
+  overflow-x: auto;           /* scroll si no caben */
+}
 
-.elemento-padre { user-select: none; }
-.flecha-submenu { margin-left: auto; font-size: 1.1rem; color: #6B7280; transition: transform 0.25s; }
-.flecha-submenu.abierto { transform: rotate(90deg); }
+.dropdown-panel:not(.dropdown-panel--lista) .dropdown-lista {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px 2rem;
+  gap: 2px 6px;
+}
 
-.submenu { background: rgba(0,0,0,0.05); }
-.elemento-submenu { padding-left: 44px; font-size: 0.88rem; font-weight: 400; }
-.elemento-submenu-anidado { padding-left: 60px; font-size: 0.85rem; }
+.dropdown-panel:not(.dropdown-panel--lista) .dropdown-lista-item {
+  padding: 7px 12px;
+  font-size: 0.83rem;
+  border-radius: 6px;
+}
 
-.separador-menu { padding: 10px 20px 4px; margin-top: 6px; border-top: 1px solid rgba(0,0,0,0.1); }
-.separador-menu span {
+/* Íconos más pequeños */
+.icono-grande-wrap {
+  width: 26px; height: 26px;
+  background: #F0F4FF; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s; flex-shrink: 0;
+}
+.icono-grande-wrap svg { width: 13px; height: 13px; stroke: var(--azul); }
+
+.dropdown-icono-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 6px 8px;
+  border-radius: 7px; cursor: pointer;
+  text-decoration: none;
+  color: #374151; font-size: 0.65rem; font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  text-align: center;
+  min-width: unset; max-width: unset; width: auto;
+}
+
+/* Items de lista */
+.dropdown-lista-item {
+  display: block;
+  padding: 9px 18px;
+  font-size: 0.85rem; font-weight: 400;
+  color: #374151; text-decoration: none;
+  transition: background 0.14s, color 0.14s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dropdown-lista-item:hover { background: var(--azul-suave); color: var(--azul); }
+.dropdown-lista-item.router-link-active { color: var(--azul); font-weight: 600; background: #EFF6FF; }
+.dropdown-lista-item--anidado { padding-left: 30px; font-size: 0.82rem; color: #6B7280; }
+.dropdown-lista-item--anidado:hover { color: var(--azul); }
+.dropdown-lista-separador {
+  padding: 6px 18px 3px;
   font-size: 0.72rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em; color: #6B7280;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: #9CA3AF;
+  border-top: 1px solid var(--borde); margin-top: 4px;
 }
 
-/* ══ Barra de scroll ══ */
+/* Transición dropdown */
+.dropdown-enter-active { transition: opacity 0.16s ease, transform 0.16s ease; }
+.dropdown-leave-active { transition: opacity 0.12s ease, transform 0.12s ease; }
+.dropdown-enter-from, .dropdown-leave-to { opacity: 0; transform: translateY(-6px); }
+
+/* ══════════════════════════════════════
+   ÁREA DE CONTENIDO
+══════════════════════════════════════ */
+.area-contenido {
+  margin-top: var(--total-h);
+  padding: 1.5rem 2rem;
+  flex: 1;
+  background: var(--fondo);
+  min-height: calc(100vh - var(--total-h));
+  box-sizing: border-box;
+}
+
+/* ══════════════════════════════════════
+   DRAWER MÓVIL
+══════════════════════════════════════ */
+.drawer-movil {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 280px;
+  background: #fff;
+  z-index: 1200;
+  overflow-y: auto;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column;
+}
+.drawer-encabezado {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  height: 60px;
+  background: var(--azul);
+  flex-shrink: 0;
+}
+.drawer-titulo { font-size: 1rem; font-weight: 700; color: white; }
+.drawer-cerrar {
+  background: none; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 6px;
+  transition: background 0.2s;
+}
+.drawer-cerrar svg { width: 20px; height: 20px; stroke: white; }
+.drawer-cerrar:hover { background: rgba(255,255,255,0.15); }
+.drawer-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+
+.drawer-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px;
+  font-size: 0.9rem; font-weight: 500;
+  color: var(--texto); text-decoration: none;
+  transition: background 0.15s; cursor: pointer;
+}
+.drawer-item:hover { background: #F3F4F6; }
+.drawer-item.router-link-active { color: var(--azul); font-weight: 600; background: #EFF6FF; }
+
+.drawer-grupo-titulo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px;
+  font-size: 0.9rem; font-weight: 500;
+  color: var(--texto); cursor: pointer;
+  transition: background 0.15s; user-select: none;
+}
+.drawer-grupo-titulo:hover { background: #F3F4F6; }
+.drawer-icono { width: 18px; height: 18px; stroke: var(--gris); flex-shrink: 0; }
+.drawer-grupo-titulo span { flex: 1; }
+.drawer-flecha { width: 14px; height: 14px; stroke: var(--gris); transition: transform 0.22s; }
+.drawer-flecha.rotada { transform: rotate(180deg); }
+
+.drawer-submenu { background: #F9FAFB; }
+.drawer-subitem {
+  display: block;
+  padding: 9px 18px 9px 46px;
+  font-size: 0.84rem; font-weight: 400;
+  color: #4B5563; text-decoration: none;
+  transition: background 0.15s;
+}
+.drawer-subitem:hover { background: var(--azul-suave); color: var(--azul); }
+.drawer-subitem.router-link-active { color: var(--azul); font-weight: 600; }
+.drawer-subitem--anidado { padding-left: 60px; font-size: 0.81rem; color: var(--gris); }
+
+.drawer-separador {
+  padding: 10px 18px 4px; margin-top: 4px;
+  border-top: 1px solid var(--borde);
+}
+.drawer-separador span {
+  font-size: 0.68rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--gris);
+}
+
+/* Overlay */
+.drawer-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1100;
+}
+
+/* Transiciones drawer */
+.drawer-enter-active { transition: transform 0.28s ease; }
+.drawer-leave-active { transition: transform 0.22s ease; }
+.drawer-enter-from, .drawer-leave-to { transform: translateX(-100%); }
+
+.overlay-enter-active { transition: opacity 0.25s ease; }
+.overlay-leave-active { transition: opacity 0.2s ease; }
+.overlay-enter-from, .overlay-leave-to { opacity: 0; }
+
+/* ══════════════════════════════════════
+   BOTÓN REGRESAR FLOTANTE (FAB)
+══════════════════════════════════════ */
+.fab-regresar {
+  position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 1200;
+  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
+  background-color: var(--azul); color: #fff;
+  box-shadow: 0 4px 14px rgba(27,57,106,0.45);
+  opacity: 0.88; transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.fab-regresar:hover { opacity: 1; transform: scale(1.08); box-shadow: 0 6px 20px rgba(27,57,106,0.6); }
+.fab-regresar:active { transform: scale(0.93); }
+.fab-regresar:focus-visible { outline: 3px solid var(--azul-suave); outline-offset: 3px; }
+.fab-icono { width: 20px; height: 20px; pointer-events: none; flex-shrink: 0; }
+
+.fab-back-enter-active, .fab-back-leave-active { transition: opacity 0.22s, transform 0.22s; }
+.fab-back-enter-from, .fab-back-leave-to { opacity: 0; transform: scale(0.65) translateY(10px); }
+
+/* ══════════════════════════════════════
+   BARRA DE SCROLL GLOBAL
+══════════════════════════════════════ */
 * {
   scrollbar-width: thin;
   scrollbar-color: #1a3a5f #f1f5f9;
 }
-*::-webkit-scrollbar { width: 0px; height: 8px; }
+*::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-*::-webkit-scrollbar-thumb { background: #1a3a5f; border-radius: 4px; transition: background 200ms ease; }
+*::-webkit-scrollbar-thumb { background: #1a3a5f; border-radius: 4px; }
 *::-webkit-scrollbar-thumb:hover { background: #193d94; }
-*::-webkit-scrollbar-thumb:active { background: #2c5282; }
-
-/* ══ Área de contenido ══ */
-.area-contenido {
-  margin-left: 260px;
-  margin-top: 74px;
-  padding: 1.5rem 2rem;
-  flex: 1;
-  transition: margin-left 0.35s ease;
-  background: #F5F5F5;
-  min-height: calc(100vh - 74px);
-  box-sizing: border-box;
-}
-.sistema-layout.sidebar-collapsed .area-contenido { margin-left: 0; }
-.sistema-layout:not(.sidebar-collapsed) .area-contenido { margin-left: 260px; }
-.area-contenido.contenido-retrasado {
-  transition: margin-left 0.28s ease;
-  margin-left: 260px !important;
-}
-
-/* Indicador visual en el botón cuando el sidebar está fijado */
-.sistema-layout:not(.sidebar-collapsed) .btn-toggle-menu {
-  background: rgba(255,255,255,0.15);
-}
-
-/* Franja invisible de 8px para activar expansión por hover */
-.franja-hover-sidebar {
-  position: fixed;
-  top: 74px;
-  left: 0;
-  width: 8px;
-  bottom: 0;
-  z-index: 901;
-  cursor: pointer;
-}
-
-.sistema-layout.sidebar-collapsed::before { display: none; }
 
 /* ══════════════════════════════════════
-   RESPONSIVE — Navbar y Layout
+   RESPONSIVE
 ══════════════════════════════════════ */
 
-/* ── Tablet (≤1024px) ── */
-@media (max-width: 1024px) {
-  .titulo-sistema { font-size: 0.88rem; letter-spacing: 0; }
+/* ── Tablet (≤1200px) ── */
+@media (max-width: 1200px) {
+  .nav-item { padding: 0 10px; font-size: 0.8rem; }
+  .nav-icono { width: 15px; height: 15px; }
   .grupo-busqueda { width: 200px; }
-  .encabezado-superior { padding: 0 1.2rem; }
-  .encabezado-derecha { gap: 1.2rem; }
+}
+
+/* ── Tablet pequeña (≤1024px) ── */
+@media (max-width: 1024px) {
+  .titulo-sistema { font-size: 0.86rem; }
+  .grupo-busqueda { width: 180px; }
+  .encabezado-superior { padding: 0 1rem; }
+  .encabezado-derecha { gap: 1rem; }
   .area-contenido { padding: 1.2rem 1.4rem; }
 }
 
-/* ── Móvil grande (≤768px) ── */
+/* ── Móvil (≤768px) ── */
 @media (max-width: 768px) {
+  .sistema-layout { --header-h: 56px; --nav-h: 0px; }
 
-  .titulo-sistema { font-size: 0; letter-spacing: 0; }
+  /* Mostrar hamburguesa, ocultar nav horizontal */
+  .btn-hamburguesa { display: flex; }
+  .barra-nav-horizontal { display: none; }
+
+  .titulo-sistema { font-size: 0; }
   .titulo-sistema::after {
     content: 'SICE';
-    font-size: 1.1rem; font-weight: 800;
-    letter-spacing: 0.12em; color: white;
+    font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; color: white;
   }
 
-  .grupo-busqueda { width: 160px; }
-  .grupo-busqueda input { font-size: 0.82rem; padding: 8px 12px 8px 36px; }
+  .grupo-busqueda { width: 150px; }
+  .grupo-busqueda input { font-size: 0.82rem; padding: 7px 10px 7px 32px; }
+  .logo-encabezado { height: 38px; }
 
-  .encabezado-superior { padding: 0 1rem; height: 60px; }
-  .logo-encabezado { height: 40px; }
-
-  /* Sidebar debajo del header de 60px */
-  .menu-lateral {
-    top: 60px !important;
-    width: 260px;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }
-
-  /* Colapsado en móvil: desliza fuera sin cambiar width */
-  .sistema-layout.sidebar-collapsed .menu-lateral {
-    transform: translateX(-260px);
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* Expandido en móvil: visible y encima del contenido */
-  .sistema-layout:not(.sidebar-collapsed) .menu-lateral {
-    transform: translateX(0);
-    opacity: 1;
-    pointer-events: auto;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
-  }
-
-  /* Contenido no se mueve en móvil */
-  .area-contenido,
-  .area-contenido.contenido-retrasado {
-    margin-left: 0 !important;
-    margin-top: 60px !important;
+  .area-contenido {
+    margin-top: var(--header-h);
     padding: 1rem;
-    min-height: calc(100vh - 60px);
+    min-height: calc(100vh - var(--header-h));
   }
 
-  .franja-hover-sidebar { display: none; }
+  .panel-notificaciones { width: 300px; right: -50px; }
+  .nombre-usuario { display: none; }
+  .flecha-desplegable { display: none; }
+  .encabezado-derecha { gap: 0.6rem; }
 
-  .panel-notificaciones { width: 300px; right: -60px; }
-  .nombre-usuario       { display: none; }
-  .flecha-desplegable   { display: none; }
-  .encabezado-derecha   { gap: 0.75rem; }
-}
-
-/* ── Overlay para sidebar en móvil ── */
-@media (max-width: 768px) {
-  .sistema-layout:not(.sidebar-collapsed)::after {
-    content: '';
-    position: fixed;
-    top: 60px; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.4);
-    z-index: 899;
-  }
+  .fab-regresar { width: 46px; height: 46px; bottom: 1.2rem; left: 1rem; opacity: 1; }
+  .fab-icono { width: 21px; height: 21px; }
 }
 
 /* ── Móvil pequeño (≤480px) ── */
 @media (max-width: 480px) {
-  .grupo-busqueda { width: 36px; overflow: hidden; }
-  .grupo-busqueda input {
-    opacity: 0; width: 0; padding: 0;
-    pointer-events: none; position: absolute;
-  }
+  .grupo-busqueda { width: 34px; overflow: hidden; }
+  .grupo-busqueda input { opacity: 0; width: 0; padding: 0; pointer-events: none; position: absolute; }
   .grupo-busqueda:focus-within {
-    width: 180px; position: fixed;
-    top: 10px; left: 60px; right: 10px; z-index: 1100;
+    width: 170px; position: fixed;
+    top: 9px; left: 56px; right: 8px; z-index: 1100;
   }
   .grupo-busqueda:focus-within input {
     opacity: 1; width: 100%;
-    padding: 8px 12px 8px 36px;
+    padding: 7px 10px 7px 32px;
     pointer-events: auto; position: relative;
   }
-  .encabezado-superior { padding: 0 0.75rem; }
-  .panel-notificaciones { width: 280px; right: -80px; }
-  .desplegable-usuario { right: -10px; min-width: 180px; }
+  .encabezado-superior { padding: 0 0.7rem; }
+  .panel-notificaciones { width: 270px; right: -70px; }
+  .desplegable-usuario { right: -8px; min-width: 175px; }
+  .fab-regresar { bottom: 0.9rem; left: 0.7rem; }
 }
 
 /* ══════════════════════════════════════
-  ANTI-ZOOM — SICE
+   ANTI-ZOOM & TIPOGRAFÍA RESPONSIVE
 ══════════════════════════════════════ */
 html {
   font-size: 16px;
@@ -1116,15 +1476,8 @@ html {
   text-size-adjust: 100%;
   overflow-x: hidden;
 }
-
-button, input, select, textarea, a {
-  min-height: 36px;
-  font-size: 0.875rem;
-}
-
-@media (max-width: 768px) {
-  input, select, textarea { font-size: 16px !important; }
-}
+button, input, select, textarea, a { min-height: 36px; font-size: 0.875rem; }
+@media (max-width: 768px) { input, select, textarea { font-size: 16px !important; } }
 
 table { width: 100%; border-collapse: collapse; }
 .table-container, .tabla-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -1136,7 +1489,6 @@ h2 { font-size: clamp(1.1rem, 3vw, 1.4rem); }
 h3 { font-size: clamp(1rem, 2.5vw, 1.2rem); }
 
 .modal-content, .modal-caja { max-width: 95vw; max-height: 90vh; overflow-y: auto; }
-
 .kpi-card, .grafica-card, .panel-card, .form-card, .tabla-card { min-width: 0; overflow: hidden; }
 
 @media (max-width: 768px) {
@@ -1156,31 +1508,6 @@ h3 { font-size: clamp(1rem, 2.5vw, 1.2rem); }
   .modal-footer, .modal-pie { flex-direction: column !important; gap: 0.5rem !important; }
   .modal-footer button, .modal-pie button { width: 100% !important; justify-content: center; }
 }
-
-/* ══════════════════════════════════════
-   BOTÓN REGRESAR FLOTANTE (FAB)
-══════════════════════════════════════ */
-.fab-regresar {
-  position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 1200;
-  display: flex; align-items: center; justify-content: center;
-  width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
-  background-color: #1B396A; color: #ffffff;
-  box-shadow: 0 4px 14px rgba(27,57,106,0.45);
-  opacity: 0.88; transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-.fab-regresar:hover { opacity: 1; transform: scale(1.08); box-shadow: 0 6px 20px rgba(27,57,106,0.6); }
-.fab-regresar:active { transform: scale(0.93); box-shadow: 0 2px 8px rgba(27,57,106,0.4); }
-.fab-regresar:focus-visible { outline: 3px solid #DBEAFE; outline-offset: 3px; }
-.fab-icono { width: 20px; height: 20px; pointer-events: none; flex-shrink: 0; }
-
-.fab-back-enter-active, .fab-back-leave-active { transition: opacity 0.22s ease, transform 0.22s ease; }
-.fab-back-enter-from, .fab-back-leave-to { opacity: 0; transform: scale(0.65) translateY(10px); }
-
-@media (max-width: 768px) {
-  .fab-regresar { width: 48px; height: 48px; bottom: 1.25rem; left: 1rem; opacity: 1; }
-  .fab-icono { width: 22px; height: 22px; }
-}
-@media (max-width: 480px) {
-  .fab-regresar { bottom: 1rem; left: 0.75rem; }
-}
 </style>
+
+.nav-item {
