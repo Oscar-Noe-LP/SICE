@@ -361,7 +361,7 @@ import {
   Briefcase, FlaskConical, BookOpen,
   UserPlus, List, LayoutGrid,
   BarChart2, Building2,
-} from '@lucide/vue'
+} from 'lucide-vue-next'
 
 import MainLayout    from '@/layouts/MainLayout.vue'
 import StatsGrid     from '@/components/dashboard/StatsGrid.vue'

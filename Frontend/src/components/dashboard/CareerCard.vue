@@ -96,7 +96,7 @@ import {
   Monitor, Settings, Zap, Wrench,
   Briefcase, FlaskConical, BookOpen,
   Users, ChevronRight,
-} from '@lucide/vue'
+} from 'lucide-vue-next'
 
 import { formatNum } from '@/stores/dashboardStore.js'
 

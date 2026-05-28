@@ -69,7 +69,7 @@ import {
   Briefcase,
   FlaskConical,
   BookOpen,
-} from '@lucide/vue'
+} from 'lucide-vue-next'
 
 import { COLORES_CARRERA, formatNum } from '@/stores/dashboardStore.js'
 

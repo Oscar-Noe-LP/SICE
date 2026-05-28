@@ -60,7 +60,7 @@
 </template>
 
 <script setup>
-import { TrendingUp, TrendingDown, Minus } from '@lucide/vue'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-vue-next'
 import { formatNum } from '@/stores/dashboardStore.js'
 
 defineProps({
