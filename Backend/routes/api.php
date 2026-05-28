@@ -373,3 +373,8 @@ Route::prefix('form')->group(function () {
     Route::get('inscripciones/historial/{id_alumno}', [HistorialInscripcionController::class, 'historial']);
 
 });
+
+// =============== Resumen de cacrreras =====================================
+use App\Http\Controllers\Api\CarreraResumenController;
+
+Route::get('/carreras/resumen', [CarreraResumenController::class, 'index']);
