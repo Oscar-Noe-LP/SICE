@@ -105,13 +105,76 @@ const router = createRouter({
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: GESTIÓN ACADÉMICA
     // ══════════════════════════════════════════════════════════════════════
-    { path: '/gestion-academica',               name: 'GestionAcademica',      component: () => import('@/views/GestionAcademica/GestionAcademicaView.vue') },
-    { path: '/gestion-academica/carreras',      name: 'Carreras',              component: () => import('@/views/GestionAcademica/CarrerasView.vue') },
-    { path: '/gestion-academica/planes',        name: 'PlanesEstudio',         component: () => import('@/views/GestionAcademica/PlanesEstudioView.vue') },
-    { path: '/gestion-academica/materias',      name: 'Materias',              component: () => import('@/views/GestionAcademica/MateriasView.vue') },
-    { path: '/gestion-academica/prerrequisitos',name: 'Prerrequisitos',        component: () => import('@/views/GestionAcademica/PrerrequisitosView.vue') },
-    { path: '/gestion-academica/periodos',      name: 'Periodos',              component: () => import('@/views/GestionAcademica/PeriodosView.vue') },
-    { path: '/gestion-academica/edificios-aulas',name: 'EdificiosAulas',       component: () => import('@/views/GestionAcademica/EdificiosAulasView.vue') },
+    { 
+      path: '/gestion-academica',               
+      name: 'GestionAcademica',      
+      component: () => import('@/views/GestionAcademica/GestionAcademicaView.vue') 
+    },
+    // ⭐ LISTA DE CARRERAS (CRUD) - VISTA PRINCIPAL CON DRILL-DOWN
+    { 
+      path: '/gestion-academica/carreras',      
+      name: 'CarrerasList',              
+      component: () => import('@/views/GestionAcademica/CarrerasView.vue'),
+      props: true
+    },
+    // ⭐ DETALLE DE CARRERA (grupos, alumnos, estadísticas)
+    // CORREGIR: CareerDetail.vue → CareerDetailView.vue
+    { 
+      path: '/gestion-academica/carreras/:id',      
+      name: 'CarreraDetail',              
+      component: () => import('@/views/GestionAcademica/CareerDetail.vue'),
+      props: true
+    },
+    { 
+      path: '/gestion-academica/planes',        
+      name: 'PlanesEstudio',         
+      component: () => import('@/views/GestionAcademica/PlanesEstudioView.vue') 
+    },
+    { 
+      path: '/gestion-academica/materias',      
+      name: 'Materias',              
+      component: () => import('@/views/GestionAcademica/MateriasView.vue') 
+    },
+    { 
+      path: '/gestion-academica/prerrequisitos',
+      name: 'Prerrequisitos',        
+      component: () => import('@/views/GestionAcademica/PrerrequisitosView.vue') 
+    },
+    { 
+      path: '/gestion-academica/periodos',      
+      name: 'Periodos',              
+      component: () => import('@/views/GestionAcademica/PeriodosView.vue') 
+    },
+    { 
+      path: '/gestion-academica/edificios-aulas',
+      name: 'EdificiosAulas',       
+      component: () => import('@/views/GestionAcademica/EdificiosAulasView.vue') 
+    },
+
+    {
+      path: '/analytics',
+      name: 'Analytics',
+      component: () => import('@/views/Analiticas/AcademicAnalyticsView.vue')
+    },
+
+    // ══════════════════════════════════════════════════════════════════════
+    // RUTAS LEGACY / REDIRECCIONES PARA COMPATIBILIDAD
+    // ══════════════════════════════════════════════════════════════════════
+    { 
+      path: '/carreras',      
+      redirect: '/gestion-academica/carreras' 
+    },
+    { 
+      path: '/carreras/:id',      
+      redirect: to => `/gestion-academica/carreras/${to.params.id}`
+    },
+    // Rutas estáticas de ejemplo (redirigen a la nueva ruta dinámica)
+    { path: '/carreras/1', redirect: '/gestion-academica/carreras/1' },
+    { path: '/carreras/2', redirect: '/gestion-academica/carreras/2' },
+    { path: '/carreras/3', redirect: '/gestion-academica/carreras/3' },
+    { path: '/carreras/4', redirect: '/gestion-academica/carreras/4' },
+    { path: '/carreras/5', redirect: '/gestion-academica/carreras/5' },
+    { path: '/carreras/6', redirect: '/gestion-academica/carreras/6' },
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: RECURSOS HUMANOS
@@ -299,6 +362,8 @@ const PERMISOS_POR_ROL = {
     '/gestion-grupos',
     '/inscripciones',
     '/gestion-academica',
+    '/gestion-academica/carreras',       // Lista de carreras
+    '/gestion-academica/carreras/',      // Detalle de carrera (cualquier id)
     '/eventos',
     '/comite',
   ],

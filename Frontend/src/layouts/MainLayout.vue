@@ -161,6 +161,25 @@
           </div>
         </template>
 
+        <!-- ── Carreras ── -->
+        <template v-if="puedeVer.carreras">
+          <div
+            class="nav-item nav-item-tab"
+            :class="{ 'nav-activo': tabActivo === 'carreras' }"
+            @click.stop="toggleTab('carreras')"
+            :title="tooltips.carreras"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            </svg>
+            <span class="nav-label">Carreras</span>
+            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'carreras' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </template>
+
         <!-- ── Eventos ── -->
         <template v-if="puedeVer.eventos">
           <div
@@ -315,7 +334,7 @@
 
       </div>
 
-      <!-- ══ RIBBON PANEL — fuera del scroll, pegado al fondo del nav ══ -->
+      <!-- ══ RIBBON PANEL ══ -->
       <Transition name="ribbon">
         <div v-if="tabActivo" class="ribbon-panel" @click.stop>
 
@@ -382,12 +401,6 @@
               </div>
               <span>Panel Principal</span>
             </router-link>
-            <router-link to="/gestion-academica/carreras" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-              </div>
-              <span>Carreras</span>
-            </router-link>
             <router-link to="/gestion-academica/planes" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -417,6 +430,85 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
               </div>
               <span>Edificios y Aulas</span>
+            </router-link>
+            <!-- NUEVO: Enlace a Carreras dentro de Gestión Académica -->
+            <router-link to="/gestion-academica/carreras" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+              </div>
+              <span>Carreras</span>
+            </router-link>
+          </template>
+
+          <!-- ── Carreras ── -->
+          <template v-if="tabActivo === 'carreras'">
+            <!-- CORREGIDO: Ahora apunta a la vista correcta de gestión de carreras -->
+            <router-link to="/gestion-academica/carreras" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+              </div>
+              <span>Lista de Carreras</span>
+            </router-link>
+            <router-link to="/analytics" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+              <span>Analíticas</span>
+            </router-link>
+            <div class="ribbon-separador"></div>
+            <router-link to="/carreras/1" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                </svg>
+              </div>
+              <span>Sistemas Comp.</span>
+            </router-link>
+            <router-link to="/carreras/2" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <span>Ing. Industrial</span>
+            </router-link>
+            <router-link to="/carreras/3" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <span>Ing. Eléctrica</span>
+            </router-link>
+            <router-link to="/carreras/4" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/>
+                </svg>
+              </div>
+              <span>Ing. Mecánica</span>
+            </router-link>
+            <router-link to="/carreras/5" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <span>Gest. Empresarial</span>
+            </router-link>
+            <router-link to="/carreras/6" class="ribbon-item" @click="cerrarTab">
+              <div class="ribbon-icono-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+              </div>
+              <span>Bioquímica</span>
             </router-link>
           </template>
 
@@ -657,12 +749,37 @@
             </div>
             <div v-if="drawerSeccionAbierta === 'academica'" class="drawer-submenu">
               <router-link to="/gestion-academica"                 class="drawer-subitem" @click="drawerAbierto = false">Panel Principal</router-link>
-              <router-link to="/gestion-academica/carreras"        class="drawer-subitem" @click="drawerAbierto = false">Carreras</router-link>
               <router-link to="/gestion-academica/planes"          class="drawer-subitem" @click="drawerAbierto = false">Planes de Estudio</router-link>
               <router-link to="/gestion-academica/materias"        class="drawer-subitem" @click="drawerAbierto = false">Materias</router-link>
               <router-link to="/gestion-academica/prerrequisitos"  class="drawer-subitem" @click="drawerAbierto = false">Prerrequisitos</router-link>
               <router-link to="/gestion-academica/periodos"        class="drawer-subitem" @click="drawerAbierto = false">Periodos Académicos</router-link>
               <router-link to="/gestion-academica/edificios-aulas" class="drawer-subitem" @click="drawerAbierto = false">Edificios y Aulas</router-link>
+              <!-- NUEVO: Enlace a Carreras dentro de Gestión Académica en drawer -->
+              <router-link to="/gestion-academica/carreras"        class="drawer-subitem" @click="drawerAbierto = false">Carreras</router-link>
+            </div>
+          </template>
+
+          <!-- Carreras -->
+          <template v-if="puedeVer.carreras">
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('carreras')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+              </svg>
+              <span>Carreras</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'carreras' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'carreras'" class="drawer-submenu">
+              <!-- CORREGIDO: Ahora apunta a la vista correcta de gestión de carreras -->
+              <router-link to="/gestion-academica/carreras"   class="drawer-subitem" @click="drawerAbierto = false">Lista de Carreras</router-link>
+              <router-link to="/analytics"  class="drawer-subitem" @click="drawerAbierto = false">Analíticas</router-link>
+              <router-link to="/carreras/1" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Sistemas Comp.</router-link>
+              <router-link to="/carreras/2" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Ing. Industrial</router-link>
+              <router-link to="/carreras/3" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Ing. Eléctrica</router-link>
+              <router-link to="/carreras/4" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Ing. Mecánica</router-link>
+              <router-link to="/carreras/5" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Gest. Empresarial</router-link>
+              <router-link to="/carreras/6" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Bioquímica</router-link>
             </div>
           </template>
 
@@ -811,7 +928,7 @@
     <!-- ══ CONTENIDO PRINCIPAL ══ -->
     <main class="area-contenido" :class="{ 'con-ribbon': tabActivo !== null }">
       <slot :busquedaGlobal="busquedaGlobal" />
-    </main> 
+    </main>
 
     <!-- ══ BOTÓN REGRESAR FLOTANTE ══ -->
     <Transition name="fab-back">
@@ -840,8 +957,10 @@ import { ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'v
 import { useRouter, useRoute } from 'vue-router'
 
 const tooltips = {
+  inicio:     'Ir al inicio del sistema',
   servicios:  'Servicios Escolares → Alumnos, calificaciones, inscripciones y grupos',
   academica:  'Gestión Académica → Planes de estudio, materias, edificios y periodos',
+  carreras:   'Carreras → Programas educativos, matrícula y estadísticas por carrera',
   eventos:    'Eventos → Consulta y crea eventos institucionales',
   comite:     'Comité Académico → Solicitudes, sesiones y resoluciones',
   seguridad:  'Seguridad → Roles, permisos, usuarios y bitácora',
@@ -851,6 +970,7 @@ const tooltips = {
   kardex:     'Kardex → Consulta el historial de calificaciones',
   historial:  'Historial Académico → Avance curricular del alumno',
 }
+
 const router = useRouter()
 const route  = useRoute()
 
@@ -858,8 +978,8 @@ const route  = useRoute()
 const busquedaGlobal = ref('')
 
 // ── Control de ventana ────────────────────────────────────────────────
-const anchoVentana = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
-const esMobil      = computed(() => anchoVentana.value <= 768)
+const anchoVentana   = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
+const esMobil        = computed(() => anchoVentana.value <= 768)
 const busquedaOculta = computed(() => anchoVentana.value <= 480)
 
 let resizeTimer = null
@@ -874,19 +994,18 @@ onUnmounted(() => {
   if (resizeTimer) clearTimeout(resizeTimer)
 })
 
-// ── Tab activo (estilo Word) ──────────────────────────────────────────
+// ── Tab activo ────────────────────────────────────────────────────────
 const tabActivo = ref(null)
 
 const toggleTab = (nombre) => {
   tabActivo.value = tabActivo.value === nombre ? null : nombre
 }
-
 const cerrarTab = () => {
   tabActivo.value = null
 }
 
 // ── Drawer móvil ──────────────────────────────────────────────────────
-const drawerAbierto       = ref(false)
+const drawerAbierto        = ref(false)
 const drawerSeccionAbierta = ref(null)
 
 const toggleDrawer = () => { drawerAbierto.value = !drawerAbierto.value }
@@ -914,16 +1033,24 @@ const nombreUsuarioActual = computed(() => usuarioLogueado.value?.nombre_usuario
 // ── Permisos por módulo ───────────────────────────────────────────────
 const MODULOS_POR_ROL = {
   'docente':             ['servicios-escolares', 'eventos', 'asignacion-docente'],
-  'servicios-escolares': ['servicios-escolares', 'gestion-academica', 'eventos', 'comite'],
+  'servicios-escolares': ['servicios-escolares', 'gestion-academica', 'carreras', 'eventos', 'comite'],
 }
 
 const puedeVer = computed(() => {
   const rol = rolActual.value
-  if (rol === 'admin') return { serviciosEscolares: true, gestionAcademica: true, eventos: true, comite: true, asignacionDocente: true }
+  if (rol === 'admin') return {
+    serviciosEscolares: true,
+    gestionAcademica:   true,
+    carreras:           true,
+    eventos:            true,
+    comite:             true,
+    asignacionDocente:  true,
+  }
   const modulos = MODULOS_POR_ROL[rol] ?? []
   return {
     serviciosEscolares: modulos.includes('servicios-escolares'),
     gestionAcademica:   modulos.includes('gestion-academica'),
+    carreras:           modulos.includes('carreras'),
     eventos:            modulos.includes('eventos'),
     comite:             modulos.includes('comite'),
     asignacionDocente:  modulos.includes('asignacion-docente'),
@@ -947,7 +1074,7 @@ const puedeVerItem = computed(() => (ruta) => {
 const cerrarMenus = () => {
   mostrarMenuUsuario.value    = false
   mostrarNotificaciones.value = false
-  tabActivo.value = null        // ← Modificado
+  tabActivo.value             = null
 }
 
 const toggleMenuUsuario = () => {
@@ -991,7 +1118,6 @@ watch(esMobil, (ahoraMobil) => {
 })
 
 onMounted(() => {
-  // Scroll horizontal con rueda del ratón en el nav
   const navScroll = document.querySelector('.nav-scroll-inner')
   if (navScroll) {
     navScroll.addEventListener('wheel', (e) => {
@@ -1008,11 +1134,13 @@ onBeforeUnmount(() => {
 })
 
 const RUTAS_PRINCIPALES = new Set([
-  '/inicio', '/dashboard', '/servicios-escolares', '/alumnos', '/evaluaciones',
-  '/calificaciones', '/inscripcion', '/inscripciones', '/gestion-grupos',
-  '/gestion-academica', '/eventos', '/comite', '/kardex', '/historial-academico',
-  '/asignacion-docente', '/roles', '/permisos', '/usuarios', '/bitacora',
-  '/nuevo-usuario', '/recursos-humanos', '/personas',
+  '/inicio', '/dashboard', '/servicios-escolares', '/alumnos',
+  '/evaluaciones', '/calificaciones', '/inscripcion', '/inscripciones',
+  '/gestion-grupos', '/gestion-academica', '/eventos', '/comite',
+  '/kardex', '/historial-academico', '/asignacion-docente',
+  '/roles', '/permisos', '/usuarios', '/bitacora', '/nuevo-usuario',
+  '/recursos-humanos', '/personas',
+  '/gestion-academica/carreras',  // CORREGIDO: Ahora incluye la ruta correcta
 ])
 
 const mostrarBotonRegresar = computed(() => {
@@ -1022,6 +1150,7 @@ const mostrarBotonRegresar = computed(() => {
 
 const regresarPagina = () => router.back()
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
@@ -1041,7 +1170,7 @@ const regresarPagina = () => router.back()
   --gris:           #6B7280;
   --header-h:       62px;
   --nav-h:          74px;
-  --ribbon-h:       42px;           /* Se ajusta dinámicamente */
+  --ribbon-h:       42px;
   --total-h:        calc(var(--header-h) + var(--nav-h));
 
   font-family: 'Montserrat', sans-serif;
@@ -1070,7 +1199,6 @@ const regresarPagina = () => router.back()
 .logo-encabezado { height: 44px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.8)); }
 .titulo-sistema  { font-size: 0.98rem; font-weight: 700; color: #fff; letter-spacing: 0.01em; white-space: nowrap; }
 
-/* Hamburguesa: solo visible en móvil */
 .btn-hamburguesa {
   display: none;
   background: none; border: none; color: white;
@@ -1181,17 +1309,15 @@ const regresarPagina = () => router.back()
 
 /* ══════════════════════════════════════
    BARRA DE NAVEGACIÓN PRINCIPAL
-   Módulos grandes
 ══════════════════════════════════════ */
 .barra-nav-horizontal {
   position: fixed;
   top: var(--header-h);
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   height: var(--nav-h);
   background: var(--blanco);
   border-bottom: 1px solid var(--borde);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   z-index: 995;
   overflow: visible;
 }
@@ -1206,10 +1332,7 @@ const regresarPagina = () => router.back()
   padding: 0 1.4rem;
   scrollbar-width: none;
 }
-
-.nav-scroll-inner::-webkit-scrollbar {
-  display: none;
-}
+.nav-scroll-inner::-webkit-scrollbar { display: none; }
 
 .nav-item {
   position: relative;
@@ -1225,93 +1348,43 @@ const regresarPagina = () => router.back()
   text-decoration: none;
   cursor: pointer;
   border-bottom: 3px solid transparent;
-  transition:
-    color 0.16s ease,
-    background 0.16s ease,
-    border-color 0.16s ease;
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
   flex-shrink: 0;
   user-select: none;
 }
-
-.nav-item:hover {
-  color: var(--azul);
-  background: #F0F4FF;
-}
-
+.nav-item:hover { color: var(--azul); background: #F0F4FF; }
 .nav-item.nav-activo,
-.nav-item.router-link-active {
-  color: var(--azul);
-  font-weight: 700;
-  border-bottom-color: var(--azul);
-  background: #EFF6FF;
-}
+.nav-item.router-link-active { color: var(--azul); font-weight: 700; border-bottom-color: var(--azul); background: #EFF6FF; }
+.nav-item-tab.nav-activo     { color: var(--azul); font-weight: 700; border-bottom-color: var(--azul); background: #EFF6FF; }
 
-.nav-item-tab.nav-activo {
-  color: var(--azul);
-  font-weight: 700;
-  border-bottom-color: var(--azul);
-  background: #EFF6FF;
-}
+.nav-icono  { width: 23px; height: 23px; stroke: currentColor; flex-shrink: 0; }
+.nav-label  { font-size: 0.76rem; font-weight: 600; line-height: 1.1; text-align: center; white-space: nowrap; }
+.nav-flecha { display: none; }
 
-.nav-icono {
-  width: 23px;
-  height: 23px;
-  stroke: currentColor;
-  flex-shrink: 0;
-}
-
-.nav-label {
-  font-size: 0.76rem;
-  font-weight: 600;
-  line-height: 1.1;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.nav-flecha {
-  display: none;
-}
-
-/* Separador admin en la barra */
 .nav-separador-admin {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 10px;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 10px; flex-shrink: 0;
 }
-
 .nav-separador-admin-label {
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #9CA3AF;
-  white-space: nowrap;
-  padding: 3px 9px;
-  background: #F3F4F6;
-  border-radius: 999px;
+  font-size: 0.62rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF;
+  white-space: nowrap; padding: 3px 9px;
+  background: #F3F4F6; border-radius: 999px;
 }
 
 /* ══════════════════════════════════════
-   RIBBON PANEL (Nuevo)
-══════════════════════════════════════ */
-/* ══════════════════════════════════════
-   SUBMENÚ CONTEXTUAL
-   Recuadros compactos
+   RIBBON PANEL
 ══════════════════════════════════════ */
 .ribbon-panel {
   position: fixed;
   top: var(--total-h);
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   min-height: var(--ribbon-h);
   background: #F8FAFC;
   border-top: 1px solid #E5E7EB;
   border-bottom: 1px solid var(--borde);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
   z-index: 990;
-
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1320,19 +1393,9 @@ const regresarPagina = () => router.back()
   overflow-y: hidden;
   white-space: nowrap;
 }
-
-.ribbon-panel::-webkit-scrollbar {
-  height: 4px;
-}
-
-.ribbon-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.ribbon-panel::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 999px;
-}
+.ribbon-panel::-webkit-scrollbar        { height: 4px; }
+.ribbon-panel::-webkit-scrollbar-track  { background: transparent; }
+.ribbon-panel::-webkit-scrollbar-thumb  { background: #CBD5E1; border-radius: 999px; }
 
 .ribbon-item {
   height: 30px;
@@ -1341,73 +1404,33 @@ const regresarPagina = () => router.back()
   border-radius: 7px;
   border: 1px solid transparent;
   background: transparent;
-
   display: inline-flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 7px;
-
   text-decoration: none;
   color: #374151;
   font-size: 0.78rem;
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   flex-shrink: 0;
 }
-
-.ribbon-item:hover {
-  background: #DBEAFE;
-  color: var(--azul);
-  border-color: #BFDBFE;
-}
-
-.ribbon-item.router-link-active {
-  background: #EFF6FF;
-  color: var(--azul);
-  border-color: #BFDBFE;
-  font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(27, 57, 106, 0.08);
-}
+.ribbon-item:hover               { background: #DBEAFE; color: var(--azul); border-color: #BFDBFE; }
+.ribbon-item.router-link-active  { background: #EFF6FF; color: var(--azul); border-color: #BFDBFE; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(27,57,106,0.08); }
 
 .ribbon-icono-wrap {
-  width: 18px;
-  height: 18px;
-  background: transparent;
-  border-radius: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
+.ribbon-icono-wrap svg { width: 15px; height: 15px; stroke: currentColor; }
 
-.ribbon-icono-wrap svg {
-  width: 15px;
-  height: 15px;
-  stroke: currentColor;
-}
-
-.ribbon-item:hover .ribbon-icono-wrap {
-  background: transparent;
-}
-
-.ribbon-separador {
-  width: 1px;
-  height: 24px;
-  background: #D1D5DB;
-  margin: 0 5px;
-  flex-shrink: 0;
-}
+.ribbon-separador { width: 1px; height: 24px; background: #D1D5DB; margin: 0 5px; flex-shrink: 0; }
 
 /* ══════════════════════════════════════
-   ÁREA DE CONTENIDO (con ribbon)
+   ÁREA DE CONTENIDO
 ══════════════════════════════════════ */
 .area-contenido {
   margin-top: var(--total-h);
@@ -1437,17 +1460,14 @@ const regresarPagina = () => router.back()
 }
 .drawer-encabezado {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px;
-  height: 60px;
-  background: var(--azul);
-  flex-shrink: 0;
+  padding: 0 16px; height: 60px;
+  background: var(--azul); flex-shrink: 0;
 }
 .drawer-titulo { font-size: 1rem; font-weight: 700; color: white; }
 .drawer-cerrar {
   background: none; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 6px;
-  transition: background 0.2s;
+  width: 32px; height: 32px; border-radius: 6px; transition: background 0.2s;
 }
 .drawer-cerrar svg { width: 20px; height: 20px; stroke: white; }
 .drawer-cerrar:hover { background: rgba(255,255,255,0.15); }
@@ -1471,7 +1491,7 @@ const regresarPagina = () => router.back()
   transition: background 0.15s; user-select: none;
 }
 .drawer-grupo-titulo:hover { background: #F3F4F6; }
-.drawer-icono { width: 18px; height: 18px; stroke: var(--gris); flex-shrink: 0; }
+.drawer-icono  { width: 18px; height: 18px; stroke: var(--gris); flex-shrink: 0; }
 .drawer-grupo-titulo span { flex: 1; }
 .drawer-flecha { width: 14px; height: 14px; stroke: var(--gris); transition: transform 0.22s; }
 .drawer-flecha.rotada { transform: rotate(180deg); }
@@ -1488,33 +1508,28 @@ const regresarPagina = () => router.back()
 .drawer-subitem.router-link-active { color: var(--azul); font-weight: 600; }
 .drawer-subitem--anidado { padding-left: 60px; font-size: 0.81rem; color: var(--gris); }
 
-.drawer-separador {
-  padding: 10px 18px 4px; margin-top: 4px;
-  border-top: 1px solid var(--borde);
-}
-.drawer-separador span {
-  font-size: 0.68rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em; color: var(--gris);
-}
+.drawer-separador { padding: 10px 18px 4px; margin-top: 4px; border-top: 1px solid var(--borde); }
+.drawer-separador span { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gris); }
 
 /* Overlay */
-.drawer-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 1100;
-}
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1100; }
 
 /* Transiciones drawer */
-.drawer-enter-active { transition: transform 0.28s ease; }
-.drawer-leave-active { transition: transform 0.22s ease; }
+.drawer-enter-active  { transition: transform 0.28s ease; }
+.drawer-leave-active  { transition: transform 0.22s ease; }
 .drawer-enter-from, .drawer-leave-to { transform: translateX(-100%); }
 
 .overlay-enter-active { transition: opacity 0.25s ease; }
 .overlay-leave-active { transition: opacity 0.2s ease; }
 .overlay-enter-from, .overlay-leave-to { opacity: 0; }
 
+/* Ribbon transition */
+.ribbon-enter-active { transition: opacity 0.18s ease, transform 0.18s ease; }
+.ribbon-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
+.ribbon-enter-from, .ribbon-leave-to { opacity: 0; transform: translateY(-6px); }
+
 /* ══════════════════════════════════════
-   BOTÓN REGRESAR FLOTANTE (FAB)
+   BOTÓN REGRESAR FLOTANTE
 ══════════════════════════════════════ */
 .fab-regresar {
   position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 1200;
@@ -1535,10 +1550,7 @@ const regresarPagina = () => router.back()
 /* ══════════════════════════════════════
    BARRA DE SCROLL GLOBAL
 ══════════════════════════════════════ */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #1a3a5f #f1f5f9;
-}
+* { scrollbar-width: thin; scrollbar-color: #1a3a5f #f1f5f9; }
 *::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
 *::-webkit-scrollbar-thumb { background: #1a3a5f; border-radius: 4px; }
@@ -1547,40 +1559,15 @@ const regresarPagina = () => router.back()
 /* ══════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════ */
-
-/* ── Tablet (≤1200px) ── */
 @media (max-width: 1200px) {
-  .sistema-layout {
-    --nav-h: 68px;
-    --ribbon-h: 40px;
-  }
-
-  .nav-item {
-    min-width: 74px;
-    padding: 7px 10px 6px;
-  }
-
-  .nav-icono {
-    width: 21px;
-    height: 21px;
-  }
-
-  .nav-label {
-    font-size: 0.7rem;
-  }
-
-  .ribbon-item {
-    height: 29px;
-    padding: 0 9px;
-    font-size: 0.74rem;
-  }
-
-  .grupo-busqueda {
-    width: 200px;
-  }
+  .sistema-layout { --nav-h: 68px; --ribbon-h: 40px; }
+  .nav-item { min-width: 74px; padding: 7px 10px 6px; }
+  .nav-icono { width: 21px; height: 21px; }
+  .nav-label { font-size: 0.7rem; }
+  .ribbon-item { height: 29px; padding: 0 9px; font-size: 0.74rem; }
+  .grupo-busqueda { width: 200px; }
 }
 
-/* ── Tablet pequeña (≤1024px) ── */
 @media (max-width: 1024px) {
   .titulo-sistema { font-size: 0.86rem; }
   .grupo-busqueda { width: 180px; }
@@ -1589,51 +1576,29 @@ const regresarPagina = () => router.back()
   .area-contenido { padding: 1.2rem 1.4rem; }
 }
 
-/* ── Móvil (≤768px) ── */
 @media (max-width: 768px) {
   .sistema-layout { --header-h: 56px; --nav-h: 0px; }
-
   .btn-hamburguesa { display: flex; }
   .barra-nav-horizontal { display: none; }
-
   .titulo-sistema { font-size: 0; }
-  .titulo-sistema::after {
-    content: 'SICE';
-    font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; color: white;
-  }
-
+  .titulo-sistema::after { content: 'SICE'; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; color: white; }
   .grupo-busqueda { width: 150px; }
   .grupo-busqueda input { font-size: 0.82rem; padding: 7px 10px 7px 32px; }
   .logo-encabezado { height: 38px; }
-
-  .area-contenido {
-    margin-top: var(--header-h);
-    padding: 1rem;
-    min-height: calc(100vh - var(--header-h));
-  }
-
+  .area-contenido { margin-top: var(--header-h); padding: 1rem; min-height: calc(100vh - var(--header-h)); }
   .panel-notificaciones { width: 300px; right: -50px; }
   .nombre-usuario { display: none; }
   .flecha-desplegable { display: none; }
   .encabezado-derecha { gap: 0.6rem; }
-
   .fab-regresar { width: 46px; height: 46px; bottom: 1.2rem; left: 1rem; opacity: 1; }
   .fab-icono { width: 21px; height: 21px; }
 }
 
-/* ── Móvil pequeño (≤480px) ── */
 @media (max-width: 480px) {
   .grupo-busqueda { width: 34px; overflow: hidden; }
   .grupo-busqueda input { opacity: 0; width: 0; padding: 0; pointer-events: none; position: absolute; }
-  .grupo-busqueda:focus-within {
-    width: 170px; position: fixed;
-    top: 9px; left: 56px; right: 8px; z-index: 1100;
-  }
-  .grupo-busqueda:focus-within input {
-    opacity: 1; width: 100%;
-    padding: 7px 10px 7px 32px;
-    pointer-events: auto; position: relative;
-  }
+  .grupo-busqueda:focus-within { width: 170px; position: fixed; top: 9px; left: 56px; right: 8px; z-index: 1100; }
+  .grupo-busqueda:focus-within input { opacity: 1; width: 100%; padding: 7px 10px 7px 32px; pointer-events: auto; position: relative; }
   .encabezado-superior { padding: 0 0.7rem; }
   .panel-notificaciones { width: 270px; right: -70px; }
   .desplegable-usuario { right: -8px; min-width: 175px; }
@@ -1641,14 +1606,9 @@ const regresarPagina = () => router.back()
 }
 
 /* ══════════════════════════════════════
-   ANTI-ZOOM & TIPOGRAFÍA RESPONSIVE
+   ANTI-ZOOM & TIPOGRAFÍA
 ══════════════════════════════════════ */
-html {
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  overflow-x: hidden;
-}
+html { font-size: 16px; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: hidden; }
 button, input, select, textarea, a { min-height: 36px; font-size: 0.875rem; }
 @media (max-width: 768px) { input, select, textarea { font-size: 16px !important; } }
 

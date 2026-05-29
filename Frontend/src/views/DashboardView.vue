@@ -259,12 +259,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
 const router  = useRouter()
 const API_URL = import.meta.env.VITE_API_URL
+
+// ── Recibir búsqueda global del layout ───────────────────────────────────
+const props = defineProps({
+  busquedaGlobal: {
+    type: String,
+    default: ''
+  }
+})
 
 // ── Estado general ──────────────────────────────────────────────────────
 const cargando = ref(true)
@@ -278,6 +286,14 @@ const irAKardex = () => {
   if (nc.length < 8) return
   router.push(`/kardex/${nc}`)
 }
+
+// ── Sincronizar búsqueda global con el componente (si se necesita) ──────
+// Por ahora no hacemos nada con busquedaGlobal, pero está disponible
+watch(() => props.busquedaGlobal, (nuevaBusqueda) => {
+  // Aquí puedes agregar lógica si quieres que la búsqueda global afecte al dashboard
+  // Por ejemplo, filtrar algo en el dashboard si es necesario
+  console.log('[Dashboard] Búsqueda global:', nuevaBusqueda)
+})
 
 // ── Fechas ──────────────────────────────────────────────────────────────
 const fechaHoy = computed(() =>
@@ -402,7 +418,7 @@ const cargarKPIs = async () => {
   }
 }
 
-// ── Acciones rápidas ─────────────────────────────────────────────────────
+// ── Acciones rápidas (ACTUALIZADO con Lista de Carreras) ─────────────────
 const accionesRapidas = [
   {
     label:       'Nueva inscripción',
@@ -416,6 +432,12 @@ const accionesRapidas = [
     descripcion: 'Ver el listado completo de alumnos registrados.',
     iconPath:    'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
     handler:     () => router.push('/alumnos')
+  },
+  {
+    label:       'Lista de Carreras',
+    descripcion: 'Ver y gestionar todas las carreras del sistema.',
+    iconPath:    'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z',
+    handler:     () => router.push('/gestion-academica/carreras')
   },
   {
     label:       'Gestión de grupos',
