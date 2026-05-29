@@ -89,11 +89,11 @@
               <div class="carrera-card-info">
                 <h3 class="carrera-card-nombre">{{ carrera.nombre }}</h3>
                 <div class="carrera-card-stats">
-                  <span><strong>{{ carrera.totalAlumnos || 0 }}</strong> Alumnos</span>
+                  <span><strong>{{ carrera.total_alumnos || 0 }}</strong> Alumnos</span>
                   <span class="stat-sep">·</span>
-                  <span><strong>{{ carrera.totalGrupos || 0 }}</strong> Grupos</span>
+                  <span><strong>{{ carrera.total_grupos || 0 }}</strong> Grupos</span>
                   <span class="stat-sep">·</span>
-                  <span><strong>{{ carrera.totalDocentes || 0 }}</strong> Docentes</span>
+                  <span><strong>{{ carrera.total_docentes || 0 }}</strong> Docentes</span>
                 </div>
               </div>
             </div>
@@ -127,11 +127,11 @@
         <!-- Mini resumen de la carrera -->
         <div class="mini-resumen-grid">
           <div class="mini-resumen-item">
-            <span class="mini-resumen-numero">{{ carreraSeleccionada.totalAlumnos || 0 }}</span>
+            <span class="mini-resumen-numero">{{ carreraSeleccionada.total_alumnos || 0 }}</span>
             <span class="mini-resumen-etiqueta">Alumnos</span>
           </div>
           <div class="mini-resumen-item">
-            <span class="mini-resumen-numero">{{ carreraSeleccionada.totalGrupos || 0 }}</span>
+            <span class="mini-resumen-numero">{{ carreraSeleccionada.total_grupos || 0 }}</span>
             <span class="mini-resumen-etiqueta">Grupos</span>
           </div>
           <div class="mini-resumen-item">

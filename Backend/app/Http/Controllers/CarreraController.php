@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class CarreraController extends Controller
 {
     // ─────────────────────────────────────────────
-    // Obtener todas las carreras
+    // PANTALLA 1: Obtener todas las carreras con contadores y relaciones
     public function index()
     {
         $carreras = DB::table('carrera as c')
@@ -21,20 +21,43 @@ class CarreraController extends Controller
                 'c.id_nivel',
                 'c.estatus',
                 'd.nombre as departamento_nombre',
-                'n.nombre_nivel'
+                'n.nombre_nivel',
+
+                // 1. Alumnos Activos totales inscritos en esta carrera
+                DB::raw('(SELECT COUNT(*) FROM alumno as a 
+                          WHERE a.id_carrera = c.id_carrera AND a.estatus = "Activo") as total_alumnos'),
+
+                // 2. Grupos abiertos que pertenecen al plan de estudios de esta carrera
+                DB::raw('(SELECT COUNT(DISTINCT g.id_grupo) FROM grupo as g
+                          JOIN materia as m ON g.id_materia = m.id_materia
+                          JOIN plan_materia as pm ON m.id_materia = pm.id_materia
+                          JOIN plan_estudio as pe ON pm.id_plan = pe.id_plan
+                          WHERE pe.id_carrera = c.id_carrera AND g.estatus = 1) as total_grupos'),
+
+                // 3. Docentes únicos que imparten clases en esta carrera
+                DB::raw('(SELECT COUNT(DISTINCT g.id_docente) FROM grupo as g
+                          JOIN materia as m ON g.id_materia = m.id_materia
+                          JOIN plan_materia as pm ON m.id_materia = pm.id_materia
+                          JOIN plan_estudio as pe ON pm.id_plan = pe.id_plan
+                          WHERE pe.id_carrera = c.id_carrera AND g.id_docente IS NOT NULL AND g.estatus = 1) as total_docentes')
             )
             ->get()
             ->map(function ($c) {
                 return [
-                    'id_carrera' => $c->id_carrera,
-                    'nombre' => $c->nombre,
+                    'id_carrera'      => $c->id_carrera,
+                    'nombre'          => $c->nombre,
                     'id_departamento' => $c->id_departamento,
-                    'id_nivel' => $c->id_nivel,
-                    'estatus' => $c->estatus,
-                    'departamento' => [
+                    'id_nivel'        => $c->id_nivel,
+                    'estatus'         => $c->estatus,
+                    // Métricas para la Pantalla 1
+                    'total_alumnos'   => (int) $c->total_alumnos,
+                    'total_grupos'    => (int) $c->total_grupos,
+                    'total_docentes'  => (int) $c->total_docentes,
+                    // Relaciones estructuradas para formularios de Vue
+                    'departamento'    => [
                         'nombre' => $c->departamento_nombre
                     ],
-                    'nivel' => [
+                    'nivel'           => [
                         'nombre_nivel' => $c->nombre_nivel
                     ]
                 ];
@@ -106,18 +129,10 @@ class CarreraController extends Controller
     }
 
     // ─────────────────────────────────────────────
-    // Drill-down: grupos que pertenecen a una carrera
-    //
-    // La cadena de relación es:
-    //   carrera → plan_estudio → plan_materia → materia → grupo
-    //
-    // No existe id_carrera directo en grupo; la carrera define
-    // qué materias se imparten a través de su plan de estudios.
-    //
+    // PANTALLA 2: Drill-down de grupos por carrera
     // GET /api/carreras/{id}/grupos
     public function grupos($id)
     {
-        // 1. Verificar que la carrera existe y obtener su nombre
         $carrera = DB::table('carrera')
             ->where('id_carrera', $id)
             ->select('id_carrera', 'nombre')
@@ -127,7 +142,6 @@ class CarreraController extends Controller
             return response()->json(['message' => 'Carrera no encontrada'], 404);
         }
 
-        // 2. Obtener los id_materia del plan de estudios activo de esta carrera
         $idMaterias = DB::table('plan_estudio as pe')
             ->join('plan_materia as pm', 'pe.id_plan', '=', 'pm.id_plan')
             ->where('pe.id_carrera', $id)
@@ -141,7 +155,6 @@ class CarreraController extends Controller
             ]);
         }
 
-        // 3. Traer grupos cuya materia pertenezca a esa carrera
         $grupos = DB::table('grupo as g')
             ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
             ->join('docente as d', 'g.id_docente', '=', 'd.id_docente')
