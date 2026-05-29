@@ -157,9 +157,9 @@ class CarreraController extends Controller
 
         $grupos = DB::table('grupo as g')
             ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
-            ->join('docente as d', 'g.id_docente', '=', 'd.id_docente')
-            ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
-            ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
+            ->leftJoin('docente as d', 'g.id_docente', '=', 'd.id_docente')      // <-- LEFT
+            ->leftJoin('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')   // <-- LEFT
+            ->leftJoin('persona as p', 'e.id_persona', '=', 'p.id_persona')      // <-- LEFT
             ->leftJoin('turno as t', 'g.id_turno', '=', 't.id_turno')
             ->whereIn('g.id_materia', $idMaterias)
             ->where('g.estatus', 1)
@@ -167,7 +167,10 @@ class CarreraController extends Controller
                 'g.id_grupo',
                 'g.clave_grupo',
                 'm.nombre as materia',
-                DB::raw("UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)) as docente"),
+                DB::raw("IF(p.id_persona IS NOT NULL,
+                    UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)),
+                    'Sin asignar'
+                ) as docente"),
                 't.nombre_turno as turno',
                 'g.dia',
                 DB::raw("TIME_FORMAT(g.hora_inicio, '%H:%i') as hora_inicio"),
