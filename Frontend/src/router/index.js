@@ -118,13 +118,13 @@ const router = createRouter({
       props: true
     },
     // ⭐ DETALLE DE CARRERA (grupos, alumnos, estadísticas)
-    // CORREGIR: CareerDetail.vue → CareerDetailView.vue
-    { 
-      path: '/gestion-academica/carreras/:id',      
-      name: 'CarreraDetail',              
-      component: () => import('@/views/GestionAcademica/CareerDetail.vue'),
-      props: true
-    },
+    // RUTA ELIMINADA - El archivo CareerDetail.vue no existe
+    // { 
+    //   path: '/gestion-academica/carreras/:id',      
+    //   name: 'CarreraDetail',              
+    //   component: () => import('@/views/GestionAcademica/CareerDetail.vue'),
+    //   props: true
+    // },
     { 
       path: '/gestion-academica/planes',        
       name: 'PlanesEstudio',         
