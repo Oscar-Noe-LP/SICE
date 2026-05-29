@@ -142,18 +142,23 @@ class CarreraController extends Controller
             return response()->json(['message' => 'Carrera no encontrada'], 404);
         }
 
-        $idMaterias = DB::table('plan_estudio as pe')
+        // Obtener materias del plan Y su semestre al mismo tiempo
+        $materiasConSemestre = DB::table('plan_estudio as pe')
             ->join('plan_materia as pm', 'pe.id_plan', '=', 'pm.id_plan')
             ->where('pe.id_carrera', $id)
             ->where('pe.estatus', 1)
-            ->pluck('pm.id_materia');
+            ->select('pm.id_materia', 'pm.semestre')
+            ->get()
+            ->keyBy('id_materia');  // ← indexado por id_materia para búsqueda rápida
 
-        if ($idMaterias->isEmpty()) {
+        if ($materiasConSemestre->isEmpty()) {
             return response()->json([
                 'carrera' => $carrera->nombre,
                 'grupos'  => []
             ]);
         }
+
+        $idMaterias = $materiasConSemestre->keys();
 
         $grupos = DB::table('grupo as g')
             ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
@@ -164,29 +169,31 @@ class CarreraController extends Controller
             ->where('g.estatus', 1)
             ->select(
                 'g.id_grupo',
+                'g.id_materia',   // ← auxiliar para buscar semestre
                 'g.clave_grupo',
                 'm.nombre as materia',
                 DB::raw("IF(
-            p.id_persona IS NOT NULL,
-            UPPER(CONCAT(
-                p.apellido_paterno,
-                ' ',
-                p.apellido_materno,
-                ' ',
-                p.nombre
-            )),
-            'Sin asignar'
-        ) as docente"),
+                    p.id_persona IS NOT NULL,
+                    UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)),
+                    'Sin asignar'
+                ) as docente"),
                 'g.capacidad',
                 DB::raw("(
-            SELECT COUNT(*)
-            FROM inscripcion AS i
-            WHERE i.id_grupo = g.id_grupo
-              AND i.estatus = 'Activo'
-        ) as inscritos")
+                    SELECT COUNT(*)
+                    FROM inscripcion AS i
+                    WHERE i.id_grupo = g.id_grupo
+                    AND i.estatus = 'Activo'
+                ) as inscritos")
             )
             ->orderBy('m.nombre')
-            ->get();
+            ->get()
+            ->map(function ($g) use ($materiasConSemestre) {
+                $g->semestre = $materiasConSemestre[$g->id_materia]->semestre ?? null;
+                unset($g->id_materia);  // limpiar campo auxiliar
+                return $g;
+            })
+            ->sortBy('semestre')   // ← ordenar por semestre en PHP
+            ->values();            // ← reindexar el array
 
         return response()->json([
             'carrera' => $carrera->nombre,

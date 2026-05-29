@@ -171,6 +171,7 @@
                   <tr>
                     <th>Clave</th>
                     <th>Materia</th>
+                    <th class="centrado">Semestre</th>
                     <th>Docente</th>
                     <th class="centrado">Alumnos</th>
                     <th class="centrado">Acción</th>
@@ -185,6 +186,9 @@
                   <tr v-for="grupo in gruposCarreraFiltrados" :key="grupo.id_grupo">
                     <td><span class="control-chip">{{ grupo.clave_grupo }}</span></td>
                     <td>{{ grupo.materia }}</td>
+                    <td class="centrado">                          <!-- ← agregar -->
+                      <span class="semestre-badge">{{ grupo.semestre ?? '—' }}</span>
+                    </td>
                     <td>{{ grupo.docente || 'Sin asignar' }}</td>
                     <td class="centrado">{{ grupo.inscritos ?? 0 }}</td>
                     <td class="centrado acciones-cell">
@@ -197,7 +201,7 @@
                     </td>
                   </tr>
                   <tr v-if="!cargandoGruposCarrera && gruposCarreraFiltrados.length === 0">
-                    <td colspan="5" class="sin-resultados">
+                    <td colspan="6" class="sin-resultados">
                       <p>No se encontraron grupos para esta búsqueda</p>
                     </td>
                   </tr>
@@ -1107,6 +1111,18 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
   font-family: 'Montserrat', sans-serif;
   box-sizing: border-box;
   padding: 1rem 1rem 2rem;
+}
+
+.semestre-badge {
+  display: inline-block;
+  background: #EDE9FE;
+  color: #7C3AED;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 2px 10px;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
 }
 
 .alerta-error-catalogos { display: flex; align-items: center; gap: 0.6rem; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 10px; padding: 0.8rem 1.2rem; margin-bottom: 1rem; font-size: 0.875rem; font-weight: 600; }
