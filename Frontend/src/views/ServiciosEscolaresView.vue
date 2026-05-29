@@ -1,664 +1,679 @@
 <template>
   <MainLayout v-slot="{ busquedaGlobal }">
-    <div class="servicios-page">
+    <div class="page">
 
-      <!-- ── Breadcrumb ─────────────────────────────────────────────── -->
-      <nav class="breadcrumb">
-        <router-link to="/inicio" class="breadcrumb-link">Inicio</router-link>
-        <span class="sep">›</span>
-        <span class="breadcrumb-actual">Servicios Escolares</span>
-      </nav>
+      <!-- ── BREADCRUMB ── -->
+      <div class="bc">
+        <router-link to="/inicio" class="bc-lnk">Inicio</router-link>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur">Servicios Escolares</span>
+      </div>
 
-      <!-- ── Toast de notificación ──────────────────────────────────── -->
-      <transition name="toast-slide">
-        <div v-if="notificacion.visible" class="toast" :class="notificacion.tipo">
-          <svg v-if="notificacion.tipo === 'exito'" xmlns="http://www.w3.org/2000/svg"
-               class="toast-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <!-- ── TOAST ── -->
+      <Transition name="toast-slide">
+        <div v-if="notif.visible" class="toast" :class="notif.tipo" role="alert">
+          <!-- ✅ EXITO -->
+          <svg v-if="notif.tipo === 'exito'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <svg v-else xmlns="http://www.w3.org/2000/svg"
-               class="toast-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <!-- ❌ ERROR -->
+          <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          {{ notificacion.mensaje }}
+          {{ notif.mensaje }}
         </div>
-      </transition>
+      </Transition>
 
-      <!-- ══════════════════════════════════════════════════════════════
-           SECCIÓN HERO: Buscador principal (elemento más prominente)
-      ═══════════════════════════════════════════════════════════════ -->
-      <section class="hero-busqueda">
-        <div class="hero-contenido">
-          <div class="hero-texto">
-            <h1 class="hero-titulo">Servicios Escolares</h1>
-            <p class="hero-subtitulo">Busca a un alumno por su número de control para ver su información completa</p>
+      <!-- ══════════════════════════════════════════════════
+           HERO BANNER — fondo #0B2545, respeta maqueta
+      ══════════════════════════════════════════════════ -->
+      <div class="hero">
+        <div class="hero-deco"  aria-hidden="true"></div>
+        <div class="hero-deco2" aria-hidden="true"></div>
+
+        <div class="hero-left">
+          <!-- Badge superior -->
+          <div class="hero-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
+            </svg>
+            Servicios Escolares
           </div>
 
-          <!-- Campo de búsqueda prominente -->
-          <div class="buscador-wrapper">
-            <div class="buscador-inner" :class="{ 'buscador-activo': inputFocused, 'buscador-error': estadoBusqueda === 'error' }">
-              <!-- Icono lupa -->
-              <svg class="buscador-icono-lupa" xmlns="http://www.w3.org/2000/svg"
-                   fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+          <div class="hero-title">Consulta de alumnos</div>
+          <div class="hero-sub">Busca por número de control para acceder al expediente completo del alumno</div>
 
+          <!-- Formulario de búsqueda -->
+          <div class="hero-form">
+            <div class="hero-input-wrap"
+              :class="{ 'hi-focus': inputFocused, 'hi-error': estadoBusqueda === 'error' }">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2" class="hi-lupa" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
               <input
-                ref="inputBusqueda"
-                v-model="numeroBusqueda"
+                ref="inputRef"
+                v-model="numCtrl"
+                class="hi-inp"
                 type="text"
-                class="buscador-input"
                 placeholder="Número de control (ej. 22031234)"
                 maxlength="8"
-                @keydown.enter="buscarAlumno"
+                inputmode="numeric"
+                aria-label="Número de control del alumno"
+                @keydown.enter="buscar"
                 @focus="inputFocused = true"
                 @blur="inputFocused = false"
-                @input="onInputBusqueda"
+                @input="onInput"
               />
-
               <!-- Spinner de carga -->
-              <div v-if="estadoBusqueda === 'cargando'" class="buscador-spinner">
-                <svg class="spinner-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"/>
-                  <path fill="currentColor" class="opacity-75"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+              <div v-if="estadoBusqueda === 'cargando'" class="hi-spinner" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2" class="spin">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16 8 8 0 01-8-8z"/>
                 </svg>
               </div>
-
-              <!--  limpiar -->
-              <button
-                v-else-if="numeroBusqueda"
-                class="buscador-limpiar"
-                @click="limpiarBusqueda"
-                title="Limpiar búsqueda"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <!-- Botón limpiar -->
+              <button v-else-if="numCtrl" class="hi-clear" @click="limpiar" type="button" aria-label="Limpiar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-              </button>
-
-              <!-- Botón Buscar -->
-              <button
-                class="buscador-btn"
-                :disabled="estadoBusqueda === 'cargando' || !numeroBusqueda.trim()"
-                @click="buscarAlumno"
-              >
-                <span v-if="estadoBusqueda !== 'cargando'">Buscar</span>
-                <span v-else>Buscando...</span>
               </button>
             </div>
 
-            <!-- Mensajes de estado debajo del buscador -->
-            <transition name="fade-slide">
-              <p v-if="estadoBusqueda === 'error'" class="busqueda-mensaje busqueda-mensaje--error">
-                <svg xmlns="http://www.w3.org/2000/svg" class="msg-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{ mensajeError }}
-              </p>
-              <p v-else-if="estadoBusqueda === 'no-encontrado'" class="busqueda-mensaje busqueda-mensaje--vacio">
-                <svg xmlns="http://www.w3.org/2000/svg" class="msg-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                No se encontró ningún alumno con el número de control <strong>{{ ultimaBusqueda }}</strong>.
-              </p>
-              <p v-else-if="estadoBusqueda === 'idle'" class="busqueda-mensaje busqueda-mensaje--hint">
-                <svg xmlns="http://www.w3.org/2000/svg" class="msg-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Ingresa el número de control de 8 dígitos y presiona Enter o el botón Buscar
-              </p>
-            </transition>
+            <!-- Botón buscar — color #1D52B7 según PDF -->
+            <button
+              class="hero-btn"
+              :disabled="estadoBusqueda === 'cargando' || !numCtrl.trim()"
+              @click="buscar"
+              type="button"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              {{ estadoBusqueda === 'cargando' ? 'Buscando...' : 'Buscar' }}
+            </button>
+          </div>
+
+          <!-- Hints de estado -->
+          <Transition name="fade-slide">
+            <p v-if="estadoBusqueda === 'error'" class="hero-hint hint-err">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              {{ mensajeError }}
+            </p>
+            <p v-else-if="estadoBusqueda === 'no-encontrado'" class="hero-hint hint-warn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              No se encontró ningún alumno con el número <strong>{{ ultimaBusq }}</strong>.
+            </p>
+            <p v-else class="hero-hint">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Ingresa los 8 dígitos del número de control y presiona Enter o el botón Buscar
+            </p>
+          </Transition>
+        </div>
+
+        <!-- Stats del hero -->
+        <div class="hero-stats">
+          <div class="hstat">
+            <div class="hstat-n">{{ fmt(kpis.alumnosActivos) }}</div>
+            <div class="hstat-l">Alumnos activos</div>
+          </div>
+          <div class="hstat">
+            <div class="hstat-n">Ene–Jun</div>
+            <div class="hstat-l">Periodo 2025</div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- ══════════════════════════════════════════════════════════════
-           RESULTADO: Información completa del alumno encontrado
-      ═══════════════════════════════════════════════════════════════ -->
-      <transition name="resultado-appear">
-        <section v-if="alumno && estadoBusqueda === 'exito'" class="resultado-seccion">
+      <!-- ══════════════════════════════════════════════════
+           RESULTADO DEL ALUMNO (aparece al encontrar uno)
+      ══════════════════════════════════════════════════ -->
+      <Transition name="resultado-appear">
+        <section v-if="alumno && estadoBusqueda === 'exito'" class="resultado">
 
-          <!-- Cabecera del alumno -->
-          <div class="alumno-header">
-            <div class="alumno-avatar-wrap">
-              <img
-                v-if="alumno.foto"
-                :src="alumno.foto"
-                :alt="`Foto de ${alumno.nombre}`"
-                class="alumno-avatar"
-              />
-              <div v-else class="alumno-avatar-placeholder">
-                {{ iniciales(alumno.nombre) }}
+          <!-- Header del alumno -->
+          <div class="al-hdr">
+            <div class="al-av">{{ iniciales(alumno.nombre) }}</div>
+            <div class="al-info">
+              <div class="al-nombre-row">
+                <h2 class="al-nombre">{{ alumno.nombre }}</h2>
+                <span class="al-estatus" :class="estatusClass(alumno.estatus)">{{ alumno.estatus }}</span>
               </div>
-            </div>
-
-            <div class="alumno-header-info">
-              <div class="alumno-nombre-row">
-                <h2 class="alumno-nombre">{{ alumno.nombre }}</h2>
-                <span class="alumno-estatus" :class="estatusClass(alumno.estatus)">
-                  {{ alumno.estatus }}
-                </span>
-              </div>
-              <p class="alumno-nc">
-                <svg xmlns="http://www.w3.org/2000/svg" class="info-icono-mini" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+              <p class="al-meta">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0"/>
                 </svg>
                 N° Control: <strong>{{ alumno.numero_control }}</strong>
               </p>
-              <p class="alumno-meta">
-                <svg xmlns="http://www.w3.org/2000/svg" class="info-icono-mini" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 14l9-5-9-5-9 5 9 5z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+              <p class="al-meta">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
                 </svg>
-                {{ alumno.carrera }} · Semestre {{ alumno.semestre }}
+                {{ alumno.carrera }} · Semestre {{ alumno.semestre_actual ?? alumno.semestre }}
               </p>
-              <p class="alumno-meta">
-                <svg xmlns="http://www.w3.org/2000/svg" class="info-icono-mini" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              <p class="al-meta">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
                 {{ alumno.email }}
               </p>
             </div>
-
-            <div class="alumno-header-acciones">
-              <button class="btn-accion btn-accion--outline" @click="limpiarBusqueda">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <div class="al-acciones">
+              <button class="btn-outline" @click="limpiar" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 Nueva búsqueda
               </button>
-              <button class="btn-accion btn-accion--primary" @click="irExpediente">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <button class="btn-primary" @click="irExpediente" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 Ver expediente completo
               </button>
             </div>
           </div>
 
-          <!-- ── Tabs de información ─────────────────────────────────── -->
-          <div class="tabs-barra">
+          <!-- Tabs de detalle -->
+          <div class="tabs-bar">
             <button
               v-for="tab in tabs"
               :key="tab.id"
               class="tab-btn"
-              :class="{ 'tab-btn--activo': tabActivo === tab.id }"
+              :class="{ 'tab-act': tabActivo === tab.id }"
               @click="tabActivo = tab.id"
+              type="button"
             >
-              <svg class="tab-icono" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="tab.icono" />
-              </svg>
               {{ tab.label }}
             </button>
           </div>
 
-          <!-- ── TAB: Datos Generales ───────────────────────────────── -->
-          <transition name="tab-fade" mode="out-in">
-            <div v-if="tabActivo === 'general'" key="general" class="tab-contenido">
+          <!-- Contenido de cada Tab -->
+          <Transition name="tab-fade" mode="out-in">
+
+            <!-- Tab: Datos Generales -->
+            <div v-if="tabActivo === 'general'" key="general" class="tab-body">
               <div class="info-grid">
-
                 <div class="info-card">
-                  <h3 class="info-card-titulo">Información Personal</h3>
-                  <dl class="info-lista">
-                    <div class="info-fila">
-                      <dt>Nombre completo</dt>
-                      <dd>{{ alumno.nombre }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Número de control</dt>
-                      <dd class="dd-mono">{{ alumno.numero_control }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>CURP</dt>
-                      <dd class="dd-mono">{{ alumno.curp ?? 'No registrado' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Fecha de nacimiento</dt>
-                      <dd>{{ formatFecha(alumno.fecha_nacimiento) }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Correo institucional</dt>
-                      <dd>{{ alumno.email }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Teléfono</dt>
-                      <dd>{{ alumno.telefono ?? 'No registrado' }}</dd>
-                    </div>
+                  <h3 class="info-t">Información Personal</h3>
+                  <dl class="info-list">
+                    <div class="if"><dt>Nombre completo</dt><dd>{{ alumno.nombre }}</dd></div>
+                    <div class="if"><dt>Número de control</dt><dd class="mono">{{ alumno.numero_control }}</dd></div>
+                    <div class="if"><dt>CURP</dt><dd class="mono">{{ alumno.curp ?? 'No registrado' }}</dd></div>
+                    <div class="if"><dt>Fecha de nacimiento</dt><dd>{{ fFecha(alumno.fecha_nacimiento) }}</dd></div>
+                    <div class="if"><dt>Correo institucional</dt><dd>{{ alumno.email }}</dd></div>
+                    <div class="if"><dt>Teléfono</dt><dd>{{ alumno.telefono ?? 'No registrado' }}</dd></div>
                   </dl>
                 </div>
-
                 <div class="info-card">
-                  <h3 class="info-card-titulo">Información Académica</h3>
-                  <dl class="info-lista">
-                    <div class="info-fila">
-                      <dt>Carrera</dt>
-                      <dd>{{ alumno.carrera }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Semestre actual</dt>
-                      <dd>{{ alumno.semestre }}° Semestre</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Periodo de ingreso</dt>
-                      <dd>{{ alumno.periodo_ingreso ?? 'No registrado' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Plan de estudios</dt>
-                      <dd>{{ alumno.plan_estudios ?? 'No registrado' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Modalidad</dt>
-                      <dd>{{ alumno.modalidad ?? 'Escolarizado' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Estatus</dt>
-                      <dd>
-                        <span class="chip" :class="estatusClass(alumno.estatus)">
-                          {{ alumno.estatus }}
-                        </span>
-                      </dd>
-                    </div>
+                  <h3 class="info-t">Información Académica</h3>
+                  <dl class="info-list">
+                    <div class="if"><dt>Carrera</dt><dd>{{ alumno.carrera }}</dd></div>
+                    <div class="if"><dt>Semestre actual</dt><dd>{{ alumno.semestre_actual ?? alumno.semestre }}° Semestre</dd></div>
+                    <div class="if"><dt>Periodo de ingreso</dt><dd>{{ alumno.fecha_ingreso ?? alumno.periodo_ingreso ?? 'No registrado' }}</dd></div>
+                    <div class="if"><dt>Plan de estudios</dt><dd>{{ alumno.plan_estudios ?? 'No registrado' }}</dd></div>
+                    <div class="if"><dt>Modalidad</dt><dd>{{ alumno.modalidad ?? 'Escolarizado' }}</dd></div>
+                    <div class="if"><dt>Estatus</dt><dd><span class="chip" :class="estatusClass(alumno.estatus)">{{ alumno.estatus }}</span></dd></div>
                   </dl>
                 </div>
-
               </div>
             </div>
 
-            <!-- ── TAB: Estado Académico ───────────────────────────── -->
-            <div v-else-if="tabActivo === 'academico'" key="academico" class="tab-contenido">
-              <div class="academico-grid">
-
-                <!-- Promedio general -->
-                <div class="kpi-card">
-                  <div class="kpi-valor kpi-azul">{{ alumno.estado_academico?.promedio ?? '—' }}</div>
-                  <div class="kpi-label">Promedio General</div>
-                </div>
-
-                <!-- Créditos -->
-                <div class="kpi-card">
-                  <div class="kpi-valor kpi-verde">{{ alumno.estado_academico?.creditos_obtenidos ?? '—' }}</div>
-                  <div class="kpi-label">Créditos Obtenidos</div>
-                </div>
-
-                <!-- Materias cursadas -->
-                <div class="kpi-card">
-                  <div class="kpi-valor kpi-naranja">{{ alumno.estado_academico?.materias_cursadas ?? '—' }}</div>
-                  <div class="kpi-label">Materias Cursadas</div>
-                </div>
-
-                <!-- Materias reprobadas -->
-                <div class="kpi-card">
-                  <div class="kpi-valor" :class="(alumno.estado_academico?.materias_reprobadas ?? 0) > 0 ? 'kpi-rojo' : 'kpi-verde'">
+            <!-- Tab: Estado Académico -->
+            <div v-else-if="tabActivo === 'academico'" key="academico" class="tab-body">
+              <div class="acad-grid">
+                <div class="acad-kpi"><div class="acad-val azul">{{ alumno.estado_academico?.promedio ?? '—' }}</div><div class="acad-lbl">Promedio General</div></div>
+                <div class="acad-kpi"><div class="acad-val verde">{{ alumno.estado_academico?.creditos_obtenidos ?? alumno.kardex_resumen?.creditos_acumulados ?? '—' }}</div><div class="acad-lbl">Créditos Obtenidos</div></div>
+                <div class="acad-kpi"><div class="acad-val naranja">{{ alumno.estado_academico?.materias_cursadas ?? '—' }}</div><div class="acad-lbl">Materias Cursadas</div></div>
+                <div class="acad-kpi">
+                  <div class="acad-val" :class="(alumno.estado_academico?.materias_reprobadas ?? 0) > 0 ? 'rojo' : 'verde'">
                     {{ alumno.estado_academico?.materias_reprobadas ?? '0' }}
                   </div>
-                  <div class="kpi-label">Materias Reprobadas</div>
+                  <div class="acad-lbl">Materias Reprobadas</div>
                 </div>
-
               </div>
-
-              <!-- Barra de avance de créditos -->
-              <div v-if="alumno.estado_academico" class="progreso-card">
-                <div class="progreso-header">
-                  <span class="progreso-label">Avance en créditos de la carrera</span>
-                  <span class="progreso-pct">
-                    {{ Math.round((alumno.estado_academico.creditos_obtenidos / alumno.estado_academico.creditos_totales) * 100) }}%
-                  </span>
+              <div v-if="alumno.estado_academico" class="prog-card">
+                <div class="prog-hdr">
+                  <span class="prog-lbl">Avance en créditos de la carrera</span>
+                  <span class="prog-pct">{{ Math.round((alumno.estado_academico.creditos_obtenidos / alumno.estado_academico.creditos_totales) * 100) }}%</span>
                 </div>
-                <div class="progreso-barra-bg">
-                  <div
-                    class="progreso-barra-fill"
-                    :style="{
-                      width: Math.round((alumno.estado_academico.creditos_obtenidos / alumno.estado_academico.creditos_totales) * 100) + '%'
-                    }"
-                  ></div>
+                <div class="prog-bg">
+                  <div class="prog-fill"
+                    :style="{ width: Math.round((alumno.estado_academico.creditos_obtenidos / alumno.estado_academico.creditos_totales) * 100) + '%' }">
+                  </div>
                 </div>
-                <p class="progreso-detalle">
-                  {{ alumno.estado_academico.creditos_obtenidos }} de {{ alumno.estado_academico.creditos_totales }} créditos
-                </p>
-              </div>
-
-              <!-- Situación especial -->
-              <div v-if="alumno.estado_academico?.situacion" class="situacion-banner"
-                   :class="alumno.estado_academico.situacion === 'Regular' ? 'situacion-ok' : 'situacion-alerta'">
-                <svg xmlns="http://www.w3.org/2000/svg" class="situacion-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path v-if="alumno.estado_academico.situacion === 'Regular'"
-                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                Situación académica: <strong>{{ alumno.estado_academico.situacion }}</strong>
-                <span v-if="alumno.estado_academico.observacion"> — {{ alumno.estado_academico.observacion }}</span>
+                <p class="prog-det">{{ alumno.estado_academico.creditos_obtenidos }} de {{ alumno.estado_academico.creditos_totales }} créditos</p>
               </div>
             </div>
 
-            <!-- ── TAB: Kardex ──────────────────────────────────────── -->
-            <div v-else-if="tabActivo === 'kardex'" key="kardex" class="tab-contenido">
+            <!-- Tab: Kardex -->
+            <div v-else-if="tabActivo === 'kardex'" key="kardex" class="tab-body">
               <div v-if="alumno.kardex && alumno.kardex.length > 0">
-                <div v-for="(periodo, idx) in alumno.kardex" :key="idx" class="kardex-periodo">
-                  <div class="kardex-periodo-header">
-                    <span class="kardex-periodo-label">{{ periodo.nombre }}</span>
-                    <span class="kardex-periodo-prom">Promedio: <strong>{{ periodo.promedio }}</strong></span>
+                <div v-for="(per, pi) in alumno.kardex" :key="pi" class="kardex-per">
+                  <div class="kardex-per-hdr">
+                    <span class="kardex-per-n">{{ per.nombre }}</span>
+                    <span class="kardex-per-p">Promedio: <strong>{{ per.promedio }}</strong></span>
                   </div>
-                  <div class="kardex-tabla-wrap">
-                    <table class="kardex-tabla">
+                  <div class="tabla-wrap">
+                    <table class="tabla">
                       <thead>
-                        <tr>
-                          <th>Clave</th>
-                          <th>Materia</th>
-                          <th>Créditos</th>
-                          <th>Calificación</th>
-                          <th>Estatus</th>
-                        </tr>
+                        <tr><th>Clave</th><th>Materia</th><th>Créd.</th><th>Calif.</th><th>Estatus</th></tr>
                       </thead>
                       <tbody>
-                        <tr v-for="(mat, mi) in periodo.materias" :key="mi" class="kardex-fila">
-                          <td class="td-mono">{{ mat.clave }}</td>
-                          <td>{{ mat.nombre }}</td>
-                          <td class="td-centro">{{ mat.creditos }}</td>
-                          <td class="td-centro">
-                            <span class="calif" :class="califClass(mat.calificacion)">
-                              {{ mat.calificacion }}
-                            </span>
-                          </td>
-                          <td class="td-centro">
-                            <span class="chip-mini" :class="mat.estatus === 'Aprobada' ? 'chip-verde' : mat.estatus === 'Reprobada' ? 'chip-rojo' : 'chip-gris'">
-                              {{ mat.estatus }}
-                            </span>
-                          </td>
+                        <tr v-for="(m, mi) in per.materias" :key="mi">
+                          <td class="mono sm">{{ m.clave }}</td>
+                          <td>{{ m.nombre }}</td>
+                          <td class="tc">{{ m.creditos }}</td>
+                          <td class="tc"><span class="calif" :class="califClass(m.calificacion)">{{ m.calificacion }}</span></td>
+                          <td class="tc"><span class="chip-mini" :class="m.estatus==='Aprobada' ? 'ch-v' : m.estatus==='Reprobada' ? 'ch-r' : 'ch-g'">{{ m.estatus }}</span></td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
-                <div class="kardex-footer">
-                  <button class="btn-ver-kardex" @click="irKardex">
-                    Ver kardex completo en detalle
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
               </div>
               <div v-else class="tab-vacio">
-                <svg xmlns="http://www.w3.org/2000/svg" class="vacio-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24"
+                  stroke="#BDBDBD" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
                 <p>No hay información de kardex disponible para este alumno.</p>
               </div>
             </div>
 
-            <!-- ── TAB: Horario ─────────────────────────────────────── -->
-            <div v-else-if="tabActivo === 'horario'" key="horario" class="tab-contenido">
-              <div v-if="alumno.horario && alumno.horario.length > 0" class="horario-lista">
-                <div
-                  v-for="(clase, idx) in alumno.horario"
-                  :key="idx"
-                  class="horario-card"
-                >
-                  <div class="horario-dia">{{ clase.dia }}</div>
-                  <div class="horario-info">
-                    <p class="horario-materia">{{ clase.materia }}</p>
-                    <p class="horario-detalle">{{ clase.hora_inicio }} – {{ clase.hora_fin }} · {{ clase.aula }}</p>
+            <!-- Tab: Horario -->
+            <div v-else-if="tabActivo === 'horario'" key="horario" class="tab-body">
+              <div v-if="alumno.horario && alumno.horario.length > 0" class="horario-list">
+                <div v-for="(c, ci) in alumno.horario" :key="ci" class="horario-card">
+                  <div class="hor-dia">{{ c.dia }}</div>
+                  <div class="hor-info">
+                    <p class="hor-mat">{{ c.materia }}</p>
+                    <p class="hor-det">{{ c.hora_inicio }} – {{ c.hora_fin }} · {{ c.aula }}</p>
                   </div>
-                  <div class="horario-docente">
-                    <span class="horario-docente-label">Docente</span>
-                    <span class="horario-docente-nombre">{{ clase.docente }}</span>
+                  <div class="hor-doc">
+                    <span class="hor-doc-l">Docente</span>
+                    <span class="hor-doc-n">{{ c.docente }}</span>
                   </div>
                 </div>
               </div>
               <div v-else class="tab-vacio">
-                <svg xmlns="http://www.w3.org/2000/svg" class="vacio-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24"
+                  stroke="#BDBDBD" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
                 <p>No hay horario registrado para el periodo actual.</p>
               </div>
             </div>
 
-            <!-- ── TAB: Información Adicional ─────────────────────── -->
-            <div v-else-if="tabActivo === 'adicional'" key="adicional" class="tab-contenido">
+            <!-- Tab: Adicional -->
+            <div v-else-if="tabActivo === 'adicional'" key="adicional" class="tab-body">
               <div class="info-grid">
-
                 <div class="info-card">
-                  <h3 class="info-card-titulo">Adeudos y Documentos</h3>
-                  <dl class="info-lista">
-                    <div class="info-fila">
-                      <dt>Adeudo financiero</dt>
-                      <dd>
-                        <span class="chip" :class="(alumno.adeudo ?? 0) > 0 ? 'chip-rojo' : 'chip-verde'">
-                          {{ (alumno.adeudo ?? 0) > 0 ? `$${alumno.adeudo} MXN` : 'Sin adeudo' }}
-                        </span>
-                      </dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Acta de nacimiento</dt>
-                      <dd>{{ alumno.documentos?.acta_nacimiento ? 'Entregado' : 'Pendiente' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>CURP certificada</dt>
-                      <dd>{{ alumno.documentos?.curp ? 'Entregado' : 'Pendiente' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Certificado de secundaria</dt>
-                      <dd>{{ alumno.documentos?.cert_secundaria ? 'Entregado' : 'Pendiente' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Fotografías</dt>
-                      <dd>{{ alumno.documentos?.fotografias ? 'Entregado' : 'Pendiente' }}</dd>
-                    </div>
+                  <h3 class="info-t">Adeudos y Documentos</h3>
+                  <dl class="info-list">
+                    <div class="if"><dt>Adeudo financiero</dt><dd><span class="chip" :class="(alumno.adeudo ?? 0) > 0 ? 'ch-r' : 'ch-v'">{{ (alumno.adeudo ?? 0) > 0 ? `$${alumno.adeudo} MXN` : 'Sin adeudo' }}</span></dd></div>
+                    <div class="if"><dt>Acta de nacimiento</dt><dd>{{ alumno.documentos?.acta_nacimiento ? 'Entregado' : 'Pendiente' }}</dd></div>
+                    <div class="if"><dt>CURP certificada</dt><dd>{{ alumno.documentos?.curp ? 'Entregado' : 'Pendiente' }}</dd></div>
+                    <div class="if"><dt>Certificado de secundaria</dt><dd>{{ alumno.documentos?.cert_secundaria ? 'Entregado' : 'Pendiente' }}</dd></div>
+                    <div class="if"><dt>Fotografías</dt><dd>{{ alumno.documentos?.fotografias ? 'Entregado' : 'Pendiente' }}</dd></div>
                   </dl>
                 </div>
-
                 <div class="info-card">
-                  <h3 class="info-card-titulo">Contacto de Emergencia</h3>
-                  <dl class="info-lista">
-                    <div class="info-fila">
-                      <dt>Nombre</dt>
-                      <dd>{{ alumno.contacto_emergencia?.nombre ?? 'No registrado' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Parentesco</dt>
-                      <dd>{{ alumno.contacto_emergencia?.parentesco ?? 'No registrado' }}</dd>
-                    </div>
-                    <div class="info-fila">
-                      <dt>Teléfono</dt>
-                      <dd>{{ alumno.contacto_emergencia?.telefono ?? 'No registrado' }}</dd>
-                    </div>
+                  <h3 class="info-t">Contacto de Emergencia</h3>
+                  <dl class="info-list">
+                    <div class="if"><dt>Nombre</dt><dd>{{ alumno.contacto_emergencia?.nombre ?? 'No registrado' }}</dd></div>
+                    <div class="if"><dt>Parentesco</dt><dd>{{ alumno.contacto_emergencia?.parentesco ?? 'No registrado' }}</dd></div>
+                    <div class="if"><dt>Teléfono</dt><dd>{{ alumno.contacto_emergencia?.telefono ?? 'No registrado' }}</dd></div>
                   </dl>
                 </div>
-
               </div>
             </div>
-          </transition>
 
+          </Transition>
         </section>
-      </transition>
+      </Transition>
 
-      <!-- ══════════════════════════════════════════════════════════════
-           DASHBOARD: KPIs + Accesos Rápidos (visibles cuando no hay resultado)
-      ═══════════════════════════════════════════════════════════════ -->
-      <transition name="fade">
-        <div v-if="!alumno || estadoBusqueda !== 'exito'">
+      <!-- ══════════════════════════════════════════════════
+           DASHBOARD — visible cuando NO hay alumno activo
+           Sigue exactamente el layout de maq_escolares.html
+      ══════════════════════════════════════════════════ -->
+      <Transition name="fade">
+        <div v-if="!alumno || estadoBusqueda !== 'exito'" class="dash">
 
-          <!-- KPIs -->
-          <div class="stats-grid">
+          <!-- KPI GRID (4 columnas, colores del PDF) -->
+          <div class="kpi-grid">
 
-            <div class="stat-card stat-azul">
-              <div class="stat-icono-wrapper">
-                <svg xmlns="http://www.w3.org/2000/svg" class="stat-icono" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- KPI 1: Alumnos Activos — featured: fondo #0B2545 -->
+            <div class="kpi kpi-feat" @click="router.push('/alumnos')" role="button" tabindex="0">
+              <div class="kpi-ico ki-bw" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                 </svg>
               </div>
-              <div class="stat-info">
-                <p class="stat-etiqueta">Alumnos Activos</p>
-                <div v-if="cargandoDash" class="stat-skeleton"></div>
-                <p v-else class="stat-numero">{{ alumnosActivos }}</p>
-                <span class="stat-link" @click="irAAlumnos">Ver alumnos →</span>
+              <div class="kpi-body">
+                <div class="kpi-lbl">Alumnos Activos</div>
+                <div v-if="cargando" class="kpi-sk kpi-sk-d"></div>
+                <div v-else class="kpi-val">{{ fmt(kpis.alumnosActivos) }}</div>
+                <div class="kpi-lnk">
+                  Ver alumnos →
+                </div>
               </div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-icono-wrapper stat-icono-verde">
-                <svg xmlns="http://www.w3.org/2000/svg" class="stat-icono-verde-svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- KPI 2: Inscripciones — ícono verde #27AE60 -->
+            <div class="kpi" @click="router.push('/inscripciones')" role="button" tabindex="0">
+              <div class="kpi-ico ki-g" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                 </svg>
               </div>
-              <div class="stat-info">
-                <p class="stat-etiqueta">Inscripciones del Periodo</p>
-                <div v-if="cargandoDash" class="stat-skeleton"></div>
-                <p v-else class="stat-numero">{{ inscripcionesPeriodo }}</p>
-                <span class="stat-link" @click="irAInscripciones">Ver inscripciones →</span>
+              <div class="kpi-body">
+                <div class="kpi-lbl">Inscripciones del Periodo</div>
+                <div v-if="cargando" class="kpi-sk"></div>
+                <div v-else class="kpi-val">{{ fmt(kpis.inscripcionesPeriodo) }}</div>
+                <div class="kpi-lnk">
+                  Ver inscripciones →
+                </div>
               </div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-icono-wrapper stat-icono-naranja">
-                <svg xmlns="http://www.w3.org/2000/svg" class="stat-icono-naranja-svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- KPI 3: Grupos — ícono naranja #F2994A -->
+            <div class="kpi" @click="router.push('/gestion-grupos')" role="button" tabindex="0">
+              <div class="kpi-ico ki-a" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                 </svg>
               </div>
-              <div class="stat-info">
-                <p class="stat-etiqueta">Grupos Abiertos</p>
-                <div v-if="cargandoDash" class="stat-skeleton"></div>
-                <p v-else class="stat-numero">{{ gruposAbiertos }}</p>
-                <span class="stat-link" @click="irAGrupos">Ver grupos →</span>
+              <div class="kpi-body">
+                <div class="kpi-lbl">Grupos Abiertos</div>
+                <div v-if="cargando" class="kpi-sk"></div>
+                <div v-else class="kpi-val">{{ kpis.gruposAbiertos }}</div>
+                <div class="kpi-lnk">
+                  Ver grupos →
+                </div>
               </div>
             </div>
 
-            <div class="stat-card">
-              <div class="stat-icono-wrapper stat-icono-azul-suave">
-                <svg xmlns="http://www.w3.org/2000/svg" class="stat-icono-azul-suave-svg" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- KPI 4: Evaluaciones — ícono azul oscuro #1A4184 -->
+            <div class="kpi" @click="router.push('/evaluaciones')" role="button" tabindex="0">
+              <div class="kpi-ico ki-v" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
               </div>
-              <div class="stat-info">
-                <p class="stat-etiqueta">Evaluaciones Pendientes</p>
-                <div v-if="cargandoDash" class="stat-skeleton"></div>
-                <p v-else class="stat-numero">{{ evaluacionesPendientes }}</p>
-                <span class="stat-link" @click="irAEvaluaciones">Ver evaluaciones →</span>
+              <div class="kpi-body">
+                <div class="kpi-lbl">Evaluaciones Pendientes</div>
+                <div v-if="cargando" class="kpi-sk"></div>
+                <div v-else class="kpi-val">{{ kpis.evaluacionesPendientes }}</div>
+                <div class="kpi-lnk">
+                  Ver evaluaciones →
+                </div>
               </div>
             </div>
 
           </div>
 
-          <!-- Error de carga del dashboard -->
-          <div v-if="errorCarga" class="alerta-error">
-            <svg xmlns="http://www.w3.org/2000/svg" class="alerta-icono" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <!-- MAIN GRID: Accesos rápidos + Actividad reciente -->
+          <div class="main-grid">
+
+            <!-- Accesos Rápidos -->
+            <div class="card">
+              <div class="card-h">
+                <!-- CAMBIO: card-t ahora es 16px (maqueta usa font-size:16px, el .vue tenía 14px) -->
+                <span class="card-t">Accesos Rápidos</span>
+                <span class="card-lk">Ver todos</span>
+              </div>
+              <div class="acc-list">
+
+                <div class="acc-item" @click="router.push('/inscripcion')" role="button" tabindex="0">
+                  <div class="acc-ico ai-g" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                    </svg>
+                  </div>
+                  <div class="acc-body">
+                    <div class="acc-t">Gestionar Inscripciones</div>
+                    <div class="acc-d">Da de alta a los alumnos al periodo actual</div>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2" class="acc-arrow">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+
+                <div class="acc-item" @click="router.push('/gestion-grupos')" role="button" tabindex="0">
+                  <div class="acc-ico ai-b" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                  </div>
+                  <div class="acc-body">
+                    <div class="acc-t">Administrar Grupos</div>
+                    <div class="acc-d">Visualiza y organiza grupos por carrera y turno</div>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2" class="acc-arrow">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+
+                <div class="acc-item" @click="router.push('/evaluaciones')" role="button" tabindex="0">
+                  <div class="acc-ico ai-a" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                  </div>
+                  <div class="acc-body">
+                    <div class="acc-t">Supervisar Evaluaciones</div>
+                    <div class="acc-d">Revisa evaluaciones pendientes y actas de calificación</div>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2" class="acc-arrow">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+
+                <!-- Próximamente — opacidad 0.55, no clickeable -->
+                <div class="acc-item prox">
+                  <div class="acc-ico ai-gr" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                  </div>
+                  <div class="acc-body">
+                    <div class="acc-t">Expediente Académico</div>
+                    <div class="acc-d">Consulta el historial académico completo</div>
+                  </div>
+                  <span class="prox-bdg">Próximamente</span>
+                </div>
+
+                <div class="acc-item" @click="router.push('/kardex')" role="button" tabindex="0">
+                  <div class="acc-ico ai-g" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+                    </svg>
+                  </div>
+                  <div class="acc-body">
+                    <div class="acc-t">Kardex del Alumno</div>
+                    <div class="acc-d">Historial de calificaciones por semestre</div>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2" class="acc-arrow">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Actividad Reciente (Bitácora) -->
+            <div class="card">
+              <div class="card-h">
+                <span class="card-t">Actividad Reciente</span>
+                <router-link to="/bitacora" class="card-lk">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                  </svg>
+                  Ver bitácora
+                </router-link>
+              </div>
+              <div class="bit-list">
+                <div v-if="cargandoBit" class="bit-load">
+                  <div class="spinner" aria-hidden="true"></div>
+                  <span>Cargando...</span>
+                </div>
+                <template v-else-if="bitacora.length > 0">
+                  <div v-for="(item, i) in bitacora" :key="item.id_bitacora || i" class="bit-item">
+                    <div class="bit-av" aria-hidden="true">
+                      {{ (item.usuario || item.nombre_usuario || '?').slice(0,2).toUpperCase() }}
+                    </div>
+                    <div class="bit-body">
+                      <div class="bit-r1">
+                        <span class="bit-usr">{{ item.usuario || item.nombre_usuario }}</span>
+                        <span class="bdg" :class="claseBadge(item.accion)">{{ item.accion }}</span>
+                      </div>
+                      <div class="bit-desc">{{ item.accion }}</div>
+                      <div class="bit-t">{{ tRel(item.fecha_hora) }} · {{ item.nombre_modulo || 'Sistema' }}</div>
+                    </div>
+                  </div>
+                </template>
+                <div v-else class="ev">Sin actividad reciente</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- BOTTOM GRID: 3 Gráficas — idénticas a maq_escolares.html -->
+          <div class="bottom-grid">
+
+            <!-- Gráfica 1: Barras horizontales — Alumnos por carrera -->
+            <!-- Colores exactos del PDF: #132B4F, #1A4184, #1D52B7, #2F80ED, #27AE60, #F2994A -->
+            <div class="card">
+              <div class="card-h">
+                <span class="card-t">Alumnos por carrera</span>
+                <span class="card-lk">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                  Detalle
+                </span>
+              </div>
+              <!-- CAMBIO: wrapper con height explícito para que maintainAspectRatio:false funcione -->
+              <div class="chart-wrap">
+                <canvas ref="c1" role="img" aria-label="Alumnos por carrera"></canvas>
+              </div>
+            </div>
+
+            <!-- Gráfica 2: Línea — Inscripciones por semestre -->
+            <!-- Color línea: #1D52B7 (Azul Rey), fill rgba(29,82,183,0.07) -->
+            <div class="card">
+              <div class="card-h">
+                <span class="card-t">Inscripciones por semestre</span>
+                <span class="card-lk">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                  Analítica
+                </span>
+              </div>
+              <div class="chart-wrap">
+                <canvas ref="c2" role="img" aria-label="Inscripciones por semestre"></canvas>
+              </div>
+            </div>
+
+            <!-- Gráfica 3: Donut — Estado de inscripciones -->
+            <!-- cutout 72%, color principal #1D52B7, pendientes rgba(242,153,74,0.15) -->
+            <div class="card">
+              <div class="card-h">
+                <span class="card-t">Estado de inscripciones</span>
+                <!-- CAMBIO: badge usa clase bg-g igual que la maqueta (Periodo activo) -->
+                <span class="bdg bg-g" style="font-size:9px;font-weight:700">Periodo activo</span>
+              </div>
+              <div class="chart-wrap chart-wrap--sm">
+                <canvas ref="c3" role="img" aria-label="Porcentaje de inscripciones completadas vs pendientes"></canvas>
+              </div>
+              <!-- Contadores debajo del donut -->
+              <div class="ins-mini" style="margin-top:12px">
+                <div class="im">
+                  <div class="im-v">{{ fmt(kpis.inscripcionesCompletas) }}</div>
+                  <div class="im-l">Completadas</div>
+                </div>
+                <div class="im">
+                  <div class="im-v" style="color:#F2994A">{{ fmt(kpis.inscripcionesPendientes) }}</div>
+                  <div class="im-l">Pendientes</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Alerta de error de carga -->
+          <div v-if="errorCarga" class="alerta-err" role="alert">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <span>No se pudieron cargar los datos. Verifica la conexión con el servidor.</span>
-            <button class="btn-reintentar" @click="cargarDatos">Reintentar</button>
-          </div>
-
-          <!-- Accesos Rápidos -->
-          <div class="accesos-seccion">
-            <h2 class="seccion-titulo">Accesos Rápidos</h2>
-            <div class="accesos-grid">
-
-              <div class="acceso-card" @click="nuevaInscripcion">
-                <div class="acceso-icono acceso-verde">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                       stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                  </svg>
-                </div>
-                <div class="acceso-contenido">
-                  <h4>Gestionar Inscripciones</h4>
-                  <p>Da de alta a los alumnos</p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="acceso-flecha" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-
-              <div class="acceso-card" @click="irAGrupos">
-                <div class="acceso-icono acceso-azul">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                       stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <div class="acceso-contenido">
-                  <h4>Administrar Grupos</h4>
-                  <p>Visualiza y organiza grupos</p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="acceso-flecha" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-
-              <div class="acceso-card" @click="irAEvaluaciones">
-                <div class="acceso-icono acceso-amarillo">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                       stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                  </svg>
-                </div>
-                <div class="acceso-contenido">
-                  <h4>Supervisar Evaluaciones</h4>
-                  <p>Revisa evaluaciones pendientes</p>
-                </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="acceso-flecha" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-
-              <div class="acceso-card acceso-deshabilitado">
-                <div class="acceso-icono acceso-gris">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                       stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
-                <div class="acceso-contenido">
-                  <h4>Consultar Kardex</h4>
-                  <p>Revisa el expediente académico</p>
-                </div>
-                <span class="badge-proximamente">Próximamente</span>
-              </div>
-
-            </div>
+            <button class="btn-reintentar" @click="cargarDatos" type="button">Reintentar</button>
           </div>
 
         </div>
-      </transition>
+      </Transition>
 
       <div class="spacer"></div>
-
-      <footer class="pie-pagina">
-        © 2026 Tecnológico Nacional de México · Todos los derechos reservados
-      </footer>
+      <footer class="pie">© 2026 Tecnológico Nacional de México · Todos los derechos reservados</footer>
 
     </div>
   </MainLayout>
@@ -672,818 +687,861 @@ import MainLayout from '@/layouts/MainLayout.vue'
 const router = useRouter()
 const API    = `${import.meta.env.VITE_API_URL}/api`
 
-// ── Búsqueda de alumno ──────────────────────────────────────────────────────
-const inputBusqueda   = ref(null)
-const numeroBusqueda  = ref('')
-const ultimaBusqueda  = ref('')
-const inputFocused    = ref(false)
-// Estados: 'idle' | 'cargando' | 'exito' | 'no-encontrado' | 'error'
-const estadoBusqueda  = ref('idle')
-const mensajeError    = ref('')
-const alumno          = ref(null)
+// ── Refs canvas (gráficas) ─────────────────────────────────────────────
+const c1 = ref(null)
+const c2 = ref(null)
+const c3 = ref(null)
+let chart1 = null, chart2 = null, chart3 = null
 
-/** Tab activo del panel de alumno */
-const tabActivo = ref('general')
+// ── Búsqueda ──────────────────────────────────────────────────────────
+const inputRef       = ref(null)
+const numCtrl        = ref('')
+const ultimaBusq     = ref('')
+const inputFocused   = ref(false)
+const estadoBusqueda = ref('idle')   // idle | cargando | exito | no-encontrado | error
+const mensajeError   = ref('')
+const alumno         = ref(null)
+const tabActivo      = ref('general')
+
 const tabs = [
-  {
-    id: 'general',
-    label: 'Datos Generales',
-    icono: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-  },
-  {
-    id: 'academico',
-    label: 'Estado Académico',
-    icono: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'
-  },
-  {
-    id: 'kardex',
-    label: 'Kardex',
-    icono: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01'
-  },
-  {
-    id: 'horario',
-    label: 'Horario',
-    icono: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-  },
-  {
-    id: 'adicional',
-    label: 'Adicional',
-    icono: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-  }
+  { id: 'general',   label: 'Datos Generales'  },
+  { id: 'academico', label: 'Estado Académico' },
+  { id: 'kardex',    label: 'Kardex'           },
+  { id: 'horario',   label: 'Horario'          },
+  { id: 'adicional', label: 'Adicional'        },
 ]
 
-/** Limpia el campo y reinicia el estado */
-const limpiarBusqueda = () => {
-  numeroBusqueda.value = ''
+const limpiar = () => {
+  numCtrl.value        = ''
   alumno.value         = null
   estadoBusqueda.value = 'idle'
   mensajeError.value   = ''
-  ultimaBusqueda.value = ''
+  ultimaBusq.value     = ''
   tabActivo.value      = 'general'
-  nextTick(() => inputBusqueda.value?.focus())
+  nextTick(() => inputRef.value?.focus())
 }
 
-/** Limpia el resultado al escribir de nuevo */
-const onInputBusqueda = () => {
+const onInput = () => {
   if (estadoBusqueda.value !== 'cargando') {
     alumno.value         = null
     estadoBusqueda.value = 'idle'
   }
 }
 
-/** Ejecuta la búsqueda por número de control */
-const buscarAlumno = async () => {
-  const nc = numeroBusqueda.value.trim()
+const buscar = async () => {
+  const nc = numCtrl.value.trim()
   if (!nc) return
-
   estadoBusqueda.value = 'cargando'
-  ultimaBusqueda.value  = nc
-  alumno.value          = null
-  tabActivo.value       = 'general'
-
+  ultimaBusq.value     = nc
+  alumno.value         = null
+  tabActivo.value      = 'general'
   try {
     const res = await fetch(`${API}/alumnos/buscar?numero_control=${encodeURIComponent(nc)}`)
-
-    if (res.status === 404) {
-      estadoBusqueda.value = 'no-encontrado'
-      return
-    }
-
+    if (res.status === 404) { estadoBusqueda.value = 'no-encontrado'; return }
     if (!res.ok) throw new Error(`Error ${res.status}`)
-
     const data = await res.json()
-
-    if (!data || (!data.id && !data.numero_control)) {
-      estadoBusqueda.value = 'no-encontrado'
-      return
-    }
-
+    if (!data || (!data.id && !data.numero_control)) { estadoBusqueda.value = 'no-encontrado'; return }
     alumno.value         = data
     estadoBusqueda.value = 'exito'
-    mostrarNotificacion(`Alumno encontrado: ${data.nombre}`, 'exito')
-
-  } catch (err) {
-    console.error('Error buscando alumno:', err)
+    mostrarNotif(`Alumno encontrado: ${data.nombre}`, 'exito')
+  } catch (e) {
+    console.error('[Escolares] buscar:', e)
     estadoBusqueda.value = 'error'
     mensajeError.value   = 'Ocurrió un error al conectar con el servidor. Intenta de nuevo.'
   }
 }
 
-// ── Dashboard (KPIs globales) ───────────────────────────────────────────────
-const cargandoDash           = ref(false)
-const errorCarga             = ref(false)
-const alumnosActivos         = ref(0)
-const inscripcionesPeriodo   = ref(0)
-const gruposAbiertos         = ref(0)
-const evaluacionesPendientes = ref(0)
+const irExpediente = () => { if (alumno.value?.id) router.push(`/alumnos/${alumno.value.id}`) }
 
-const cargarDatos = async () => {
-  cargandoDash.value = true
-  errorCarga.value   = false
-  try {
-    const res = await fetch(`${API}/dashboard`)
-    if (!res.ok) throw new Error('Error en la respuesta del servidor')
-    const data = await res.json()
-    alumnosActivos.value         = data.kpis?.alumnos       ?? 0
-    inscripcionesPeriodo.value   = data.kpis?.inscripciones ?? 0
-    gruposAbiertos.value         = data.kpis?.grupos        ?? 0
-    evaluacionesPendientes.value = data.kpis?.evaluaciones  ?? 0
-  } catch (err) {
-    console.error('Error cargando dashboard:', err)
-    errorCarga.value = true
-  } finally {
-    cargandoDash.value = false
-  }
-}
-
-onMounted(() => {
-  cargarDatos()
-  nextTick(() => inputBusqueda.value?.focus())
+// ── KPIs dashboard ────────────────────────────────────────────────────
+const cargando   = ref(false)
+const errorCarga = ref(false)
+const kpis = ref({
+  alumnosActivos:          0,
+  inscripcionesPeriodo:    0,
+  inscripcionesCompletas:  0,
+  inscripcionesPendientes: 0,
+  pctInscripciones:        0,
+  gruposAbiertos:          0,
+  evaluacionesPendientes:  0,
 })
 
-// ── Toast de notificación ───────────────────────────────────────────────────
-const notificacion = ref({ visible: false, mensaje: '', tipo: 'exito' })
+const cargarDatos = async () => {
+  cargando.value   = true
+  errorCarga.value = false
+  try {
+    const res  = await fetch(`${API}/dashboard`)
+    if (!res.ok) throw new Error()
+    const data = await res.json()
+    kpis.value.alumnosActivos          = data.kpis?.alumnos       ?? 0
+    kpis.value.inscripcionesPeriodo    = data.kpis?.inscripciones ?? 0
+    kpis.value.gruposAbiertos          = data.kpis?.grupos        ?? 0
+    kpis.value.evaluacionesPendientes  = data.kpis?.evaluaciones  ?? 0
+    kpis.value.inscripcionesCompletas  = data.kpis?.ins_completas ?? Math.round((data.kpis?.inscripciones ?? 0) * 0.89)
+    kpis.value.inscripcionesPendientes = data.kpis?.ins_pendientes ?? Math.round((data.kpis?.inscripciones ?? 0) * 0.11)
+    kpis.value.pctInscripciones        = data.kpis?.pct_ins       ?? 89
+  } catch {
+    errorCarga.value = true
+    // Fallback con datos realistas
+    kpis.value = {
+      alumnosActivos: 1235, inscripcionesPeriodo: 7020,
+      inscripcionesCompletas: 1147, inscripcionesPendientes: 137,
+      pctInscripciones: 89, gruposAbiertos: 72, evaluacionesPendientes: 0,
+    }
+  } finally {
+    cargando.value = false
+    nextTick(() => inicializarCharts())
+  }
+}
+
+// ── Bitácora ──────────────────────────────────────────────────────────
+const bitacora    = ref([])
+const cargandoBit = ref(false)
+
+const cargarBitacora = async () => {
+  cargandoBit.value = true
+  try {
+    const res  = await fetch(`${API}/bitacora?limit=5`)
+    if (!res.ok) throw new Error()
+    const data = await res.json()
+    bitacora.value = Array.isArray(data) ? data : (data.bitacora ?? [])
+  } catch { /* silencioso */ }
+  finally { cargandoBit.value = false }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// CHARTS con Chart.js (CDN)
+// Configuración fiel al maq_escolares.html + paleta del PDF COLORIMETRIA
+// ══════════════════════════════════════════════════════════════════════
+const inicializarCharts = () => {
+  if (typeof window === 'undefined' || !window.Chart) return
+  const ChartJS = window.Chart
+
+  // Defaults globales — fuente Montserrat del PDF
+  ChartJS.defaults.font.family = "'Montserrat', system-ui, sans-serif"
+  ChartJS.defaults.font.size   = 11
+  ChartJS.defaults.color       = '#828282'  // Gris Medio Inactivo del PDF
+
+  // ── CHART 1: Barras verticales — Alumnos por Carrera ──────────────
+  // Colores: Bloque Azules + semántico del PDF (#132B4F → #F2994A)
+  if (c1.value) {
+    if (chart1) chart1.destroy()
+    chart1 = new ChartJS(c1.value, {
+      type: 'bar',
+      data: {
+        labels: ['ISC', 'Industrial', 'Eléctrica', 'Bioquímica', 'Mecánica', 'Empresarial'],
+        datasets: [{
+          data: [312, 268, 198, 176, 174, 156],
+          // Paleta exacta del PDF — Bloque Azules de Cobalto Oscuro a Cyan + verde y naranja
+          backgroundColor: ['#132B4F', '#1A4184', '#1D52B7', '#2F80ED', '#27AE60', '#F2994A'],
+          borderRadius: 6,         // Esquinas redondeadas según maqueta
+          borderSkipped: false,    // Redondear también la base
+          hoverBackgroundColor: ['#0B2545', '#132B4F', '#1A4184', '#1D52B7', '#1e8449', '#d68910'],
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0B2545',      // Azul Marino Profundo del PDF
+            titleColor: 'rgba(255,255,255,0.6)',
+            bodyColor: '#FFFFFF',
+            borderColor: '#1D52B7',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: { label: c => ' ' + c.parsed.y + ' alumnos' }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' }
+          },
+          y: {
+            grid: { color: '#F4F6F9' },   // Gris Hielo del PDF como líneas de cuadrícula
+            border: { display: false },
+            ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' }
+          }
+        }
+      }
+    })
+  }
+
+  // ── CHART 2: Línea con fill — Inscripciones por Semestre ──────────
+  // Color principal: #1D52B7 (Azul Rey de Enfoque — Primary Brand del PDF)
+  // Fill: rgba(29,82,183,0.07) según PDF: "Ideal para cartas modernas como sombra suave"
+  if (c2.value) {
+    if (chart2) chart2.destroy()
+    chart2 = new ChartJS(c2.value, {
+      type: 'line',
+      data: {
+        labels: ['1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°'],
+        datasets: [{
+          data: [180, 165, 158, 144, 152, 138, 175, 172],
+          borderColor: '#1D52B7',                    // Azul Rey — Primary Brand
+          backgroundColor: 'rgba(29,82,183,0.07)',   // Sombra suave del PDF
+          borderWidth: 2.5,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#FFFFFF',           // Blanco Absoluto del PDF
+          pointBorderColor: '#1D52B7',
+          pointBorderWidth: 2,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#1D52B7',
+          pointHoverBorderColor: '#FFFFFF',
+          pointHoverBorderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0B2545',
+            titleColor: 'rgba(255,255,255,0.6)',
+            bodyColor: '#FFFFFF',
+            borderColor: '#1D52B7',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: { label: c => ' ' + c.parsed.y + ' alumnos' }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' }
+          },
+          y: {
+            grid: { color: '#F4F6F9' },
+            border: { display: false },
+            min: 100,
+            ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' }
+          }
+        }
+      }
+    })
+  }
+
+  // ── CHART 3: Donut — Estado de Inscripciones ─────────────────────
+  // cutout 72% igual que maqueta
+  // Color principal: #1D52B7 (completas), pendientes rgba(242,153,74,0.15)
+  // Borde naranja #F2994A (Naranja Calma — Advertencia del PDF)
+  if (c3.value) {
+    if (chart3) chart3.destroy()
+    const pct = kpis.value.pctInscripciones || 89
+    chart3 = new ChartJS(c3.value, {
+      type: 'doughnut',
+      data: {
+        labels: [`Completadas ${pct}%`, `Pendientes ${100 - pct}%`],
+        datasets: [{
+          data: [pct, 100 - pct],
+          backgroundColor: ['#1D52B7', 'rgba(242,153,74,0.15)'],  // PDF: Azul Rey + Naranja con 85% transparencia
+          borderColor: ['#1D52B7', '#F2994A'],                     // PDF: Azul Rey + Naranja Calma
+          borderWidth: 1,
+          hoverOffset: 4,
+          hoverBackgroundColor: ['#1A4184', 'rgba(242,153,74,0.25)'],
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',              // Grosor del anillo — igual que maqueta
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0B2545',
+            bodyColor: '#FFFFFF',
+            borderColor: '#1D52B7',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: { label: c => ' ' + c.label }
+          }
+        }
+      }
+    })
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+const notif = ref({ visible: false, mensaje: '', tipo: 'exito' })
 let timerNotif = null
 
-const mostrarNotificacion = (mensaje, tipo = 'exito') => {
+const mostrarNotif = (mensaje, tipo = 'exito') => {
   if (timerNotif) clearTimeout(timerNotif)
-  notificacion.value = { visible: true, mensaje, tipo }
-  timerNotif = setTimeout(() => { notificacion.value.visible = false }, 3500)
+  notif.value = { visible: true, mensaje, tipo }
+  timerNotif = setTimeout(() => { notif.value.visible = false }, 3500)
 }
 
-// ── Helpers de formato y clases ─────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────
+const fmt      = (n) => n?.toLocaleString('es-MX') ?? '0'
+const iniciales = (n = '') => n.split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase()
 
-/** Obtiene las iniciales del nombre para el avatar placeholder */
-const iniciales = (nombre = '') =>
-  nombre.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
-
-/** Clase CSS según el estatus del alumno */
-const estatusClass = (estatus = '') => {
-  const m = {
-    'Activo':      'estatus-activo',
-    'Inactivo':    'estatus-inactivo',
-    'Egresado':    'estatus-egresado',
-    'Suspendido':  'estatus-suspendido',
-    'Baja':        'estatus-baja',
-  }
-  return m[estatus] ?? 'estatus-inactivo'
-}
-
-/** Clase CSS según la calificación (semáforo) */
-const califClass = (cal) => {
-  if (cal === null || cal === undefined) return 'calif-nd'
-  if (cal >= 80) return 'calif-verde'
-  if (cal >= 70) return 'calif-amarillo'
-  return 'calif-rojo'
-}
-
-/** Formatea una fecha ISO a formato legible */
-const formatFecha = (iso) => {
+const fFecha = (iso) => {
   if (!iso) return 'No registrado'
-  try {
-    return new Date(iso).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })
-  } catch { return iso }
+  try { return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' }) }
+  catch { return iso }
 }
 
-// ── Navegación ──────────────────────────────────────────────────────────────
-const irAAlumnos       = () => router.push('/alumnos')
-const irAInscripciones = () => router.push('/inscripcion')
-const irAGrupos        = () => router.push('/gestion-grupos')
-const irAEvaluaciones  = () => router.push('/evaluaciones')
-const nuevaInscripcion = () => router.push('/inscripcion')
+const estatusClass = (e = '') => {
+  const m = { 'Activo':'es-act', 'Inactivo':'es-ina', 'Egresado':'es-egr', 'Suspendido':'es-sus', 'Baja':'es-baj' }
+  return m[e] ?? 'es-ina'
+}
 
-const irExpediente = () => {
-  if (alumno.value?.id) router.push(`/alumnos/${alumno.value.id}`)
+const califClass = (c) => {
+  if (c === null || c === undefined) return 'ca-nd'
+  if (c >= 80) return 'ca-v'
+  if (c >= 70) return 'ca-a'
+  return 'ca-r'
 }
-const irKardex = () => {
-  if (alumno.value?.id) router.push(`/alumnos/${alumno.value.id}/kardex`)
+
+const tRel = (f) => {
+  if (!f) return ''
+  const m = Math.floor((Date.now() - new Date(f).getTime()) / 60000)
+  if (m < 1)  return 'Ahora'
+  if (m < 60) return `Hace ${m} min`
+  const h = Math.floor(m/60)
+  if (h < 24) return `Hace ${h} h`
+  return `Hace ${Math.floor(h/24)} día(s)`
 }
+
+const claseBadge = (a = '') => {
+  const s = a.toLowerCase()
+  if (s.includes('inscri') || s.includes('cre') || s.includes('alta')) return 'bg-g'
+  if (s.includes('edit') || s.includes('actualiz'))                      return 'bg-a'
+  if (s.includes('elim') || s.includes('baja'))                          return 'bg-r'
+  return 'bg-b'
+}
+
+// ── Lifecycle ─────────────────────────────────────────────────────────
+onMounted(() => {
+  cargarDatos()
+  cargarBitacora()
+  nextTick(() => inputRef.value?.focus())
+
+  // Carga Chart.js desde CDN si no está ya en window
+  if (!window.Chart) {
+    const script    = document.createElement('script')
+    script.src      = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
+    script.onload   = () => nextTick(() => inicializarCharts())
+    document.head.appendChild(script)
+  } else {
+    nextTick(() => inicializarCharts())
+  }
+})
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+/* ══════════════════════════════════════════════════════════════
+   VARIABLES — Paleta completa del PDF COLORIMETRIA
+   Todos los colores referenciados en el PDF están aquí.
+══════════════════════════════════════════════════════════════ */
+:root {
+  /* Bloque Azules */
+  --azul-marino-profundo : #0B2545;
+  --azul-rey             : #1D52B7;
+  --azul-marino-medio    : #1A4184;
+  --azul-cyan            : #2F80ED;
+  --azul-cobalto-oscuro  : #132B4F;
+  /* Semántico */
+  --verde-esmeralda      : #27AE60;
+  --rojo-coral           : #EB5757;
+  --rosa-alerta          : #FFF0F0;
+  --naranja-calma        : #F2994A;
+  /* Neutros */
+  --blanco               : #FFFFFF;
+  --gris-hielo           : #F4F6F9;
+  --gris-contenedor      : #F2F4F7;
+  --gris-bordes          : #E0E0E0;
+  /* Tipográfico */
+  --carbon-oscuro        : #333333;
+  --gris-pizarra         : #4F4F4F;
+  --gris-medio           : #828282;
+  --gris-carga           : #BDBDBD;
+}
 
-/* ── Variables globales de la vista ──────────────────────────────────────── */
-.servicios-page {
-  --azul:        #1B396A;
-  --azul-hover:  #1D4ED8;
-  --azul-suave:  #DBEAFE;
-  --azul-light:  #EFF6FF;
-  --borde:       #E5E7EB;
-  --fondo:       #F5F5F5;
-  --texto:       #1A1A1A;
-  --gris:        #6B7280;
-  --verde:       #16A34A;
-  --verde-suave: #DCFCE7;
-  --rojo:        #DC2626;
-  --rojo-suave:  #FEF2F2;
-  --amarillo:    #F59E0B;
-  --amarillo-suave: #FEF3C7;
-
-  width: 100%;
-  min-height: 100%;
+/* ══ BASE ══ */
+.page {
+  font-family: 'Montserrat', system-ui, sans-serif;
+  background: var(--gris-hielo);   /* #F4F6F9 — Canvas Background del PDF */
   display: flex;
   flex-direction: column;
-  background: var(--fondo);
-  font-family: 'Montserrat', sans-serif;
+  gap: 14px;
+  min-height: 100%;
+  padding-bottom: 2rem;
+  text-transform: uppercase; 
 }
-
 .spacer { flex: 1; }
 
-/* ── Breadcrumb ──────────────────────────────────────────────────────────── */
-.breadcrumb {
-  display: flex; align-items: center; gap: 0.4rem;
-  color: var(--gris); font-size: 0.88rem; margin-bottom: 0.75rem;
-}
-.breadcrumb .sep    { color: #E5E7EB; }
-.breadcrumb-link    { color: var(--gris); text-decoration: none; transition: color 0.15s; }
-.breadcrumb-link:hover { color: var(--azul); }
-.breadcrumb-actual  { color: var(--azul); font-weight: 600; }
+/* ── Breadcrumb ── */
+.bc     { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--gris-medio); }
+.bc-sep { color:var(--gris-carga); opacity:.6; }
+.bc-lnk { color:var(--gris-medio); text-decoration:none; transition:color .15s; }
+.bc-lnk:hover { color:var(--azul-rey); }
+.bc-cur { color:var(--azul-cyan); font-weight:600; }  /* Azul Cyan — texto activo del PDF */
 
-/* ── Toast ───────────────────────────────────────────────────────────────── */
+/* ── Toast ── */
 .toast {
-  position: fixed; bottom: 2rem; right: 2rem;
-  display: flex; align-items: center; gap: 10px;
-  padding: 0.9rem 1.4rem; border-radius: 10px;
-  color: white; font-weight: 700; font-size: 0.9rem;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 3000;
-  font-family: 'Montserrat', sans-serif; max-width: 380px;
+  position:fixed; bottom:2rem; right:2rem;
+  display:flex; align-items:center; gap:10px;
+  padding:.9rem 1.4rem; border-radius:10px;
+  color:var(--blanco); font-weight:700; font-size:.9rem;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+  z-index:3000; font-family:'Montserrat',sans-serif; max-width:380px;
 }
-.toast.exito { background: var(--azul); }
-.toast.error { background: var(--rojo); }
-.toast-icono { width: 20px; height: 20px; flex-shrink: 0; }
-.toast-slide-enter-active, .toast-slide-leave-active { transition: all 0.3s ease; }
-.toast-slide-enter-from, .toast-slide-leave-to { opacity: 0; transform: translateX(100%); }
+.toast.exito { background:var(--azul-marino-profundo); }  /* #0B2545 */
+.toast.error { background:var(--rojo-coral); }             /* #EB5757 */
+.toast svg   { flex-shrink:0; stroke:var(--blanco); }
+.toast-slide-enter-active,.toast-slide-leave-active { transition:all .3s ease; }
+.toast-slide-enter-from,.toast-slide-leave-to { opacity:0; transform:translateX(100%); }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   HERO BUSCADOR
-══════════════════════════════════════════════════════════════════════════ */
-.hero-busqueda {
-  background: linear-gradient(135deg, var(--azul) 0%, #1e4b8f 60%, #2563EB 100%);
-  border-radius: 16px;
-  padding: 2.5rem 2rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 8px 32px rgba(27, 57, 106, 0.25);
+/* ══ HERO ══ */
+.hero {
+  background: #0B2545 !important;
+  background-color: #0B2545 !important;
+  border-radius: 14px;
+  padding: 22px 26px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
   position: relative;
   overflow: hidden;
+  /* Forzar que el fondo no sea transparente bajo ninguna circunstancia */
+  isolation: isolate;
 }
-
-/* Decoración de fondo del hero */
-.hero-busqueda::before {
-  content: '';
-  position: absolute; inset: 0;
-  background-image: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%),
-                    radial-gradient(circle at 10% 80%, rgba(255,255,255,0.05) 0%, transparent 40%);
+.hero-deco  {
+  position: absolute; right: -40px; top: -40px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: rgba(29,82,183,.08);
   pointer-events: none;
+  z-index: 0;
 }
-
-.hero-contenido { position: relative; z-index: 1; }
-
-.hero-texto { margin-bottom: 1.5rem; }
-.hero-titulo {
-  color: #FFFFFF; font-size: 1.75rem; font-weight: 700;
-  margin: 0 0 0.4rem; letter-spacing: -0.02em;
+.hero-deco2 {
+  position: absolute; right: 60px; bottom: -60px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: rgba(29,82,183,.05);
+  pointer-events: none;
+  z-index: 0;
 }
-.hero-subtitulo {
-  color: rgba(255,255,255,0.75); font-size: 0.95rem; margin: 0;
-}
+.hero-left  { flex: 1; position: relative; z-index: 1; }
+.hero-stats { display: flex; flex-direction: column; gap: 10px; position: relative; z-index: 1; }
 
-/* ── Caja del buscador ─────────────────────────────────────────────────── */
-.buscador-wrapper { max-width: 680px; }
-
-.buscador-inner {
-  display: flex; align-items: center;
-  background: #FFFFFF; border-radius: 12px;
-  border: 2px solid transparent;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  transition: border-color 0.2s, box-shadow 0.2s;
-  overflow: hidden;
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(47,128,237,.18);
+  border: 1px solid rgba(47,128,237,.3);
+  border-radius: 20px; padding: 3px 10px;
+  font-size: 10px; font-weight: 600; color: #2F80ED;
+  margin-bottom: 10px; letter-spacing: .03em;
 }
-.buscador-activo {
-  border-color: rgba(255,255,255,0.5);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.2), 0 0 0 3px rgba(255,255,255,0.15);
-}
-.buscador-error { border-color: var(--rojo) !important; }
+.hero-badge svg { stroke: #2F80ED; }
 
-.buscador-icono-lupa {
-  width: 22px; height: 22px; stroke: var(--gris);
-  flex-shrink: 0; margin-left: 1rem;
-}
-
-.buscador-input {
-  flex: 1; border: none; outline: none;
+.hero-title {
+  font-size: 24px; font-weight: 700;
+  color: #FFFFFF !important;
+  margin-bottom: 5px; line-height: 1.2;
   font-family: 'Montserrat', sans-serif;
-  font-size: 1rem; font-weight: 500; color: var(--texto);
-  padding: 0.95rem 0.75rem;
-  background: transparent;
-  letter-spacing: 0.01em;
 }
-.buscador-input::placeholder { color: #9CA3AF; font-weight: 400; }
+.hero-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,.5) !important;
+  margin-bottom: 16px; font-weight: 300;
+  font-family: 'Montserrat', sans-serif;
+}
 
-.buscador-spinner {
-  padding: 0.5rem; flex-shrink: 0;
+.hero-form        { display: flex; gap: 8px; max-width: 520px; }
+.hero-input-wrap  {
+  flex: 1; display: flex; align-items: center;
+  background: rgba(255,255,255,.09);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 9px; padding: 0 12px;
+  transition: border-color .15s;
 }
-.spinner-svg {
-  width: 22px; height: 22px; animation: spin 0.8s linear infinite;
-  stroke: var(--azul);
+.hi-focus { border-color: rgba(29,82,183,.7) !important; background: rgba(29,82,183,.15) !important; }
+.hi-error { border-color: #EB5757 !important; }
+.hi-lupa  { stroke: #828282; flex-shrink: 0; margin-right: 8px; }
+.hi-inp {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-family: 'Montserrat', sans-serif; font-size: 13px;
+  color: #FFFFFF !important;
+  padding: 10px 0;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.buscador-limpiar {
-  padding: 0.5rem; background: none; border: none; cursor: pointer;
+.hi-inp::placeholder { color: #828282; }
+.hi-spinner { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; flex-shrink: 0; }
+.spin { animation: girar .75s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+.hi-clear {
+  background: transparent; border: none; cursor: pointer; padding: 4px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--gris); flex-shrink: 0; border-radius: 6px;
-  transition: color 0.15s, background 0.15s;
+  color: #828282; border-radius: 4px; flex-shrink: 0;
+  transition: color .15s;
 }
-.buscador-limpiar:hover { color: var(--rojo); background: var(--rojo-suave); }
-.buscador-limpiar svg { width: 18px; height: 18px; }
+.hi-clear:hover { color: #FFFFFF; }
+.hi-clear svg { stroke: currentColor; }
 
-.buscador-btn {
-  background: var(--azul); color: #FFFFFF;
-  border: none; cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.95rem; font-weight: 700;
-  padding: 0 1.5rem; height: 100%; min-height: 52px;
-  transition: background 0.15s;
-  white-space: nowrap; flex-shrink: 0;
-}
-.buscador-btn:hover:not(:disabled) { background: var(--azul-hover); }
-.buscador-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* ── Mensajes de estado ────────────────────────────────────────────────── */
-.busqueda-mensaje {
-  display: flex; align-items: center; gap: 8px;
-  margin-top: 0.75rem; font-size: 0.88rem; font-weight: 500;
-}
-.busqueda-mensaje--error   { color: #FCA5A5; }
-.busqueda-mensaje--vacio   { color: rgba(255,255,255,0.8); }
-.busqueda-mensaje--hint    { color: rgba(255,255,255,0.6); }
-.msg-icono { width: 17px; height: 17px; flex-shrink: 0; }
-
-.fade-slide-enter-active, .fade-slide-leave-active { transition: all 0.25s ease; }
-.fade-slide-enter-from, .fade-slide-leave-to { opacity: 0; transform: translateY(-6px); }
-
-/* ══════════════════════════════════════════════════════════════════════════
-   RESULTADO: PANEL DEL ALUMNO
-══════════════════════════════════════════════════════════════════════════ */
-.resultado-seccion {
-  background: #FFFFFF;
-  border-radius: 16px;
-  border: 1px solid var(--borde);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  margin-bottom: 1.5rem;
-  overflow: hidden;
-}
-
-.resultado-appear-enter-active { transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
-.resultado-appear-enter-from   { opacity: 0; transform: translateY(20px); }
-
-/* ── Cabecera del alumno ─────────────────────────────────────────────── */
-.alumno-header {
-  display: flex; align-items: flex-start; gap: 1.5rem;
-  padding: 1.75rem 2rem;
-  background: linear-gradient(to right, var(--azul-light), #FFFFFF);
-  border-bottom: 1px solid var(--borde);
-  flex-wrap: wrap;
-}
-
-.alumno-avatar-wrap { flex-shrink: 0; }
-.alumno-avatar {
-  width: 80px; height: 80px; border-radius: 50%;
-  object-fit: cover; border: 3px solid #FFFFFF;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-}
-.alumno-avatar-placeholder {
-  width: 80px; height: 80px; border-radius: 50%;
-  background: var(--azul); color: #FFFFFF;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; font-weight: 700;
-  border: 3px solid #FFFFFF;
-  box-shadow: 0 4px 12px rgba(27,57,106,0.25);
-}
-
-.alumno-header-info { flex: 1; min-width: 0; }
-.alumno-nombre-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
-.alumno-nombre {
-  font-size: 1.35rem; font-weight: 700; color: var(--texto); margin: 0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.alumno-nc, .alumno-meta {
+.hero-btn {
+  background: #1D52B7; border: none; border-radius: 9px;
+  padding: 10px 20px; color: #FFFFFF;
+  font-size: 13px; font-weight: 600; cursor: pointer;
   display: flex; align-items: center; gap: 6px;
-  font-size: 0.88rem; color: var(--gris); margin: 0 0 0.2rem;
+  font-family: 'Montserrat', sans-serif; white-space: nowrap;
+  transition: background .15s;
 }
-.alumno-nc strong { color: var(--texto); }
-.info-icono-mini { width: 15px; height: 15px; stroke: var(--gris); flex-shrink: 0; }
+.hero-btn:hover    { background: #0B2545; }
+.hero-btn:disabled { opacity: .55; cursor: not-allowed; }
+.hero-btn svg      { stroke: #FFFFFF; }
 
-.alumno-estatus {
-  font-size: 0.78rem; font-weight: 700; padding: 3px 12px;
-  border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+.hero-hint     { font-size: 10px; color: #828282; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+.hero-hint svg { stroke: currentColor; flex-shrink: 0; }
+.hint-err      { color: #EB5757 !important; }
+.hint-warn     { color: #F2994A !important; }
+
+.hstat {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px; padding: 12px 16px;
+  min-width: 130px; text-align: center;
+}
+.hstat-n { font-size: 20px; font-weight: 700; color: #FFFFFF !important; font-family: 'Montserrat', sans-serif; }
+.hstat-l { font-size: 10px; color: #828282; margin-top: 2px; font-family: 'Montserrat', sans-serif; }
+
+/* ══ RESULTADO ALUMNO ══ */
+.resultado {
+  background:var(--blanco); border:1px solid var(--gris-bordes);
+  border-radius:12px; overflow:hidden;
+  box-shadow:0 2px 8px rgba(29,82,183,.05);
 }
 
-.alumno-header-acciones {
-  display: flex; flex-direction: column; gap: 0.6rem;
-  flex-shrink: 0; align-items: flex-end;
+/* Header del alumno */
+.al-hdr {
+  display:flex; align-items:center; gap:16px;
+  padding:1.5rem 1.75rem; border-bottom:1px solid var(--gris-hielo);
+  background:var(--blanco);
 }
-
-.btn-accion {
-  display: flex; align-items: center; gap: 6px;
-  padding: 0.55rem 1.1rem; border-radius: 8px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.85rem; font-weight: 600;
-  cursor: pointer; transition: all 0.15s; white-space: nowrap;
-  border: none;
+/* Avatar — fondo Azul Marino Profundo */
+.al-av {
+  width:52px; height:52px; border-radius:12px; flex-shrink:0;
+  background:var(--azul-marino-profundo); color:var(--blanco);
+  font-size:18px; font-weight:700; display:flex; align-items:center;
+  justify-content:center; font-family:'Montserrat',sans-serif;
 }
-.btn-accion svg { width: 16px; height: 16px; }
-.btn-accion--primary { background: var(--azul); color: #FFFFFF; }
-.btn-accion--primary:hover { background: var(--azul-hover); }
-.btn-accion--outline {
-  background: transparent; color: var(--azul);
-  border: 1.5px solid var(--azul);
+.al-info { flex:1; min-width:0; }
+.al-nombre-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px; }
+/* Título nombre — Montserrat Bold 24px del PDF */
+.al-nombre { font-size:18px; font-weight:700; color:var(--carbon-oscuro); font-family:'Montserrat',sans-serif; margin:0; }
+.al-meta {
+  display:flex; align-items:center; gap:5px;
+  font-size:12px; color:var(--gris-pizarra); margin:2px 0;
+  font-family:'Montserrat',sans-serif;
 }
-.btn-accion--outline:hover { background: var(--azul-light); }
+.al-meta svg { stroke:var(--gris-medio); flex-shrink:0; }
+.al-acciones { display:flex; gap:8px; flex-shrink:0; }
 
-/* ── Estatus chips ─────────────────────────────────────────────────────── */
-.estatus-activo     { background: var(--verde-suave); color: var(--verde); }
-.estatus-inactivo   { background: #F3F4F6; color: var(--gris); }
-.estatus-egresado   { background: var(--azul-suave); color: var(--azul); }
-.estatus-suspendido { background: var(--amarillo-suave); color: var(--amarillo); }
-.estatus-baja       { background: var(--rojo-suave); color: var(--rojo); }
+/* Estatus chips */
+.al-estatus { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; font-family:'Montserrat',sans-serif; }
+.es-act { background:rgba(39,174,96,.12); color:var(--verde-esmeralda); }
+.es-ina { background:rgba(189,189,189,.15); color:var(--gris-medio); }
+.es-egr { background:rgba(29,82,183,.10); color:var(--azul-rey); }
+.es-sus { background:rgba(242,153,74,.12); color:var(--naranja-calma); }
+.es-baj { background:rgba(235,87,87,.10); color:var(--rojo-coral); }
 
-/* ── Tabs ──────────────────────────────────────────────────────────────── */
-.tabs-barra {
-  display: flex; overflow-x: auto; gap: 0;
-  border-bottom: 1px solid var(--borde);
-  padding: 0 1.5rem;
-  scrollbar-width: none;
+/* Botones primario/outline */
+.btn-primary {
+  background:var(--azul-rey); color:var(--blanco); border:none;
+  padding:9px 16px; border-radius:8px; font-size:12px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:6px;
+  font-family:'Montserrat',sans-serif; transition:background .15s; white-space:nowrap;
 }
-.tabs-barra::-webkit-scrollbar { display: none; }
+.btn-primary:hover { background:var(--azul-marino-profundo); }
+.btn-primary svg { stroke:var(--blanco); }
+.btn-outline {
+  background:transparent; color:var(--carbon-oscuro); border:1px solid var(--gris-bordes);
+  padding:9px 16px; border-radius:8px; font-size:12px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:6px;
+  font-family:'Montserrat',sans-serif; transition:all .15s; white-space:nowrap;
+}
+.btn-outline:hover { border-color:var(--azul-cyan); color:var(--azul-cyan); }
+.btn-outline svg { stroke:currentColor; }
 
+/* Tabs */
+.tabs-bar {
+  display:flex; gap:0; border-bottom:1px solid var(--gris-hielo);
+  padding:0 1.75rem; background:var(--blanco); overflow-x:auto;
+}
 .tab-btn {
-  display: flex; align-items: center; gap: 7px;
-  padding: 0.85rem 1.1rem; border: none; background: none;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.88rem; font-weight: 600;
-  color: var(--gris); cursor: pointer; white-space: nowrap;
-  border-bottom: 3px solid transparent; margin-bottom: -1px;
-  transition: color 0.15s, border-color 0.15s;
+  background:transparent; border:none; border-bottom:3px solid transparent;
+  padding:14px 18px; font-size:12px; font-weight:500; color:var(--gris-medio);
+  cursor:pointer; white-space:nowrap; font-family:'Montserrat',sans-serif;
+  transition:all .15s;
 }
-.tab-btn:hover { color: var(--azul); }
-.tab-btn--activo { color: var(--azul); border-bottom-color: var(--azul); }
-.tab-icono { width: 16px; height: 16px; }
+.tab-btn:hover { color:var(--carbon-oscuro); }
+/* Tab activo — color Azul Cyan del PDF */
+.tab-act { color:var(--azul-cyan) !important; border-bottom-color:var(--azul-rey) !important; font-weight:600; }
 
-.tab-contenido { padding: 1.75rem 2rem; }
+/* Contenido de tabs */
+.tab-body { padding:1.5rem 1.75rem; }
 
-.tab-fade-enter-active, .tab-fade-leave-active { transition: opacity 0.18s ease, transform 0.18s ease; }
-.tab-fade-enter-from { opacity: 0; transform: translateY(6px); }
-.tab-fade-leave-to   { opacity: 0; transform: translateY(-4px); }
+/* Info grid (tab General y Adicional) */
+.info-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.info-card { background:var(--gris-hielo); border-radius:10px; padding:16px 18px; border:1px solid var(--gris-bordes); }
+/* Título de tarjeta — Montserrat SemiBold 16-18px del PDF */
+.info-t { font-size:14px; font-weight:600; color:var(--carbon-oscuro); margin:0 0 12px; font-family:'Montserrat',sans-serif; }
+.info-list { display:flex; flex-direction:column; gap:10px; list-style:none; padding:0; margin:0; }
+.if { display:flex; flex-direction:column; gap:2px; }
+.if dt { font-size:10px; font-weight:600; letter-spacing:.05em; color:var(--gris-medio); font-family:'Montserrat',sans-serif; }
+.if dd { font-size:13px; color:var(--carbon-oscuro); font-family:'Montserrat',sans-serif; margin:0; }
+.mono { font-family:'Courier New', monospace; font-size:12px; }
 
-/* ── Info grid (2 columnas) ─────────────────────────────────────────── */
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-}
+/* Tab Académico */
+.acad-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+.acad-kpi  { background:var(--gris-hielo); border:1px solid var(--gris-bordes); border-radius:10px; padding:14px; text-align:center; }
+/* KPI numérico — Montserrat Bold 32-36px del PDF */
+.acad-val  { font-size:28px; font-weight:700; line-height:1; font-family:'Montserrat',sans-serif; }
+.acad-lbl  { font-size:10px; color:var(--gris-medio); margin-top:5px; font-weight:600; letter-spacing:.05em; font-family:'Montserrat',sans-serif; }
+.azul   { color:var(--azul-cyan); }
+.verde  { color:var(--verde-esmeralda); }
+.naranja { color:var(--naranja-calma); }
+.rojo   { color:var(--rojo-coral); }
 
-.info-card {
-  background: var(--fondo); border-radius: 12px;
-  border: 1px solid var(--borde); padding: 1.25rem;
-}
-.info-card-titulo {
-  font-size: 0.88rem; font-weight: 700;
-  color: var(--azul); margin: 0 0 1rem;
-  text-transform: uppercase; letter-spacing: 0.05em;
-}
+/* Barra de progreso */
+.prog-card { background:var(--gris-hielo); border-radius:10px; padding:16px 18px; border:1px solid var(--gris-bordes); }
+.prog-hdr  { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.prog-lbl  { font-size:12px; font-weight:600; color:var(--carbon-oscuro); font-family:'Montserrat',sans-serif; }
+.prog-pct  { font-size:14px; font-weight:700; color:var(--azul-rey); font-family:'Montserrat',sans-serif; }
+.prog-bg   { height:8px; background:var(--gris-bordes); border-radius:4px; overflow:hidden; }
+.prog-fill { height:100%; background:var(--azul-rey); border-radius:4px; transition:width .5s ease; }
+.prog-det  { font-size:11px; color:var(--gris-medio); margin-top:6px; font-family:'Montserrat',sans-serif; }
 
-.info-lista { margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.65rem; }
-.info-fila { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
-.info-fila dt { font-size: 0.83rem; color: var(--gris); font-weight: 500; flex-shrink: 0; }
-.info-fila dd { font-size: 0.88rem; color: var(--texto); font-weight: 600; text-align: right; margin: 0; }
-.dd-mono { font-family: monospace; letter-spacing: 0.05em; }
+/* Kardex */
+.kardex-per     { margin-bottom:20px; }
+.kardex-per-hdr { display:flex; align-items:center; justify-content:space-between; background:var(--azul-marino-profundo); color:var(--blanco); padding:8px 14px; border-radius:8px 8px 0 0; font-size:12px; font-family:'Montserrat',sans-serif; }
+.kardex-per-n   { font-weight:600; }
+.kardex-per-p   { font-size:11px; color:rgba(255,255,255,.65); }
+.tabla-wrap     { overflow-x:auto; border:1px solid var(--gris-bordes); border-top:none; border-radius:0 0 8px 8px; }
+.tabla          { width:100%; border-collapse:collapse; font-size:12px; font-family:'Montserrat',sans-serif; }
+.tabla th       { background:var(--gris-contenedor); color:var(--gris-pizarra); font-weight:600; font-size:10px; letter-spacing:.04em; padding:8px 12px; text-align:left; border-bottom:1px solid var(--gris-bordes); }
+.tabla td       { padding:9px 12px; border-bottom:1px solid var(--gris-hielo); color:var(--carbon-oscuro); vertical-align:middle; }
+.tabla tr:last-child td { border-bottom:none; }
+.tabla tr:hover td { background:rgba(29,82,183,.02); }
+.tc             { text-align:center; }
+.sm             { font-size:11px; }
+.calif          { font-weight:700; font-size:11px; padding:2px 7px; border-radius:5px; }
+.ca-v           { background:rgba(39,174,96,.12); color:var(--verde-esmeralda); }
+.ca-a           { background:rgba(242,153,74,.12); color:var(--naranja-calma); }
+.ca-r           { background:rgba(235,87,87,.12); color:var(--rojo-coral); }
+.ca-nd          { background:rgba(189,189,189,.15); color:var(--gris-medio); }
+.chip-mini      { font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+.ch-v           { background:rgba(39,174,96,.12); color:var(--verde-esmeralda); }
+.ch-r           { background:rgba(235,87,87,.12); color:var(--rojo-coral); }
+.ch-g           { background:rgba(189,189,189,.15); color:var(--gris-medio); }
 
-/* ── Estado académico ────────────────────────────────────────────────── */
-.academico-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 1rem; margin-bottom: 1.25rem;
-}
-
-.kpi-card {
-  background: var(--fondo); border: 1px solid var(--borde);
-  border-radius: 12px; padding: 1.25rem 1rem;
-  text-align: center;
-}
-.kpi-valor {
-  font-size: 2.25rem; font-weight: 700; line-height: 1;
-  margin-bottom: 0.4rem;
-}
-.kpi-label { font-size: 0.8rem; color: var(--gris); font-weight: 500; }
-.kpi-azul    { color: var(--azul); }
-.kpi-verde   { color: var(--verde); }
-.kpi-naranja { color: var(--amarillo); }
-.kpi-rojo    { color: var(--rojo); }
-
-.progreso-card {
-  background: var(--fondo); border: 1px solid var(--borde);
-  border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
-}
-.progreso-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 0.75rem;
-}
-.progreso-label { font-size: 0.88rem; font-weight: 600; color: var(--texto); }
-.progreso-pct { font-size: 1.1rem; font-weight: 700; color: var(--azul); }
-.progreso-barra-bg {
-  height: 10px; background: var(--borde); border-radius: 99px; overflow: hidden;
-}
-.progreso-barra-fill {
-  height: 100%; background: linear-gradient(to right, var(--azul), #2563EB);
-  border-radius: 99px; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.progreso-detalle { font-size: 0.82rem; color: var(--gris); margin: 0.5rem 0 0; }
-
-.situacion-banner {
-  display: flex; align-items: center; gap: 10px;
-  padding: 0.9rem 1.1rem; border-radius: 10px;
-  font-size: 0.9rem; font-weight: 500;
-}
-.situacion-ok     { background: var(--verde-suave); color: var(--verde); }
-.situacion-alerta { background: var(--amarillo-suave); color: #92400E; }
-.situacion-icono  { width: 20px; height: 20px; flex-shrink: 0; }
-
-/* ── Kardex ──────────────────────────────────────────────────────────── */
-.kardex-periodo { margin-bottom: 1.5rem; }
-.kardex-periodo-header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 0.6rem;
-}
-.kardex-periodo-label { font-size: 0.95rem; font-weight: 700; color: var(--texto); }
-.kardex-periodo-prom  { font-size: 0.88rem; color: var(--gris); }
-.kardex-periodo-prom strong { color: var(--azul); }
-
-.kardex-tabla-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--borde); }
-.kardex-tabla {
-  width: 100%; border-collapse: collapse; min-width: 480px;
-}
-.kardex-tabla th {
-  background: var(--fondo); padding: 0.65rem 1rem;
-  font-size: 0.8rem; font-weight: 700;
-  color: var(--gris); text-align: left;
-  border-bottom: 1px solid var(--borde);
-}
-.kardex-fila td {
-  padding: 0.6rem 1rem; font-size: 0.875rem; color: var(--texto);
-  border-bottom: 1px solid #F9FAFB;
-}
-.kardex-fila:last-child td { border-bottom: none; }
-.kardex-fila:hover td { background: var(--azul-light); }
-.td-mono   { font-family: monospace; font-size: 0.82rem; color: var(--gris); }
-.td-centro { text-align: center; }
-
-.calif {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 38px; height: 28px; border-radius: 6px;
-  font-size: 0.85rem; font-weight: 700;
-}
-.calif-verde    { background: var(--verde-suave); color: var(--verde); }
-.calif-amarillo { background: var(--amarillo-suave); color: #92400E; }
-.calif-rojo     { background: var(--rojo-suave); color: var(--rojo); }
-.calif-nd       { background: #F3F4F6; color: var(--gris); }
-
-.chip-mini {
-  display: inline-flex; padding: 2px 10px; border-radius: 20px;
-  font-size: 0.75rem; font-weight: 700; white-space: nowrap;
-}
-.chip-verde { background: var(--verde-suave); color: var(--verde); }
-.chip-rojo  { background: var(--rojo-suave); color: var(--rojo); }
-.chip-gris  { background: #F3F4F6; color: var(--gris); }
-
-.kardex-footer { padding-top: 1rem; display: flex; justify-content: center; }
-.btn-ver-kardex {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--azul-light); color: var(--azul);
-  border: 1.5px solid var(--azul-suave); border-radius: 8px;
-  padding: 0.65rem 1.25rem; cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.88rem; font-weight: 700;
-  transition: background 0.15s, border-color 0.15s;
-}
-.btn-ver-kardex:hover { background: var(--azul-suave); border-color: var(--azul); }
-.btn-ver-kardex svg { width: 16px; height: 16px; }
-
-/* ── Horario ──────────────────────────────────────────────────────────── */
-.horario-lista { display: flex; flex-direction: column; gap: 0.75rem; }
+/* Horario */
+.horario-list { display:flex; flex-direction:column; gap:8px; }
 .horario-card {
-  display: flex; align-items: center; gap: 1.25rem;
-  background: var(--fondo); border: 1px solid var(--borde);
-  border-radius: 10px; padding: 1rem 1.25rem;
-  transition: border-color 0.15s;
+  display:flex; align-items:center; gap:12px;
+  padding:12px 14px; border-radius:10px;
+  border:1px solid var(--gris-bordes); background:var(--gris-hielo);
 }
-.horario-card:hover { border-color: var(--azul-suave); }
+.hor-dia  { font-size:11px; font-weight:700; color:var(--azul-rey); min-width:40px; font-family:'Montserrat',sans-serif; }
+.hor-info { flex:1; min-width:0; }
+.hor-mat  { font-size:.93rem; font-weight:700; color:var(--carbon-oscuro); margin:0 0 2px; font-family:'Montserrat',sans-serif; }
+.hor-det  { font-size:.82rem; color:var(--gris-medio); margin:0; font-family:'Montserrat',sans-serif; }
+.hor-doc  { display:flex; flex-direction:column; align-items:flex-end; text-align:right; flex-shrink:0; }
+.hor-doc-l { font-size:.72rem; color:var(--gris-medio); margin-bottom:2px; font-family:'Montserrat',sans-serif; }
+.hor-doc-n { font-size:.83rem; font-weight:600; color:var(--carbon-oscuro); font-family:'Montserrat',sans-serif; }
 
-.horario-dia {
-  font-size: 0.78rem; font-weight: 700; color: var(--azul);
-  background: var(--azul-light); padding: 4px 10px;
-  border-radius: 6px; white-space: nowrap; flex-shrink: 0;
-  min-width: 60px; text-align: center;
-}
-.horario-info { flex: 1; min-width: 0; }
-.horario-materia { font-size: 0.93rem; font-weight: 700; color: var(--texto); margin: 0 0 2px; }
-.horario-detalle { font-size: 0.82rem; color: var(--gris); margin: 0; }
+/* Estado vacío de tabs */
+.tab-vacio { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.75rem; padding:3rem 1rem; color:var(--gris-medio); text-align:center; }
+.tab-vacio p { font-size:.9rem; margin:0; font-family:'Montserrat',sans-serif; }
 
-.horario-docente {
-  display: flex; flex-direction: column; align-items: flex-end;
-  text-align: right; flex-shrink: 0;
-}
-.horario-docente-label { font-size: 0.72rem; color: var(--gris); font-weight: 500; margin-bottom: 2px; }
-.horario-docente-nombre { font-size: 0.83rem; font-weight: 600; color: var(--texto); }
+/* Chips genéricos */
+.chip { display:inline-flex; align-items:center; padding:3px 12px; border-radius:20px; font-size:.78rem; font-weight:700; white-space:nowrap; font-family:'Montserrat',sans-serif; }
 
-/* ── Estado vacío en tabs ───────────────────────────────────────────── */
-.tab-vacio {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 0.75rem;
-  padding: 3rem 1rem; color: var(--gris); text-align: center;
-}
-.vacio-icono { width: 48px; height: 48px; stroke: #D1D5DB; }
-.tab-vacio p { font-size: 0.9rem; margin: 0; }
+/* ══ DASHBOARD ══ */
+.dash { display:flex; flex-direction:column; gap:14px; }
 
-/* ── Chip genérico ──────────────────────────────────────────────────── */
-.chip {
-  display: inline-flex; align-items: center;
-  padding: 3px 12px; border-radius: 20px;
-  font-size: 0.78rem; font-weight: 700; white-space: nowrap;
+/* KPI Grid — 4 columnas */
+.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.kpi { background:var(--blanco); border:1px solid var(--gris-bordes); border-radius:12px; padding:16px 18px; display:flex; align-items:center; gap:13px; cursor:pointer; transition:all .15s; box-shadow:0 2px 8px rgba(29,82,183,.05); }
+.kpi:hover { border-color:var(--azul-cyan); box-shadow:0 0 0 3px rgba(29,82,183,.07); }
+
+
+/* KPI featured — fondo Azul Marino Profundo  */
+.kpi-feat { background: linear-gradient(135deg, #0B2545 0%, #1A4184 100%) !important; border-color: #0B2545 !important; position: relative; overflow: hidden; align-items: center; }
+.kpi-feat::after { content: ''; position: absolute; right: -20px; top: -20px; width: 110px; height: 110px; border-radius: 50%; background: rgba(47, 128, 237, 0.15); pointer-events: none; }
+.kpi-feat .kpi-lbl { color: rgba(255,255,255,.6) !important; letter-spacing: .08em; font-size: 10px; }
+.kpi-feat .kpi-val { color: #FFFFFF !important; }
+.kpi-feat .kpi-lnk { color: rgba(255,255,255,.7) !important; letter-spacing: .04em; font-size: 10px; display: flex; align-items: center; gap: 3px; }
+.kpi-feat .kpi-ico { background: rgba(255,255,255,.12) !important; color: #FFFFFF !important; position: relative; z-index: 1; align-self: center; }
+.kpi-feat .kpi-ico svg { stroke: #FFFFFF !important; }
+.kpi-ico { align-self: center; }
+.kpi-feat .kpi-body { position: relative; z-index: 1; align-items: flex-start; display: flex; flex-direction: column; }
+
+/* Íconos de KPI */
+.kpi-ico { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; align-self:center; }
+.kpi-ico svg { stroke:currentColor; }
+.ki-bw { background:rgba(255,255,255,.1); color:var(--azul-cyan); }
+.ki-g  { background:rgba(39,174,96,.10); color:var(--verde-esmeralda); }
+.ki-a  { background:rgba(242,153,74,.10); color:var(--naranja-calma); }
+.ki-v  { background:rgba(47,128,237,.10); color:var(--azul-marino-medio); }
+.kpi-ico { align-self: center; }
+
+/* Cuerpo del KPI */
+.kpi-body { flex:1; min-width:0; display:flex; flex-direction:column; align-items:flex-start; }
+.kpi-lbl { font-size:10px; font-weight:600; letter-spacing:.07em; color:var(--gris-medio); margin-bottom:4px; font-family:'Montserrat',sans-serif; }
+.kpi-val { font-size:32px; font-weight:700; color:var(--carbon-oscuro); line-height:1; font-family:'Montserrat',sans-serif; }
+.kpi-lnk { font-size:11px; font-weight:500; color:var(--azul-cyan); margin-top:5px; display:flex; align-items:center; gap:3px; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
+.kpi-lnk svg { stroke:var(--azul-cyan); }
+
+/* Skeleton de carga */
+.kpi-sk   { width:80px; height:32px; border-radius:6px; background:linear-gradient(90deg,#E0E0E0 25%,#F2F4F7 50%,#E0E0E0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
+.kpi-sk-d { background:linear-gradient(90deg,rgba(255,255,255,.1) 25%,rgba(255,255,255,.2) 50%,rgba(255,255,255,.1) 75%); background-size:200% 100%; }
+@keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+
+/* Main grid: 1.4fr / 1fr */
+.main-grid { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:14px; }
+.card {
+  background:var(--blanco); border:1px solid var(--gris-bordes);
+  border-radius:12px; padding:18px;
+  box-shadow:0 2px 8px rgba(29,82,183,.05);
+}
+.card-h { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+/* Título de tarjeta — 16px SemiBold del PDF (la maqueta usa 16px) */
+.card-t { font-size:16px; font-weight:600; color:var(--carbon-oscuro); font-family:'Montserrat',sans-serif; }
+.card-lk { font-size:11px; font-weight:600; color:var(--azul-cyan); cursor:pointer; display:flex; align-items:center; gap:3px; text-decoration:none; font-family:'Montserrat',sans-serif; }
+.card-lk:hover { color:var(--azul-marino-medio); }
+.card-lk svg { stroke:currentColor; }
+
+/* Accesos rápidos */
+.acc-list { display:flex; flex-direction:column; gap:8px; }
+.acc-item {
+  display:flex; align-items:center; gap:12px; padding:12px 14px;
+  border-radius:10px; border:1px solid var(--gris-bordes);
+  background:var(--gris-contenedor); cursor:pointer; transition:all .15s;
+}
+.acc-item:hover { border-color:var(--azul-cyan); background:rgba(29,82,183,.05); }
+.acc-item.prox  { opacity:.55; cursor:default; }
+.acc-item.prox:hover { border-color:var(--gris-bordes); background:var(--gris-contenedor); }
+.acc-ico { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.acc-ico svg { stroke:currentColor; }
+.ai-g  { background:rgba(39,174,96,.10); color:var(--verde-esmeralda); }
+.ai-b  { background:rgba(47,128,237,.10); color:var(--azul-rey); }
+.ai-a  { background:rgba(242,153,74,.10); color:var(--naranja-calma); }
+.ai-gr { background:var(--gris-contenedor); color:var(--gris-medio); }
+.acc-body { flex:1; min-width:0; }
+.acc-t { font-size:12px; font-weight:600; color:var(--carbon-oscuro); margin-bottom:2px; font-family:'Montserrat',sans-serif; }
+.acc-d { font-size:11px; color:var(--gris-pizarra); font-family:'Montserrat',sans-serif; }
+.acc-arrow { stroke:var(--gris-carga); flex-shrink:0; transition:stroke .15s; }
+.acc-item:not(.prox):hover .acc-arrow { stroke:var(--azul-rey); }
+.prox-bdg { font-size:9px; font-weight:700; color:var(--gris-medio); background:var(--gris-contenedor); border-radius:20px; padding:2px 8px; flex-shrink:0; letter-spacing:.04em; border:1px solid var(--gris-bordes); }
+
+/* Bitácora */
+.bit-list { display:flex; flex-direction:column; }
+.bit-load { display:flex; align-items:center; gap:8px; padding:1rem 0; color:var(--gris-medio); font-size:11px; font-family:'Montserrat',sans-serif; }
+/* Spinner — borde azul rey del PDF */
+.spinner { width:15px; height:15px; border:2px solid var(--gris-bordes); border-top-color:var(--azul-rey); border-radius:50%; animation:girar .75s linear infinite; flex-shrink:0; }
+.bit-item { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--gris-hielo); }
+.bit-item:last-child { border-bottom:none; padding-bottom:0; }
+/* Avatar bitácora — fondo Azul Marino Profundo del PDF */
+.bit-av { width:30px; height:30px; border-radius:50%; background:var(--azul-marino-profundo); color:var(--blanco); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:'Montserrat',sans-serif; }
+.bit-body { flex:1; min-width:0; }
+.bit-r1  { display:flex; align-items:center; gap:6px; margin-bottom:2px; flex-wrap:wrap; }
+.bit-usr  { font-size:12px; font-weight:600; color:var(--carbon-oscuro); font-family:'Montserrat',sans-serif; }
+.bit-desc { font-size:11px; color:var(--gris-pizarra); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:'Montserrat',sans-serif; }
+.bit-t    { font-size:10px; color:var(--gris-medio); margin-top:2px; font-family:'Montserrat',sans-serif; }
+
+/* Badges */
+.bdg   { font-size:9px; font-weight:700; padding:2px 8px; border-radius:20px; letter-spacing:.02em; font-family:'Montserrat',sans-serif; }
+.bg-g  { background:rgba(39,174,96,.10); color:var(--verde-esmeralda); }
+.bg-b  { background:rgba(47,128,237,.10); color:var(--azul-rey); }
+.bg-a  { background:rgba(242,153,74,.10); color:var(--naranja-calma); }
+.bg-r  { background:rgba(235,87,87,.10); color:var(--rojo-coral); }
+
+/* Bottom grid — 3 columnas para gráficas */
+.bottom-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap:14px; }
+
+/* ── CHART WRAPPERS ──
+   CRÍTICO: Chart.js necesita un contenedor con height definido
+   cuando maintainAspectRatio:false está activo.
+   La maqueta usa height:180px para chart-wrap y 140px para el donut.
+*/
+.chart-wrap {
+  position:relative; width:100%;
+  height:180px;    /* Igual que maq_escolares.html */
+}
+.chart-wrap--sm {
+  height:140px;    /* Donut más pequeño — igual que maqueta */
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   DASHBOARD: KPIs
-══════════════════════════════════════════════════════════════════════════ */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem; margin-bottom: 1.5rem;
-}
+/* Inscripciones mini (contadores bajo el donut) */
+.ins-mini { display:flex; gap:8px; }
+.im       { flex:1; background:var(--gris-hielo); border:1px solid var(--gris-bordes); border-radius:8px; padding:10px; text-align:center; }
+/* Valor numérico — Montserrat Bold del PDF */
+.im-v     { font-size:16px; font-weight:700; color:var(--carbon-oscuro); font-family:'Montserrat',sans-serif; }
+.im-l     { font-size:10px; color:var(--gris-pizarra); margin-top:2px; font-family:'Montserrat',sans-serif; }
 
-.stat-card {
-  background: #FFFFFF; border-radius: 12px;
-  padding: 1.3rem 1.4rem; display: flex;
-  align-items: center; gap: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  border: 1px solid var(--borde);
-  transition: transform 0.2s, box-shadow 0.2s; min-width: 0;
-}
-.stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.09); }
+/* Estado vacío de gráficas */
+.ev { display:flex; align-items:center; justify-content:center; padding:2rem; color:var(--gris-medio); font-size:11px; font-family:'Montserrat',sans-serif; }
 
-.stat-azul { background: var(--azul); border-color: var(--azul); }
-.stat-azul .stat-etiqueta    { color: rgba(255,255,255,0.8); }
-.stat-azul .stat-numero      { color: #FFFFFF; }
-.stat-azul .stat-link        { color: rgba(255,255,255,0.85); }
-.stat-azul .stat-icono-wrapper { background: rgba(255,255,255,0.2); }
-.stat-azul .stat-icono-wrapper svg { stroke: #FFFFFF; }
-
-.stat-icono-wrapper {
-  width: 46px; height: 46px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; background: var(--azul-suave);
+/* Alerta de error carga — fondo #FFF0F0 del PDF (Rosa Alerta) */
+.alerta-err {
+  display:flex; align-items:center; gap:10px;
+  background:var(--rosa-alerta); border:1px solid rgba(235,87,87,.20);
+  border-radius:10px; padding:12px 16px;
+  font-size:.9rem; color:var(--rojo-coral); font-weight:500;
+  font-family:'Montserrat',sans-serif;
 }
-.stat-icono-wrapper svg { width: 22px; height: 22px; stroke: var(--azul); }
-.stat-icono-verde          { background: var(--verde-suave); }
-.stat-icono-verde-svg      { width: 22px; height: 22px; stroke: var(--verde); }
-.stat-icono-naranja        { background: var(--amarillo-suave); }
-.stat-icono-naranja-svg    { width: 22px; height: 22px; stroke: var(--amarillo); }
-.stat-icono-azul-suave     { background: var(--azul-suave); }
-.stat-icono-azul-suave-svg { width: 22px; height: 22px; stroke: var(--azul); }
-
-.stat-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.stat-etiqueta {
-  font-size: 0.83rem; color: var(--gris); font-weight: 500; margin: 0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.stat-numero { font-size: 2rem; font-weight: 700; color: var(--texto); margin: 2px 0; line-height: 1; }
-.stat-link {
-  font-size: 0.82rem; color: var(--azul); font-weight: 600;
-  cursor: pointer; transition: color 0.15s; white-space: nowrap;
-}
-.stat-link:hover { color: var(--azul-hover); }
-
-.stat-skeleton {
-  width: 80px; height: 32px;
-  background: linear-gradient(90deg, #E5E7EB 25%, #F3F4F6 50%, #E5E7EB 75%);
-  background-size: 200% 100%; animation: shimmer 1.4s infinite;
-  border-radius: 6px; margin: 2px 0;
-}
-.stat-azul .stat-skeleton {
-  background: linear-gradient(90deg,
-    rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.2) 75%);
-  background-size: 200% 100%;
-}
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-/* ── Alerta de error ──────────────────────────────────────────────────── */
-.alerta-error {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--rojo-suave); border: 1px solid #FECACA;
-  border-radius: 10px; padding: 12px 16px; margin-bottom: 1.4rem;
-  font-size: 0.9rem; color: var(--rojo); font-weight: 500;
-}
-.alerta-icono { width: 20px; height: 20px; flex-shrink: 0; stroke: var(--rojo); }
+.alerta-err svg { stroke:var(--rojo-coral); flex-shrink:0; }
+/* Botón reintentar — rojo coral del PDF */
 .btn-reintentar {
-  margin-left: auto; background: var(--rojo); color: white; border: none;
-  padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 0.85rem;
-  cursor: pointer; font-family: 'Montserrat', sans-serif;
-  transition: background 0.15s; white-space: nowrap;
+  margin-left:auto; background:var(--rojo-coral); color:var(--blanco);
+  border:none; padding:6px 16px; border-radius:6px;
+  font-weight:600; font-size:.85rem; cursor:pointer;
+  font-family:'Montserrat',sans-serif; transition:background .15s; white-space:nowrap;
 }
-.btn-reintentar:hover { background: #B91C1C; }
+.btn-reintentar:hover { background:#c0392b; }
 
-/* ── Accesos rápidos ─────────────────────────────────────────────────── */
-.accesos-seccion { margin-bottom: 2rem; }
-.seccion-titulo  { font-size: 1.05rem; font-weight: 700; color: var(--texto); margin: 0 0 1rem; }
+/* Footer */
+.pie { text-align:center; color:var(--gris-carga); font-size:.82rem; padding:2rem 0; border-top:1px solid var(--gris-bordes); font-family:'Montserrat',sans-serif; }
 
-.accesos-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+/* ══ TRANSICIONES ══ */
+.fade-enter-active,.fade-leave-active { transition:opacity .2s ease; }
+.fade-enter-from,.fade-leave-to { opacity:0; }
+.fade-slide-enter-active,.fade-slide-leave-active { transition:all .25s ease; }
+.fade-slide-enter-from,.fade-slide-leave-to { opacity:0; transform:translateY(-6px); }
+.tab-fade-enter-active,.tab-fade-leave-active { transition:all .18s ease; }
+.tab-fade-enter-from,.tab-fade-leave-to { opacity:0; transform:translateY(4px); }
+.resultado-appear-enter-active { transition:all .3s ease; }
+.resultado-appear-enter-from   { opacity:0; transform:translateY(8px); }
+
+/* ══ RESPONSIVE ══ */
+@media (max-width:1024px) {
+  .kpi-grid    { grid-template-columns:repeat(2,1fr); }
+  .info-grid   { grid-template-columns:1fr; }
+  .acad-grid   { grid-template-columns:repeat(2,1fr); }
+  .bottom-grid { grid-template-columns:1fr 1fr; }
+  .main-grid   { grid-template-columns:1fr; }
 }
-
-.acceso-card {
-  background: #FFFFFF; border-radius: 12px; padding: 1.2rem 1.4rem;
-  display: flex; align-items: center; gap: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--borde);
-  cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; min-width: 0;
+@media (max-width:768px) {
+  .hero             { flex-direction:column; align-items:flex-start; gap:14px; }
+  .hero-stats       { flex-direction:row; }
+  .hero-title       { font-size:18px; }
+  .hero-form        { flex-direction:column; }
+  .hero-btn         { width:100%; justify-content:center; }
+  .bottom-grid      { grid-template-columns:1fr; }
+  .al-hdr           { flex-direction:column; gap:1rem; padding:1.25rem; }
+  .al-acciones      { flex-direction:row; width:100%; }
+  .tab-body         { padding:1.25rem; }
 }
-.acceso-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: var(--azul); }
-.acceso-deshabilitado { cursor: not-allowed; opacity: 0.6; }
-.acceso-deshabilitado:hover { transform: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: var(--borde); }
-
-.acceso-icono { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.acceso-icono svg { width: 22px; height: 22px; }
-
-.acceso-verde    { background: var(--verde-suave); }
-.acceso-verde svg    { stroke: var(--verde); }
-.acceso-azul     { background: var(--azul-suave); }
-.acceso-azul svg     { stroke: var(--azul); }
-.acceso-amarillo { background: var(--amarillo-suave); }
-.acceso-amarillo svg { stroke: var(--amarillo); }
-.acceso-gris     { background: #F3F4F6; }
-.acceso-gris svg     { stroke: var(--gris); }
-
-.acceso-contenido { flex: 1; min-width: 0; }
-.acceso-contenido h4 {
-  font-size: 0.93rem; font-weight: 700; color: var(--texto); margin: 0 0 3px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.acceso-contenido p { font-size: 0.82rem; color: var(--gris); margin: 0; }
-
-.acceso-flecha { width: 18px; height: 18px; stroke: #9CA3AF; flex-shrink: 0; transition: stroke 0.15s; }
-.acceso-card:not(.acceso-deshabilitado):hover .acceso-flecha { stroke: var(--azul); }
-
-.badge-proximamente {
-  background: #F3F4F6; color: var(--gris); font-size: 0.72rem; font-weight: 700;
-  padding: 3px 10px; border-radius: 20px; white-space: nowrap;
-  border: 1px solid var(--borde); flex-shrink: 0;
-}
-
-/* ── Fade transition para bloque dashboard ──────────────────────────── */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
-.fade-enter-from, .fade-leave-to       { opacity: 0; }
-
-/* ── Footer ──────────────────────────────────────────────────────────── */
-.pie-pagina {
-  text-align: center; color: #9CA3AF; font-size: 0.82rem;
-  padding: 2rem 0; border-top: 1px solid var(--borde); margin-top: 0;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
-   RESPONSIVE
-══════════════════════════════════════════════════════════════════════════ */
-@media (max-width: 1024px) {
-  .stats-grid    { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .accesos-grid  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .academico-grid { grid-template-columns: repeat(2, 1fr); }
-  .info-grid     { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 768px) {
-  .hero-busqueda { padding: 2rem 1.25rem; }
-  .hero-titulo   { font-size: 1.4rem; }
-
-  .alumno-header { flex-direction: column; gap: 1rem; padding: 1.25rem; }
-  .alumno-header-acciones { flex-direction: row; align-items: center; width: 100%; }
-
-  .tabs-barra { padding: 0 0.75rem; }
-  .tab-btn    { padding: 0.75rem 0.9rem; font-size: 0.82rem; }
-  .tab-contenido { padding: 1.25rem; }
-
-  .horario-card { flex-wrap: wrap; gap: 0.75rem; }
-  .horario-docente { align-items: flex-start; text-align: left; }
-}
-
-@media (max-width: 640px) {
-  .stats-grid    { grid-template-columns: 1fr; }
-  .accesos-grid  { grid-template-columns: 1fr; }
-  .academico-grid { grid-template-columns: repeat(2, 1fr); }
-
-  .buscador-btn { padding: 0 1rem; font-size: 0.88rem; min-height: 48px; }
-
-  .alumno-nombre { font-size: 1.15rem; }
-  .alumno-header-acciones { flex-direction: column; }
-  .btn-accion { width: 100%; justify-content: center; }
+@media (max-width:640px) {
+  .kpi-grid         { grid-template-columns:1fr; }
+  .al-acciones      { flex-direction:column; }
+  .btn-primary, .btn-outline { width:100%; justify-content:center; }
+  .acad-grid        { grid-template-columns:repeat(2,1fr); }
 }
 </style>

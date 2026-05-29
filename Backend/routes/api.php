@@ -94,12 +94,15 @@ Route::get('/carreras', [CarreraController::class, 'index']);
 Route::post('/carreras', [CarreraController::class, 'store']);
 Route::put('/carreras/{id}', [CarreraController::class, 'update']);
 Route::delete('/carreras/{id}', [CarreraController::class, 'destroy']);
+Route::get('/carreras/{id}/grupos', [CarreraController::class, 'grupos']);
 
 Route::get('/departamentos',           [DepartamentoController::class, 'index']);
 Route::post('/departamentos',          [DepartamentoController::class, 'store']);
 Route::put('/departamentos/{id}',      [DepartamentoController::class, 'update']);
 Route::delete('/departamentos/{id}',   [DepartamentoController::class, 'destroy']);
 Route::get('/niveles-carrera', [NivelCarreraController::class, 'index']);
+
+Route::get('/carreras/{id}/grupos', [CarreraController::class, 'grupos']);
 
 // EDIFICIOS Y AULAS
 use App\Http\Controllers\EdificioController;
@@ -318,6 +321,7 @@ Route::get('/turnos',        [CatalogosController::class, 'turnos']);
 
 use App\Http\Controllers\Api\KardexController;
 
+Route::get('/kardex/buscar-por-nombre', [KardexController::class, 'buscarPorNombre']);
 Route::get('/kardex/{numero_control}', [KardexController::class, 'show']);
 
 // ====================== SEGUIMIENTO ACADÉMICO ======================

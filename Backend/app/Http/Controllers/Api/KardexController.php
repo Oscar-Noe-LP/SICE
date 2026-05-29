@@ -8,6 +8,102 @@ use Illuminate\Support\Facades\DB;
 class KardexController extends Controller
 {
     /**
+     * GET /api/kardex/buscar-por-nombre?q=nombre
+     * Busca alumno por nombre o apellido y retorna su número de control
+     * Respuesta: { numero_control: "25000001", nombre_completo: "Juan Pérez García", carrera: "..." }
+     */
+    public function buscarPorNombre()
+    {
+        try {
+            $busqueda = trim(request()->query('q', ''));
+
+            // Eliminar espacios repetidos
+            $busqueda = preg_replace('/\s+/', ' ', $busqueda);
+
+            if (strlen($busqueda) < 3) {
+                return response()->json([
+                    'error' => 'La búsqueda debe contener al menos 3 caracteres',
+                    'resultados' => []
+                ], 400);
+            }
+
+            $termino = '%' . $busqueda . '%';
+
+            $alumnos = DB::table('alumno as a')
+                ->join('persona as p', 'a.id_persona', '=', 'p.id_persona')
+                ->join('carrera as c', 'a.id_carrera', '=', 'c.id_carrera')
+                ->where(function ($query) use ($termino) {
+
+                    // Nombre
+                    $query->where('p.nombre', 'LIKE', $termino)
+
+                        // Apellido paterno
+                        ->orWhere('p.apellido_paterno', 'LIKE', $termino)
+
+                        // Apellido materno
+                        ->orWhere('p.apellido_materno', 'LIKE', $termino)
+
+                        // Nombre completo
+                        ->orWhereRaw(
+                            "CONCAT(
+                                p.nombre,
+                                ' ',
+                                p.apellido_paterno,
+                                ' ',
+                                COALESCE(p.apellido_materno,'')
+                            ) LIKE ?",
+                            [$termino]
+                        )
+
+                        // Nombre + Apellido paterno
+                        ->orWhereRaw(
+                            "CONCAT(
+                                p.nombre,
+                                ' ',
+                                p.apellido_paterno
+                            ) LIKE ?",
+                            [$termino]
+                        );
+                })
+                ->select(
+                    'a.numero_control',
+                    DB::raw("
+                        CONCAT(
+                            p.nombre,
+                            ' ',
+                            p.apellido_paterno,
+                            ' ',
+                            COALESCE(p.apellido_materno,'')
+                        ) as nombre_completo
+                    "),
+                    'c.nombre as carrera'
+                )
+                ->orderBy('p.apellido_paterno')
+                ->orderBy('p.apellido_materno')
+                ->orderBy('p.nombre')
+                ->limit(10)
+                ->get();
+
+            if ($alumnos->isEmpty()) {
+                return response()->json([
+                    'error' => 'No se encontraron alumnos con ese nombre o apellido',
+                    'resultados' => []
+                ], 404);
+            }
+
+            return response()->json([
+                'resultados' => $alumnos
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'resultados' => []
+            ], 500);
+        }
+    }
+
+    /**
      * GET /api/kardex/{numero_control}
      * Devuelve el kardex completo agrupado por semestre del plan de estudios.
      * Formato esperado por KardexView.vue:

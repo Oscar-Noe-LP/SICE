@@ -14,238 +14,532 @@ class GrupoController extends Controller
     {
         try {
             $grupos = DB::table('grupo as g')
-                ->leftJoin('materia as m',    'g.id_materia', '=', 'm.id_materia')
-                ->leftJoin('docente as d',    'g.id_docente', '=', 'd.id_docente')
-                ->leftJoin('empleado as e',   'd.id_empleado','=', 'e.id_empleado')
-                ->leftJoin('persona as p',    'e.id_persona', '=', 'p.id_persona')
-                ->leftJoin('aula as a',       'g.id_aula',    '=', 'a.id_aula')
-                ->leftJoin('inscripcion as i','g.id_grupo',   '=', 'i.id_grupo')
+                ->leftJoin('materia as m', 'g.id_materia', '=', 'm.id_materia')
+                ->leftJoin('docente as d', 'g.id_docente', '=', 'd.id_docente')
+                ->leftJoin('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+                ->leftJoin('persona as p', 'e.id_persona', '=', 'p.id_persona')
+                ->leftJoin('aula as a', 'g.id_aula', '=', 'a.id_aula')
+                ->leftJoin('inscripcion as i', 'g.id_grupo', '=', 'i.id_grupo')
+
                 ->select(
                     'g.id_grupo',
                     'g.clave_grupo',
+
                     'm.nombre as materia',
                     'm.id_materia',
-                    DB::raw("COALESCE(CONCAT(p.nombre, ' ', p.apellido_paterno), 'Sin docente') as docente"),
+
+                    DB::raw("
+                        COALESCE(
+                            CONCAT(
+                                p.nombre,
+                                ' ',
+                                p.apellido_paterno,
+                                ' ',
+                                COALESCE(p.apellido_materno, '')
+                            ),
+                            'Sin docente'
+                        ) as docente
+                    "),
+
                     'a.nombre as aula',
+
                     'g.capacidad',
-                    'g.dia',
-                    'g.hora_inicio',
-                    'g.hora_fin',
                     'g.id_periodo',
-                    DB::raw("COUNT(CASE WHEN i.estatus IN ('Activo','activo','inscrito') THEN 1 END) as inscritos")
+
+                    DB::raw("
+                        COUNT(
+                            CASE
+                                WHEN i.estatus IN ('Activo','activo','inscrito')
+                                THEN 1
+                            END
+                        ) as inscritos
+                    ")
                 )
+
                 ->groupBy(
-                    'g.id_grupo', 'g.clave_grupo', 'm.nombre', 'm.id_materia',
-                    'p.nombre', 'p.apellido_paterno', 'a.nombre', 'g.capacidad',
-                    'g.dia', 'g.hora_inicio', 'g.hora_fin', 'g.id_periodo'
+                    'g.id_grupo',
+                    'g.clave_grupo',
+                    'm.nombre',
+                    'm.id_materia',
+                    'p.nombre',
+                    'p.apellido_paterno',
+                    'p.apellido_materno',
+                    'a.nombre',
+                    'g.capacidad',
+                    'g.id_periodo'
                 )
-                ->get();
+
+                ->get()
+
+                ->map(function ($g) {
+
+                    return [
+                        'id' => $g->id_grupo,
+
+                        'id_grupo' => $g->id_grupo,
+
+                        'clave_grupo' => $g->clave_grupo,
+
+                        'materia' => $g->materia,
+
+                        'docente' => trim($g->docente),
+
+                        'aula' => $g->aula,
+
+                        'capacidad' => (int) ($g->capacidad ?? 0),
+
+                        'inscritos' => (int) ($g->inscritos ?? 0),
+
+                        // Tu frontend espera estas propiedades
+                        'id_carrera' => null,
+                        'semestre' => 0,
+
+                        // Tu frontend espera horario
+                        'horario' => [
+                            'dia' => '',
+                            'horaInicio' => '',
+                            'horaFin' => '',
+                        ],
+
+                        // Para filtros por alumno
+                        'alumnos' => [],
+                    ];
+                });
 
             return response()->json($grupos);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     public function store(Request $request)
     {
         try {
+
             $validator = Validator::make($request->all(), [
-                'clave_grupo'    => 'nullable|string|max:20|unique:grupo,clave_grupo',
+
+                'clave_grupo' => 'nullable|string|max:20|unique:grupo,clave_grupo',
+
                 'nombre_materia' => 'required|string',
-                'aula'           => 'required|string',
+
+                'aula' => 'required|string',
+
                 'nombre_docente' => 'nullable|string',
-                'capacidad'      => 'required|integer|min:1',
-                'id_periodo'     => 'nullable|integer|exists:periodo,id_periodo',
-                'id_carrera'     => 'nullable|integer|exists:carrera,id_carrera',
-                'semestre'       => 'nullable|integer|min:1|max:12',
-                'dia'            => 'nullable|string|max:50',
-                'hora_inicio'    => 'nullable|date_format:H:i',
-                'hora_fin'       => 'nullable|date_format:H:i',
+
+                'capacidad' => 'required|integer|min:1',
+
+                'id_periodo' => 'nullable|integer|exists:periodo,id_periodo',
+
             ], [
-                'clave_grupo.unique'      => 'Ya existe un grupo con esa clave',
+
+                'clave_grupo.unique' => 'Ya existe un grupo con esa clave',
+
                 'nombre_materia.required' => 'La materia es requerida',
-                'aula.required'           => 'El aula es requerida',
-                'capacidad.required'      => 'La capacidad es requerida',
+
+                'aula.required' => 'El aula es requerida',
+
+                'capacidad.required' => 'La capacidad es requerida',
+
             ]);
 
             if ($validator->fails()) {
-                return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
             }
 
-            $id_materia = DB::table('materia')->where('nombre', $request->nombre_materia)->value('id_materia');
+            // MATERIA
+
+            $id_materia = DB::table('materia')
+                ->where('nombre', $request->nombre_materia)
+                ->value('id_materia');
+
             if (!$id_materia) {
-                return response()->json(['success' => false, 'error' => 'La materia indicada no existe'], 422);
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'La materia indicada no existe'
+                ], 422);
             }
 
-            $id_aula = DB::table('aula')->where('nombre', $request->aula)->value('id_aula');
+            // AULA
+
+            $id_aula = DB::table('aula')
+                ->where('nombre', $request->aula)
+                ->value('id_aula');
+
             if (!$id_aula) {
-                return response()->json(['success' => false, 'error' => 'El aula indicada no existe'], 422);
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'El aula indicada no existe'
+                ], 422);
             }
+
+            // DOCENTE
 
             $id_docente = null;
+
             if ($request->filled('nombre_docente')) {
+
                 $id_docente = DB::table('docente as d')
-                    ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
-                    ->join('persona as p',  'e.id_persona',  '=', 'p.id_persona')
-                    ->where(DB::raw("TRIM(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno, '')))"), 'like', $request->nombre_docente . '%')
+
+                    ->join(
+                        'empleado as e',
+                        'd.id_empleado',
+                        '=',
+                        'e.id_empleado'
+                    )
+
+                    ->join(
+                        'persona as p',
+                        'e.id_persona',
+                        '=',
+                        'p.id_persona'
+                    )
+
+                    ->where(
+                        DB::raw("
+                            TRIM(
+                                CONCAT(
+                                    p.nombre,
+                                    ' ',
+                                    p.apellido_paterno,
+                                    ' ',
+                                    COALESCE(p.apellido_materno, '')
+                                )
+                            )
+                        "),
+                        'like',
+                        $request->nombre_docente . '%'
+                    )
+
                     ->value('d.id_docente');
+
                 if (!$id_docente) {
-                    return response()->json(['success' => false, 'error' => 'El docente indicado no existe'], 422);
+
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El docente indicado no existe'
+                    ], 422);
                 }
             }
+            // PERIODO
 
             $id_periodo = $request->id_periodo
-                ?? DB::table('periodo')->where('estatus', 1)->orderByDesc('id_periodo')->value('id_periodo');
+                ?? DB::table('periodo')
+                ->where('estatus', 1)
+                ->orderByDesc('id_periodo')
+                ->value('id_periodo');
+
+            // CLAVE
 
             $clave_grupo = $request->clave_grupo
-                ?? strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $request->nombre_materia), 0, 6))
-                   . '-' . now()->format('mdHi');
+                ?? strtoupper(
+                    substr(
+                        preg_replace(
+                            '/[^A-Za-z0-9]/',
+                            '',
+                            $request->nombre_materia
+                        ),
+                        0,
+                        6
+                    )
+                ) . '-' . now()->format('mdHi');
+
+            // INSERT
 
             $id = DB::table('grupo')->insertGetId([
+
                 'clave_grupo' => $clave_grupo,
-                'id_materia'  => $id_materia,
-                'id_docente'  => $id_docente,
-                'id_aula'     => $id_aula,
-                'id_periodo'  => $id_periodo,
-                'id_carrera'  => $request->id_carrera,
-                'semestre'    => $request->semestre,
-                'capacidad'   => $request->capacidad,
-                'dia'         => $request->dia,
-                'hora_inicio' => $request->hora_inicio,
-                'hora_fin'    => $request->hora_fin,
-                'estatus'     => 1,
+
+                'id_materia' => $id_materia,
+
+                'id_docente' => $id_docente,
+
+                'id_aula' => $id_aula,
+
+                'id_periodo' => $id_periodo,
+
+                'capacidad' => $request->capacidad,
+
+                'estatus' => 1,
             ]);
 
-            BitacoraService::registrar('INSERT', 'grupo', $id, [], [
-                'clave_grupo' => $clave_grupo,
-                'id_materia'  => $id_materia,
-                'id_docente'  => $id_docente,
-                'capacidad'   => $request->capacidad,
-            ]);
+            BitacoraService::registrar(
+                'INSERT',
+                'grupo',
+                $id,
+                [],
+                [
+                    'clave_grupo' => $clave_grupo,
+                    'id_materia' => $id_materia,
+                    'id_docente' => $id_docente,
+                    'capacidad' => $request->capacidad,
+                ]
+            );
 
-            return response()->json(['success' => true, 'message' => 'Grupo creado', 'id' => $id], 201);
+            return response()->json([
+                'success' => true,
+                'message' => 'Grupo creado',
+                'id' => $id
+            ], 201);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     public function update(Request $request, $id)
     {
         try {
-            $grupo = DB::table('grupo')->where('id_grupo', $id)->first();
+
+            $grupo = DB::table('grupo')
+                ->where('id_grupo', $id)
+                ->first();
+
             if (!$grupo) {
-                return response()->json(['success' => false, 'error' => 'Grupo no encontrado'], 404);
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Grupo no encontrado'
+                ], 404);
             }
 
             $validator = Validator::make($request->all(), [
-                'clave_grupo'    => 'sometimes|string|max:20|unique:grupo,clave_grupo,' . $id . ',id_grupo',
+
+                'clave_grupo' =>
+                'sometimes|string|max:20|unique:grupo,clave_grupo,' .
+                    $id .
+                    ',id_grupo',
+
                 'nombre_materia' => 'sometimes|string',
-                'aula'           => 'sometimes|string',
+
+                'aula' => 'sometimes|string',
+
                 'nombre_docente' => 'nullable|string',
-                'capacidad'      => 'sometimes|integer|min:1',
-                'id_periodo'     => 'sometimes|nullable|integer|exists:periodo,id_periodo',
-                'id_carrera'     => 'sometimes|nullable|integer|exists:carrera,id_carrera',
-                'semestre'       => 'sometimes|nullable|integer|min:1|max:12',
-                'dia'            => 'sometimes|nullable|string|max:50',
-                'hora_inicio'    => 'sometimes|nullable|date_format:H:i',
-                'hora_fin'       => 'sometimes|nullable|date_format:H:i',
+
+                'capacidad' => 'sometimes|integer|min:1',
+
+                'id_periodo' =>
+                'sometimes|nullable|integer|exists:periodo,id_periodo',
+
             ]);
 
             if ($validator->fails()) {
-                return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
             }
+
+            // MATERIA
 
             $id_materia = $grupo->id_materia;
+
             if ($request->filled('nombre_materia')) {
-                $id_materia = DB::table('materia')->where('nombre', $request->nombre_materia)->value('id_materia');
+
+                $id_materia = DB::table('materia')
+                    ->where('nombre', $request->nombre_materia)
+                    ->value('id_materia');
+
                 if (!$id_materia) {
-                    return response()->json(['success' => false, 'error' => 'La materia indicada no existe'], 422);
+
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'La materia indicada no existe'
+                    ], 422);
                 }
             }
+
+            // AULA
 
             $id_aula = $grupo->id_aula;
+
             if ($request->filled('aula')) {
-                $id_aula = DB::table('aula')->where('nombre', $request->aula)->value('id_aula');
+
+                $id_aula = DB::table('aula')
+                    ->where('nombre', $request->aula)
+                    ->value('id_aula');
+
                 if (!$id_aula) {
-                    return response()->json(['success' => false, 'error' => 'El aula indicada no existe'], 422);
+
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'El aula indicada no existe'
+                    ], 422);
                 }
             }
 
+            // DOCENTE
+
             $id_docente = $grupo->id_docente;
+
             if ($request->has('nombre_docente')) {
+
                 if ($request->filled('nombre_docente')) {
+
                     $id_docente = DB::table('docente as d')
-                        ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
-                        ->join('persona as p',  'e.id_persona',  '=', 'p.id_persona')
-                        ->where(DB::raw("TRIM(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno, '')))"), 'like', $request->nombre_docente . '%')
+
+                        ->join(
+                            'empleado as e',
+                            'd.id_empleado',
+                            '=',
+                            'e.id_empleado'
+                        )
+
+                        ->join(
+                            'persona as p',
+                            'e.id_persona',
+                            '=',
+                            'p.id_persona'
+                        )
+
+                        ->where(
+                            DB::raw("
+                                TRIM(
+                                    CONCAT(
+                                        p.nombre,
+                                        ' ',
+                                        p.apellido_paterno,
+                                        ' ',
+                                        COALESCE(p.apellido_materno, '')
+                                    )
+                                )
+                            "),
+                            'like',
+                            $request->nombre_docente . '%'
+                        )
+
                         ->value('d.id_docente');
+
                     if (!$id_docente) {
-                        return response()->json(['success' => false, 'error' => 'El docente indicado no existe'], 422);
+
+                        return response()->json([
+                            'success' => false,
+                            'error' => 'El docente indicado no existe'
+                        ], 422);
                     }
                 } else {
+
                     $id_docente = null;
                 }
             }
 
-            DB::table('grupo')->where('id_grupo', $id)->update([
-                'clave_grupo' => $request->clave_grupo ?? $grupo->clave_grupo,
-                'id_materia'  => $id_materia,
-                'id_aula'     => $id_aula,
-                'id_docente'  => $id_docente,
-                'id_periodo'  => $request->id_periodo ?? $grupo->id_periodo,
-                'id_carrera'  => $request->has('id_carrera') ? $request->id_carrera : $grupo->id_carrera,
-                'semestre'    => $request->has('semestre')   ? $request->semestre   : $grupo->semestre,
-                'capacidad'   => $request->capacidad ?? $grupo->capacidad,
-                'dia'         => $request->has('dia')         ? $request->dia         : $grupo->dia,
-                'hora_inicio' => $request->has('hora_inicio') ? $request->hora_inicio : $grupo->hora_inicio,
-                'hora_fin'    => $request->has('hora_fin')    ? $request->hora_fin    : $grupo->hora_fin,
+            DB::table('grupo')
+                ->where('id_grupo', $id)
+                ->update([
+
+                    'clave_grupo' =>
+                    $request->clave_grupo ?? $grupo->clave_grupo,
+
+                    'id_materia' => $id_materia,
+
+                    'id_aula' => $id_aula,
+
+                    'id_docente' => $id_docente,
+
+                    'id_periodo' =>
+                    $request->id_periodo ?? $grupo->id_periodo,
+
+                    'capacidad' =>
+                    $request->capacidad ?? $grupo->capacidad,
+                ]);
+
+            BitacoraService::registrar(
+                'UPDATE',
+                'grupo',
+                $id,
+                (array) $grupo,
+                $request->all()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Grupo actualizado'
             ]);
-
-            BitacoraService::registrar('UPDATE', 'grupo', $id, (array) $grupo, $request->only([
-                'clave_grupo', 'capacidad', 'dia', 'hora_inicio', 'hora_fin',
-            ]));
-
-            return response()->json(['success' => true, 'message' => 'Grupo actualizado']);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     public function destroy($id)
     {
         try {
-            $grupo = DB::table('grupo')->where('id_grupo', $id)->first();
+
+            $grupo = DB::table('grupo')
+                ->where('id_grupo', $id)
+                ->first();
+
             if (!$grupo) {
-                return response()->json(['success' => false, 'error' => 'Grupo no encontrado'], 404);
+
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Grupo no encontrado'
+                ], 404);
             }
 
             $inscritos = DB::table('inscripcion')
                 ->where('id_grupo', $id)
-                ->whereIn('estatus', ['Activo', 'activo', 'inscrito'])
+                ->whereIn('estatus', [
+                    'Activo',
+                    'activo',
+                    'inscrito'
+                ])
                 ->count();
 
             if ($inscritos > 0) {
+
                 return response()->json([
                     'success' => false,
-                    'error'   => 'No se puede eliminar el grupo porque tiene alumnos inscritos'
+                    'error' =>
+                    'No se puede eliminar el grupo porque tiene alumnos inscritos'
                 ], 409);
             }
 
-            DB::table('grupo')->where('id_grupo', $id)->delete();
-            BitacoraService::registrar('DELETE', 'grupo', $id, (array) $grupo);
-            return response()->json(['success' => true, 'message' => 'Grupo eliminado']);
+            DB::table('grupo')
+                ->where('id_grupo', $id)
+                ->delete();
+
+            BitacoraService::registrar(
+                'DELETE',
+                'grupo',
+                $id,
+                (array) $grupo
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Grupo eliminado'
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
-    // Deshabilitados hasta que la BD tenga las columnas acta_cerrada y fecha_cierre_acta
     public function cerrarActa(int $id)
     {
         return response()->json([
             'success' => false,
-            'error'   => 'Funcionalidad no disponible en esta versión de la BD'
+            'error' =>
+            'Funcionalidad no disponible en esta versión de la BD'
         ], 503);
     }
 
@@ -253,7 +547,8 @@ class GrupoController extends Controller
     {
         return response()->json([
             'success' => false,
-            'error'   => 'Funcionalidad no disponible en esta versión de la BD'
+            'error' =>
+            'Funcionalidad no disponible en esta versión de la BD'
         ], 503);
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class CarreraController extends Controller
 {
     // ─────────────────────────────────────────────
-    // Obtener todas las carreras
+    // PANTALLA 1: Obtener todas las carreras con contadores y relaciones
     public function index()
     {
         $carreras = DB::table('carrera as c')
@@ -21,20 +21,43 @@ class CarreraController extends Controller
                 'c.id_nivel',
                 'c.estatus',
                 'd.nombre as departamento_nombre',
-                'n.nombre_nivel'
+                'n.nombre_nivel',
+
+                // 1. Alumnos Activos totales inscritos en esta carrera
+                DB::raw('(SELECT COUNT(*) FROM alumno as a
+                          WHERE a.id_carrera = c.id_carrera AND a.estatus = "Activo") as total_alumnos'),
+
+                // 2. Grupos abiertos que pertenecen al plan de estudios de esta carrera
+                DB::raw('(SELECT COUNT(DISTINCT g.id_grupo) FROM grupo as g
+                          JOIN materia as m ON g.id_materia = m.id_materia
+                          JOIN plan_materia as pm ON m.id_materia = pm.id_materia
+                          JOIN plan_estudio as pe ON pm.id_plan = pe.id_plan
+                          WHERE pe.id_carrera = c.id_carrera AND g.estatus = 1) as total_grupos'),
+
+                // 3. Docentes únicos que imparten clases en esta carrera
+                DB::raw('(SELECT COUNT(DISTINCT g.id_docente) FROM grupo as g
+                          JOIN materia as m ON g.id_materia = m.id_materia
+                          JOIN plan_materia as pm ON m.id_materia = pm.id_materia
+                          JOIN plan_estudio as pe ON pm.id_plan = pe.id_plan
+                          WHERE pe.id_carrera = c.id_carrera AND g.id_docente IS NOT NULL AND g.estatus = 1) as total_docentes')
             )
             ->get()
             ->map(function ($c) {
                 return [
-                    'id_carrera' => $c->id_carrera,
-                    'nombre' => $c->nombre,
+                    'id_carrera'      => $c->id_carrera,
+                    'nombre'          => $c->nombre,
                     'id_departamento' => $c->id_departamento,
-                    'id_nivel' => $c->id_nivel,
-                    'estatus' => $c->estatus,
-                    'departamento' => [
+                    'id_nivel'        => $c->id_nivel,
+                    'estatus'         => $c->estatus,
+                    // Métricas para la Pantalla 1
+                    'total_alumnos'   => (int) $c->total_alumnos,
+                    'total_grupos'    => (int) $c->total_grupos,
+                    'total_docentes'  => (int) $c->total_docentes,
+                    // Relaciones estructuradas para formularios de Vue
+                    'departamento'    => [
                         'nombre' => $c->departamento_nombre
                     ],
-                    'nivel' => [
+                    'nivel'           => [
                         'nombre_nivel' => $c->nombre_nivel
                     ]
                 ];
@@ -104,4 +127,78 @@ class CarreraController extends Controller
             'message' => 'Carrera eliminada'
         ]);
     }
+
+    // ─────────────────────────────────────────────
+    // PANTALLA 2: Drill-down de grupos por carrera
+    // GET /api/carreras/{id}/grupos
+    public function grupos($id)
+    {
+        $carrera = DB::table('carrera')
+            ->where('id_carrera', $id)
+            ->select('id_carrera', 'nombre')
+            ->first();
+
+        if (!$carrera) {
+            return response()->json(['message' => 'Carrera no encontrada'], 404);
+        }
+
+        // Obtener materias del plan Y su semestre al mismo tiempo
+        $materiasConSemestre = DB::table('plan_estudio as pe')
+            ->join('plan_materia as pm', 'pe.id_plan', '=', 'pm.id_plan')
+            ->where('pe.id_carrera', $id)
+            ->where('pe.estatus', 1)
+            ->select('pm.id_materia', 'pm.semestre')
+            ->get()
+            ->keyBy('id_materia');  // ← indexado por id_materia para búsqueda rápida
+
+        if ($materiasConSemestre->isEmpty()) {
+            return response()->json([
+                'carrera' => $carrera->nombre,
+                'grupos'  => []
+            ]);
+        }
+
+        $idMaterias = $materiasConSemestre->keys();
+
+        $grupos = DB::table('grupo as g')
+            ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
+            ->leftJoin('docente as d', 'g.id_docente', '=', 'd.id_docente')
+            ->leftJoin('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+            ->leftJoin('persona as p', 'e.id_persona', '=', 'p.id_persona')
+            ->whereIn('g.id_materia', $idMaterias)
+            ->where('g.estatus', 1)
+            ->select(
+                'g.id_grupo',
+                'g.id_materia',   // ← auxiliar para buscar semestre
+                'g.clave_grupo',
+                'm.nombre as materia',
+                DB::raw("IF(
+                    p.id_persona IS NOT NULL,
+                    UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)),
+                    'Sin asignar'
+                ) as docente"),
+                'g.capacidad',
+                DB::raw("(
+                    SELECT COUNT(*)
+                    FROM inscripcion AS i
+                    WHERE i.id_grupo = g.id_grupo
+                    AND i.estatus = 'Activo'
+                ) as inscritos")
+            )
+            ->orderBy('m.nombre')
+            ->get()
+            ->map(function ($g) use ($materiasConSemestre) {
+                $g->semestre = $materiasConSemestre[$g->id_materia]->semestre ?? null;
+                unset($g->id_materia);  // limpiar campo auxiliar
+                return $g;
+            })
+            ->sortBy('semestre')   // ← ordenar por semestre en PHP
+            ->values();            // ← reindexar el array
+
+        return response()->json([
+            'carrera' => $carrera->nombre,
+            'grupos'  => $grupos
+        ]);
+    }
 }
+
