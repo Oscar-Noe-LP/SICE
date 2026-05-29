@@ -15,7 +15,7 @@ class AlumnoController extends Controller
     public function index()
     {
         try {
-            // Se incluye estatusAlumno para el campo "estatus" 
+            // Se incluye estatusAlumno para el campo "estatus"
             $alumnos = Alumno::with(['persona', 'carrera', 'estatusAlumno'])->get();
 
             return $alumnos->map(function ($a) {
@@ -28,21 +28,21 @@ class AlumnoController extends Controller
                     'id_estatus_alumno' => $a->id_estatus_alumno,
                     // "estatus" siempre es el nombre legible; fallback a Activo/Inactivo
                     'estatus'           => $a->estatusAlumno?->nombre
-                                          ?? ($a->estatus ? 'Activo' : 'Inactivo'),
+                        ?? ($a->estatus ? 'Activo' : 'Inactivo'),
                     'persona'           => $a->persona,
                     // Se expone el objeto carrera con nombre_carrera para compatibilidad
                     // con el template del Vue (alumno.carrera?.nombre_carrera)
                     'carrera'           => $a->carrera ? [
                         'id_carrera'    => $a->carrera->id_carrera,
-                        'nombre_carrera'=> $a->carrera->nombre,   
+                        'nombre_carrera' => $a->carrera->nombre,
                         'nombre'        => $a->carrera->nombre,
                     ] : null,
                     // nombre aplanado para facilitar búsqueda en el frontend
                     'nombre'            => trim(
-                                            ($a->persona->nombre          ?? '') . ' ' .
-                                            ($a->persona->apellido_paterno ?? '') . ' ' .
-                                            ($a->persona->apellido_materno ?? '')
-                                          ),
+                        ($a->persona->nombre          ?? '') . ' ' .
+                            ($a->persona->apellido_paterno ?? '') . ' ' .
+                            ($a->persona->apellido_materno ?? '')
+                    ),
                 ];
             });
         } catch (\Exception $e) {
@@ -109,7 +109,6 @@ class AlumnoController extends Controller
                 'message' => 'Alumno registrado correctamente',
                 'data'    => $alumno->load(['persona', 'carrera'])
             ], 201);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
             return response()->json(['error' => 'Datos inválidos', 'detalle' => $e->errors()], 422);
@@ -153,7 +152,10 @@ class AlumnoController extends Controller
 
             DB::commit();
 
-            BitacoraService::registrar('UPDATE', 'alumno', $id,
+            BitacoraService::registrar(
+                'UPDATE',
+                'alumno',
+                $id,
                 ['id_carrera' => $alumno->getOriginal('id_carrera'), 'semestre_actual' => $alumno->getOriginal('semestre_actual'), 'estatus' => $alumno->getOriginal('estatus')],
                 ['id_carrera' => $request->id_carrera, 'semestre_actual' => $request->semestre_actual, 'estatus' => $request->estatus]
             );
@@ -161,13 +163,12 @@ class AlumnoController extends Controller
             // Recargar con la relación de estatus para que la respuesta incluya el nombre correcto
             $alumno->load(['persona', 'carrera', 'estatusAlumno']);
             $alumno->estatus = $alumno->estatusAlumno?->nombre
-                               ?? ($alumno->estatus ? 'Activo' : 'Inactivo');
+                ?? ($alumno->estatus ? 'Activo' : 'Inactivo');
 
             return response()->json([
                 'message' => 'Alumno actualizado con éxito',
                 'data'    => $alumno
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error al actualizar alumno ID {$id}: " . $e->getMessage());
@@ -189,8 +190,8 @@ class AlumnoController extends Controller
             // ==================== 1. KARDEX (agregado en correcion2.sql) ====================
             // detalle_kardex referencia kardex, que referencia alumno → hay que borrar primero
             $kardexIds = DB::table('kardex')
-                          ->where('id_alumno', $id)
-                          ->pluck('id_kardex');
+                ->where('id_alumno', $id)
+                ->pluck('id_kardex');
 
             if ($kardexIds->isNotEmpty()) {
                 DB::table('detalle_kardex')->whereIn('id_kardex', $kardexIds)->delete();
@@ -200,8 +201,8 @@ class AlumnoController extends Controller
             // ==================== 2. CALIFICACIONES E INSCRIPCIONES ====================
             // calificacion referencia inscripcion → borrar calificacion primero
             $inscripcionIds = DB::table('inscripcion')
-                               ->where('id_alumno', $id)
-                               ->pluck('id_inscripcion');
+                ->where('id_alumno', $id)
+                ->pluck('id_inscripcion');
 
             if ($inscripcionIds->isNotEmpty()) {
                 DB::table('calificacion')->whereIn('id_inscripcion', $inscripcionIds)->delete();
@@ -222,8 +223,8 @@ class AlumnoController extends Controller
             // ==================== 6. COMITÉ ACADÉMICO ====================
             // resolucion_comite referencia solicitud_comite → borrar resoluciones primero
             $solicitudIds = DB::table('solicitud_comite')
-                             ->where('id_persona', $idPersona)
-                             ->pluck('id_solicitud');
+                ->where('id_persona', $idPersona)
+                ->pluck('id_solicitud');
 
             if ($solicitudIds->isNotEmpty()) {
                 DB::table('resolucion_comite')->whereIn('id_solicitud', $solicitudIds)->delete();
@@ -232,8 +233,8 @@ class AlumnoController extends Controller
 
             // ==================== 7. USUARIOS Y BITÁCORA ====================
             $usuarioIds = DB::table('usuario')
-                           ->where('id_persona', $idPersona)
-                           ->pluck('id_usuario');
+                ->where('id_persona', $idPersona)
+                ->pluck('id_usuario');
 
             if ($usuarioIds->isNotEmpty()) {
                 DB::table('bitacora')->whereIn('id_usuario', $usuarioIds)->delete();
@@ -245,20 +246,20 @@ class AlumnoController extends Controller
             // Si la persona también era empleado/docente, se limpia esa relación.
             // Se borra en orden: adscripcion y docente (que referencian empleado) antes que empleado.
             $empleadoIds = DB::table('empleado')
-                            ->where('id_persona', $idPersona)
-                            ->pluck('id_empleado');
+                ->where('id_persona', $idPersona)
+                ->pluck('id_empleado');
 
             if ($empleadoIds->isNotEmpty()) {
                 // Si era docente, sus grupos quedan sin docente asignado (id_docente = NULL)
                 // en lugar de borrar los grupos o las inscripciones de otros alumnos.
                 $docenteIds = DB::table('docente')
-                               ->whereIn('id_empleado', $empleadoIds)
-                               ->pluck('id_docente');
+                    ->whereIn('id_empleado', $empleadoIds)
+                    ->pluck('id_docente');
 
                 if ($docenteIds->isNotEmpty()) {
                     DB::table('grupo')
-                      ->whereIn('id_docente', $docenteIds)
-                      ->update(['id_docente' => null]);
+                        ->whereIn('id_docente', $docenteIds)
+                        ->update(['id_docente' => null]);
                 }
 
                 DB::table('adscripcion')->whereIn('id_empleado', $empleadoIds)->delete();
@@ -277,7 +278,6 @@ class AlumnoController extends Controller
             ]);
 
             return response()->json(['message' => 'Alumno eliminado correctamente']);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("ERROR DELETE ALUMNO ID {$id}: " . $e->getMessage());
@@ -290,29 +290,30 @@ class AlumnoController extends Controller
     }
 
     /**
- * Retorna catálogos necesarios para el formulario de Alumnos
- */
+     * Retorna catálogos necesarios para el formulario de Alumnos
+     */
     public function catalogos()
     {
         try {
             return response()->json([
                 'generos' => DB::table('genero')->select('id_genero', 'nombre_genero')->get(),
-                
+
                 'carreras' => DB::table('carrera')
                     ->select('id_carrera', 'nombre')
                     ->where('estatus', true)
                     ->orderBy('nombre')
                     ->get(),
-                
+
                 'estatus_alumno' => DB::table('estatus_alumno')
                     ->select('id_estatus_alumno', 'nombre')
                     ->get(),
-                
+
                 'niveles' => DB::table('nivel_carrera')->get(), // por si lo necesitas después
             ]);
         } catch (\Exception $e) {
-            Log::error("Error cargando catálogos de alumnos: " . $e->getMessage());
-            return response()->json(['error' => 'Error al cargar catálogos'], 500);
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }
