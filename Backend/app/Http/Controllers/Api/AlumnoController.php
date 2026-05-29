@@ -316,4 +316,40 @@ class AlumnoController extends Controller
             ], 500);
         }
     }
+
+
+    public function horario($numero_control)
+    {
+        try {
+            $alumno = Alumno::where('numero_control', $numero_control)
+                ->firstOrFail();
+
+            $horario = DB::table('inscripcion as i')
+                ->join('grupo as g',       'i.id_grupo',    '=', 'g.id_grupo')
+                ->join('materia as m',     'g.id_materia',  '=', 'm.id_materia')
+                ->leftJoin('docente as d', 'g.id_docente',  '=', 'd.id_docente')
+                ->leftJoin('empleado as e','d.id_empleado', '=', 'e.id_empleado')
+                ->leftJoin('persona as p', 'e.id_persona',  '=', 'p.id_persona')
+                ->where('i.id_alumno', $alumno->id_alumno)
+                ->select(
+                    'g.id_grupo as id',
+                    'm.nombre as nombre',              
+                    'g.dia',                           
+                    'g.hora_inicio',
+                    'g.hora_fin',
+                    'g.id_aula',
+                    DB::raw("CONCAT(COALESCE(p.nombre,''), ' ', COALESCE(p.apellido_paterno,'')) as docente")
+                )
+                ->orderBy('g.hora_inicio')
+                ->get();
+
+            return response()->json($horario);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['error' => 'Alumno no encontrado'], 404);
+        } catch (\Exception $e) {
+            Log::error("Error al cargar horario del alumno {$numero_control}: " . $e->getMessage());
+            return response()->json(['error' => 'Error al cargar horario', 'detalle' => $e->getMessage()], 500);
+        }
+    }
 }
