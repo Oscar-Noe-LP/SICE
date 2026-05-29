@@ -257,7 +257,7 @@ const router = createRouter({
       component: () => import('@/views/Modulo_Kardex/KardexView.vue')
     },
     {
-      path: '/kardex/:id',
+      path: '/kardex/:no_control',
       name: 'KardexDetalle',
       component: () => import('@/views/Modulo_Kardex/KardexDetalleView.vue')
     },
