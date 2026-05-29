@@ -210,15 +210,13 @@
             <input
               class="hero-input"
               v-model.trim="busquedaControl"
-              placeholder="EJ. 25000001"
-              maxlength="8"
-              inputmode="numeric"
+              placeholder="EJ. 25000001 O NOMBRE"
+              maxlength="100"
               type="text"
-              aria-label="NUMERO DE CONTROL DEL ALUMNO"
+              aria-label="NUMERO DE CONTROL O NOMBRE DEL ALUMNO"
               @keydown.enter="irAKardex"
-              @input="busquedaControl = busquedaControl.replace(/\D/g,'')"
             />
-            <button class="hero-btn" @click="irAKardex" :disabled="busquedaControl.length < 8" type="button">
+            <button class="hero-btn" @click="irAKardex" :disabled="!esValidaBusqueda" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
               </svg>
@@ -322,6 +320,7 @@ import MainLayout    from '@/layouts/MainLayout.vue'
 import StatsGrid     from '@/components/dashboard/StatsGrid.vue'
 import CareerCard    from '@/components/dashboard/CareerCard.vue'
 import CareerFilters from '@/components/dashboard/CareerFilters.vue'
+import api           from '@/api/axios.js'
 import {
   dashboardState as state,
   cargarDashboard,
@@ -401,9 +400,74 @@ const calcPctSem = (cant) => {
 
 // ── Búsqueda ──────────────────────────────────────────────────────────
 const busquedaControl = ref('')
-const irAKardex = () => {
-  if (busquedaControl.value.length < 8) return
-  router.push(`/kardex/${busquedaControl.value.trim()}`)
+const buscando = ref(false)
+
+// Validar si la búsqueda es válida (número de 8 dígitos o texto de 3+ caracteres)
+const esValidaBusqueda = computed(() => {
+  const termino = busquedaControl.value.trim()
+  if (!termino) return false
+  
+  // Si es número, debe ser exactamente 8 dígitos
+  if (/^\d+$/.test(termino)) {
+    return termino.length === 8
+  }
+  
+  // Si es texto, debe tener al menos 3 caracteres
+  return termino.length >= 3
+})
+
+// Detectar si es búsqueda por número o por nombre
+const esNumeroControl = (termino) => {
+  return /^\d{8}$/.test(termino)
+}
+
+// Buscar alumno por nombre/apellido
+const buscarPorNombre = async (nombre) => {
+  try {
+    const response = await api.get('/kardex/buscar-por-nombre', {
+      params: { q: nombre }
+    })
+    if (response.data.resultados && response.data.resultados.length > 0) {
+      return response.data.resultados[0].numero_control
+    }
+    state.error = 'No se encontraron alumnos con ese nombre'
+    return null
+  } catch (e) {
+    if (e.response?.status === 404) {
+      state.error = 'Alumno no encontrado'
+    } else {
+      state.error = 'Error al buscar alumno: ' + (e.response?.data?.error || e.message)
+    }
+    return null
+  }
+}
+
+// Navegar a Kardex
+const irAKardex = async () => {
+  if (!esValidaBusqueda.value) return
+  
+  buscando.value = true
+  state.error = null
+  
+  try {
+    const termino = busquedaControl.value.trim()
+    let numeroControl = termino
+    
+    // Si no es número de control, buscar por nombre
+    if (!esNumeroControl(termino)) {
+      numeroControl = await buscarPorNombre(termino)
+      if (!numeroControl) {
+        buscando.value = false
+        return
+      }
+    }
+    
+    router.push(`/kardex/${numeroControl}`)
+  } catch (e) {
+    state.error = 'Error: ' + e.message
+  } finally {
+    buscando.value = false
+  }
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────
