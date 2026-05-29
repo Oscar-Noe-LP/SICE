@@ -202,15 +202,15 @@
               </svg>
             </div>
             <div>
-              <div class="hero-title">CONSULTA RAPIDA DE ALUMNO</div>
-              <div class="hero-sub">NUMERO DE CONTROL → KARDEX COMPLETO AL INSTANTE</div>
+              <div class="hero-title">CONSULTA RAPIDA DE ALUMNOS</div>
+              <div class="hero-sub">NÚMERO DE CONTROL, NOMBRE O APELLIDO</div>
             </div>
           </div>
           <div class="hero-form">
             <input
               class="hero-input"
               v-model.trim="busquedaControl"
-              placeholder="EJ. 25000001 O NOMBRE"
+              placeholder="NÚMERO DE CONTROL, NOMBRE O APELLIDO"
               maxlength="100"
               type="text"
               aria-label="NUMERO DE CONTROL O NOMBRE DEL ALUMNO"
@@ -244,7 +244,7 @@
               <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path :d="acc.d" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <span class="acc-lbl">{{ acc.label }}</span>
+              <span class="acc-lbl">{{ acc.label?.toUpperCase() }}</span>
             </button>
           </div>
         </div>
