@@ -594,6 +594,26 @@ const router = createRouter({
 
 const RUTAS_PUBLICAS = ['/login']
 
+// /inicio es accesible para cualquier usuario autenticado — siempre
+const RUTA_FALLBACK = '/inicio'
+
+// Normaliza el nombre_rol de la BD al identificador interno usado en el frontend.
+// BD: 'Administrador' | 'Docente' | 'Escolares'
+// Frontend: 'admin'   | 'docente' | 'servicios-escolares'
+const normalizarRol = (rol) => {
+  if (!rol) return ''
+  const mapa = {
+    'administrador':       'admin',
+    'admin':               'admin',
+    'docente':             'docente',
+    'docentes':            'docente',
+    'escolares':           'servicios-escolares',
+    'servicios escolares': 'servicios-escolares',
+    'servicios-escolares': 'servicios-escolares',
+  }
+  return mapa[rol.toLowerCase().trim()] ?? rol.toLowerCase().trim()
+}
+
 const PERMISOS_POR_ROL = {
   'docente': [
     '/inicio',
@@ -626,22 +646,33 @@ const PERMISOS_POR_ROL = {
 }
 
 router.beforeEach((to, from, next) => {
+  // 1. Rutas públicas — siempre permitidas
   if (RUTAS_PUBLICAS.includes(to.path)) {
     return next()
   }
 
+  // 2. Sin sesión → login
   const token   = localStorage.getItem('auth_token')
   const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
   if (!token || !usuario) {
     return next('/login')
   }
 
-  const rol = usuario.rol ?? ''
+  const rol = normalizarRol(usuario.rol ?? '')
 
+  // 3. Admin → acceso total
   if (rol === 'admin') {
     return next()
   }
 
+  // 4. /inicio es el fallback universal para cualquier usuario autenticado.
+  //    Permitirlo siempre evita el loop infinito cuando el rol no tiene
+  //    rutas configuradas o cuando el guard mismo redirige aquí.
+  if (to.path === RUTA_FALLBACK) {
+    return next()
+  }
+
+  // 5. Rol conocido → verificar permisos
   const permitidas  = PERMISOS_POR_ROL[rol] ?? []
   const tieneAcceso = permitidas.some(ruta => to.path.startsWith(ruta))
 
@@ -649,7 +680,8 @@ router.beforeEach((to, from, next) => {
     return next()
   }
 
-  return next('/inicio')
+  // 6. Sin permiso → redirigir al inicio (nunca producirá loop gracias al paso 4)
+  return next(RUTA_FALLBACK)
 })
 
 export default router
