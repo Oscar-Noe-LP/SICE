@@ -352,12 +352,19 @@ const errores = reactive({
   contrasena: ''
 })
 
+// ── Dominio institucional permitido
+const DOMINIO_REGEX = /^[a-zA-Z0-9._%+-]+@matehuala\.tecnm\.mx$/i
+
 // ── Validaciones inline ──────────────────────────────────────────
 const validarCampo = (campo) => {
   if (campo === 'correo') {
-    errores.correo = !form.correo.trim()
-      ? 'EL CORREO INSTITUCIONAL ES OBLIGATORIO'
-      : ''
+    if (!form.correo.trim()) {
+      errores.correo = 'EL CORREO INSTITUCIONAL ES OBLIGATORIO'
+    } else if (!DOMINIO_REGEX.test(form.correo.trim())) {
+      errores.correo = 'USA TU CORREO @matehuala.tecnm.mx'
+    } else {
+      errores.correo = ''
+    }
   }
   if (campo === 'contrasena') {
     errores.contrasena = !form.contrasena
@@ -384,11 +391,6 @@ const validarSoloContrasena = () => {
   return !errores.contrasena
 }
 
-// ── Extrae nombre_usuario del correo para el backend
-const extraerNombreUsuario = (correo) => {
-  return correo.split('@')[0]
-}
-
 // ── Login desde cuenta guardada (solo contraseña)
 const handleLoginCuentaGuardada = async () => {
   error.value = ''
@@ -400,8 +402,8 @@ const handleLoginCuentaGuardada = async () => {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
-        nombre_usuario: extraerNombreUsuario(cuentaSeleccionada.value.correo),
-        contrasena:     form.contrasena
+        correo:     cuentaSeleccionada.value.correo,
+        contrasena: form.contrasena
       })
     })
 
@@ -441,8 +443,8 @@ const handleLogin = async () => {
       method:  'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
-        nombre_usuario: extraerNombreUsuario(form.correo),
-        contrasena:     form.contrasena
+        correo:     form.correo.trim().toLowerCase(),
+        contrasena: form.contrasena
       })
     })
 
