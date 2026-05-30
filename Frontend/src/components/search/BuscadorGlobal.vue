@@ -215,12 +215,20 @@ async function buscar(q: string) {
 
     const lista: ResultadoBusqueda[] = []
 
+    const idsAlumnos = new Set<number>()
+
     if (resAlumnos.status === 'fulfilled') {
-      resAlumnos.value.slice(0, MAX_RESULTS).forEach(r => lista.push(normalizarAlumno(r)))
+      resAlumnos.value.slice(0, MAX_RESULTS).forEach(r => {
+        lista.push(normalizarAlumno(r))
+        idsAlumnos.add(Number(r.id_persona))
+      })
     }
 
     if (resDocentes.status === 'fulfilled') {
-      resDocentes.value.slice(0, MAX_RESULTS).forEach(r => lista.push(normalizarDocente(r)))
+      resDocentes.value
+        .filter(r => !idsAlumnos.has(Number(r.id_persona))) // ← descarta si ya está como alumno
+        .slice(0, MAX_RESULTS)
+        .forEach(r => lista.push(normalizarDocente(r)))
     }
 
     if (lista.length === 0 && resAlumnos.status === 'rejected' && resDocentes.status === 'rejected') {

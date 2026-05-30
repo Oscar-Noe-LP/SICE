@@ -63,14 +63,14 @@ const router = createRouter({
     {
       path: '/alumnos/gestion',
       name: 'AlumnosGestion',
-      component: () => import('@/views/ServiciosEscolares/AlumnosSE.vue')
+      component: () => import('@/views/AlumnosView.vue')
     },
     // ── EXPEDIENTE ACADÉMICO — módulo 2.2 (NELLY) ─────────────────────────
     // Ruta sin noControl: redirige a gestión (el alumno se busca desde ahí)
     {
       path: '/alumnos/expediente',
       name: 'ExpedienteAcademico',
-      redirect: '/alumnos/gestion'
+      component: () => import('@/views/ServiciosEscolares/ExpedienteSE.vue')
     },
     // Ruta con noControl: abre el expediente completo del alumno
     {
@@ -292,17 +292,17 @@ const router = createRouter({
     {
       path: '/aspirantes/solicitudes',
       name: 'SolicitudesAspirantes',
-      component: () => import('@/views/AspirantesView.vue')
+      component: () => import('@/views/ServiciosEscolares/AspirantesSE.vue')
     },
     {
       path: '/aspirantes/configuracion',
       name: 'ConfiguracionAspirantes',
-      component: () => import('@/views/AspirantesView.vue')
+      component: () => import('@/views/ServiciosEscolares/AspirantesSE.vue')
     },
     {
       path: '/aspirantes/fichas',
       name: 'FichasAspirantes',
-      component: () => import('@/views/AspirantesView.vue')
+      component: () => import('@/views/ServiciosEscolares/AspirantesSE.vue')
     },
 
     // ══════════════════════════════════════════════════════════════════════

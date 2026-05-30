@@ -25,8 +25,82 @@
         <span class="breadcrumb-actual">EXPEDIENTE ACADÉMICO</span>
       </nav>
 
+      <!-- Buscador: se muestra cuando no hay alumno seleccionado -->
+      <div v-if="!noControl" class="busqueda-expediente">
+        <div class="busq-icono-wrap" aria-hidden="true">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="40" height="40">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <h2 class="busq-titulo">BUSCAR ALUMNO</h2>
+        <p class="busq-subtitulo">Ingresa el número de control o nombre del alumno</p>
+
+        <div class="busq-input-wrap">
+          <div class="busq-input-group">
+            <svg class="busq-input-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input
+              v-model="noControlBusqueda"
+              class="busq-input"
+              placeholder="Número de control o nombre..."
+              autocomplete="off"
+              @keyup.enter="buscarAlumno"
+            />
+            <button
+              v-if="noControlBusqueda"
+              class="busq-btn-limpiar"
+              @click="noControlBusqueda = ''; resultadosBusqueda = []"
+              type="button"
+              aria-label="Limpiar"
+            >
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <button class="btn-primario busq-btn-buscar" @click="buscarAlumno" :disabled="buscando" type="button">
+            <svg v-if="!buscando" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <span v-if="buscando" class="busq-spinner" aria-hidden="true"></span>
+            {{ buscando ? 'BUSCANDO...' : 'BUSCAR' }}
+          </button>
+        </div>
+
+        <!-- Resultados de búsqueda -->
+        <div v-if="resultadosBusqueda.length" class="busq-resultados">
+          <p class="busq-resultados-titulo">{{ resultadosBusqueda.length }} resultado(s) encontrado(s)</p>
+          <ul class="busq-lista" role="listbox">
+            <li
+              v-for="a in resultadosBusqueda"
+              :key="a.numero_control"
+              class="busq-item"
+              role="option"
+              @click="abrirExpediente(a.numero_control)"
+            >
+              <div class="busq-item-avatar" aria-hidden="true">
+                {{ (a.nombre ?? '?').split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase() }}
+              </div>
+              <div class="busq-item-info">
+                <span class="busq-item-nombre">{{ a.nombre }}</span>
+                <span class="busq-item-meta">{{ a.numero_control }} · {{ resolverCarrera(a) }} · {{ a.semestre_actual ?? a.semestre }}° SEM.</span>
+              </div>
+              <span class="estatus-chip" :class="(a.estatus ?? '').toLowerCase().replace(/\s/g,'-')">
+                {{ (a.estatus ?? '').toUpperCase() }}
+              </span>
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" class="busq-item-flecha" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Sin resultados -->
+        <div v-else-if="noControlBusqueda.trim() && !buscando && resultadosBusqueda.length === 0" class="busq-sin-resultados">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="32" height="32"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p>No se encontraron alumnos con ese criterio.</p>
+        </div>
+      </div>
+
       <!-- Estado cargando inicial -->
-      <div v-if="cargandoAlumno" class="estado-cargando-pagina">
+      <div v-else-if="cargandoAlumno" class="estado-cargando-pagina">
         <div class="spinner-grande" aria-hidden="true"></div>
         <p>CARGANDO EXPEDIENTE...</p>
       </div>
@@ -60,7 +134,7 @@
               </span>
               <span class="alumno-meta-item">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/></svg>
-                {{ alumno.carrera?.toUpperCase() }}
+                {{ resolverCarrera(alumno).toUpperCase() }}
               </span>
               <span class="alumno-meta-item">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -138,7 +212,7 @@
                 <h3>DATOS ACADÉMICOS</h3>
               </div>
               <dl class="datos-lista">
-                <div class="dato-item dato-full"><dt>CARRERA</dt><dd>{{ alumno.carrera ?? '—' }}</dd></div>
+                <div class="dato-item dato-full"><dt>CARRERA</dt><dd>{{ resolverCarrera(alumno) || '—' }}</dd></div>
                 <div class="dato-item"><dt>SEMESTRE ACTUAL</dt><dd>{{ alumno.semestre_actual ?? alumno.semestre }}° SEMESTRE</dd></div>
                 <div class="dato-item"><dt>PERIODO DE INGRESO</dt><dd>{{ alumno.periodo_ingreso ?? alumno.fecha_ingreso ?? 'NO REGISTRADO' }}</dd></div>
                 <div class="dato-item"><dt>PLAN DE ESTUDIOS</dt><dd>{{ alumno.plan_estudios ?? 'NO REGISTRADO' }}</dd></div>
@@ -510,6 +584,54 @@ const API_URL = import.meta.env.VITE_API_URL
 // ── Parámetro de ruta ─────────────────────────────────────────────────
 const noControl = computed(() => route.params.noControl ?? '')
 
+// ── Búsqueda de alumno (cuando se entra sin parámetro) ────────────────
+const noControlBusqueda  = ref('')
+const resultadosBusqueda = ref([])
+const buscando           = ref(false)
+
+const normalize = (t) => !t ? '' : t.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+
+const buscarAlumno = async () => {
+  const q = noControlBusqueda.value.trim()
+  if (!q) return
+
+  // Si parece un número de control exacto, navegar directo
+  const soloNumeros = /^\d+$/.test(q)
+  if (soloNumeros) {
+    router.push(`/alumnos/expediente/${encodeURIComponent(q)}`)
+    return
+  }
+
+  // Búsqueda por nombre contra la API (con caché)
+  buscando.value = true
+  resultadosBusqueda.value = []
+  try {
+    if (!_cacheAlumnos) {
+      const res = await fetch(`${API_URL}/api/alumnos-crud`)
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      _cacheAlumnos = Array.isArray(data) ? data : (data.alumnos ?? [])
+    }
+    const lista = Array.isArray(data) ? data : (data.alumnos ?? [])
+    const qNorm = normalize(q)
+    resultadosBusqueda.value = _cacheAlumnos
+      .filter(a => {
+        const nombre = normalize(a.nombre ?? '')
+        const nc     = (a.numero_control ?? '').toString()
+        return nombre.includes(qNorm) || nc.includes(q)
+      })
+      .slice(0, 10)
+  } catch {
+    resultadosBusqueda.value = []
+  } finally {
+    buscando.value = false
+  }
+}
+
+const abrirExpediente = (nc) => {
+  router.push(`/alumnos/expediente/${encodeURIComponent(nc)}`)
+}
+
 // ── Estado general ────────────────────────────────────────────────────
 const cargando        = ref(false)
 const cargandoAlumno  = ref(false)
@@ -559,17 +681,25 @@ const mostrarToast = (mensaje, tipo = 'exito') => {
 }
 
 // ── Carga del alumno ──────────────────────────────────────────────────
+// ── Caché de sesión para no repetir el fetch de toda la lista ─────────
+let _cacheAlumnos = null
+
 const cargarAlumno = async () => {
-  if (!noControl.value) { errorAlumno.value = true; return }
+  if (!noControl.value) { return }
   cargandoAlumno.value = true
   errorAlumno.value    = false
   try {
-    const res = await fetch(`${API_URL}/api/alumnos/buscar?numero_control=${encodeURIComponent(noControl.value)}`)
-    if (res.status === 404) { errorAlumno.value = true; return }
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = await res.json()
-    if (!data || (!data.id && !data.numero_control)) { errorAlumno.value = true; return }
-    alumno.value = data
+    if (!_cacheAlumnos) {
+      const res = await fetch(`${API_URL}/api/alumnos-crud`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      _cacheAlumnos = Array.isArray(data) ? data : (data.alumnos ?? [])
+    }
+    const encontrado = _cacheAlumnos.find(a =>
+      String(a.numero_control ?? '').trim() === String(noControl.value).trim()
+    )
+    if (!encontrado) { errorAlumno.value = true; return }
+    alumno.value = encontrado
   } catch (e) {
     console.error('[ExpedienteSE] cargarAlumno:', e)
     errorAlumno.value = true
@@ -696,6 +826,7 @@ const historialAgrupado = computed(() => {
 
 // ── Helpers ───────────────────────────────────────────────────────────
 const iniciales = (n = '') => n.split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase()
+const resolverCarrera = (a) => a?.carrera?.nombre_carrera || a?.carrera?.nombre || (typeof a?.carrera === 'string' ? a.carrera : '') || ''
 
 const fFecha = (iso) => {
   if (!iso) return 'NO REGISTRADO'
@@ -818,7 +949,7 @@ watch(() => route.params.noControl, async (nuevo) => {
 .alumno-avatar { width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,.12); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 700; flex-shrink: 0; border: 2px solid rgba(255,255,255,.25); }
 .alumno-info { flex: 1; min-width: 0; }
 .alumno-nombre-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-.alumno-nombre { font-size: 1.4rem; font-weight: 700; color: #FFFFFF; margin: 0; letter-spacing: .02em; }
+.alumno-nombre { font-size: 1.4rem; font-weight: 700; color: #FFFFFF; margin: 0; letter-spacing: .02em;  font-family: 'Montserrat', sans-serif;}
 .alumno-meta-grid { display: flex; flex-wrap: wrap; gap: 12px 24px; }
 .alumno-meta-item { display: flex; align-items: center; gap: 5px; font-size: .82rem; color: rgba(255,255,255,.6); letter-spacing: .03em; }
 .alumno-meta-item svg { stroke: rgba(255,255,255,.5); flex-shrink: 0; }
@@ -859,7 +990,7 @@ watch(() => route.params.noControl, async (nuevo) => {
 .info-card { background: #F4F6F9; border-radius: 12px; border: 1px solid #E0E0E0; padding: 16px 18px; }
 .info-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
 .info-card-header svg { stroke: #1D52B7; flex-shrink: 0; }
-.info-card-header h3 { font-size: .82rem; font-weight: 700; color: #1D52B7; margin: 0; letter-spacing: .05em; }
+.info-card-header h3 { font-size: .82rem; font-weight: 700; color: #1D52B7; margin: 0; letter-spacing: .05em;  font-family: 'Montserrat', sans-serif;}
 .datos-lista { margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .dato-item { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .dato-full { flex-direction: column; align-items: flex-start; gap: 2px; }
@@ -976,6 +1107,104 @@ watch(() => route.params.noControl, async (nuevo) => {
 .estado-error-inline svg { stroke: #EB5757; flex-shrink: 0; }
 .btn-reintentar { margin-left: auto; background: #EB5757; color: #FFFFFF; border: none; padding: 5px 14px; border-radius: 6px; font-weight: 700; font-size: .8rem; cursor: pointer; font-family: 'Montserrat', sans-serif; transition: background .15s; letter-spacing: .04em; }
 .btn-reintentar:hover { background: #c0392b; }
+
+/* ── Buscador de expediente (sin alumno) ── */
+.busqueda-expediente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 3rem 1rem 4rem;
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+.busq-icono-wrap { color: #1D52B7; opacity: .5; }
+.busq-titulo { font-size: 1.3rem; font-weight: 800; color: #0B2545; letter-spacing: .06em; margin: 0;  font-family: 'Montserrat', sans-serif;}
+.busq-subtitulo { font-size: .85rem; color: #828282; letter-spacing: .03em; margin: 0; }
+.busq-input-wrap { display: flex; gap: 10px; width: 100%; align-items: center; }
+.busq-input-group {
+  position: relative;
+  flex: 1;
+}
+.busq-input-icono {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  stroke: #828282;
+  pointer-events: none;
+}
+.busq-input {
+  width: 100%;
+  padding: 11px 36px 11px 40px;
+  border: 1.5px solid #E0E0E0;
+  border-radius: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: .9rem;
+  color: #333333;
+  outline: none;
+  transition: border-color .15s;
+  box-sizing: border-box;
+  letter-spacing: .02em;
+}
+.busq-input:focus { border-color: #1D52B7; }
+.busq-btn-limpiar {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #828282;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+.busq-btn-limpiar:hover { color: #333333; }
+.busq-btn-buscar { white-space: nowrap; flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+.busq-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: giro .7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes giro { to { transform: rotate(360deg); } }
+.busq-resultados { width: 100%; text-align: left; }
+.busq-resultados-titulo { font-size: .78rem; font-weight: 700; color: #828282; letter-spacing: .04em; margin: 0 0 10px; }
+.busq-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.busq-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1.5px solid #E0E0E0;
+  border-radius: 10px;
+  background: #FFFFFF;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.busq-item:hover { border-color: #1D52B7; background: rgba(29,82,183,.03); }
+.busq-item-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #0B2545; color: #FFFFFF;
+  font-size: .78rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; letter-spacing: .02em;
+}
+.busq-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.busq-item-nombre { font-size: .9rem; font-weight: 700; color: #333333; letter-spacing: .02em; }
+.busq-item-meta { font-size: .75rem; color: #828282; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.busq-item-flecha { stroke: #BDBDBD; flex-shrink: 0; }
+.busq-sin-resultados {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; color: #828282; font-size: .85rem; letter-spacing: .03em;
+  padding: 1.5rem 0;
+}
+.busq-sin-resultados svg { stroke: #BDBDBD; }
 
 /* ── Footer ── */
 .pie-pagina { text-align: center; color: #BDBDBD; font-size: .78rem; padding: 2rem 0; border-top: 1px solid #E0E0E0; letter-spacing: .04em; }
