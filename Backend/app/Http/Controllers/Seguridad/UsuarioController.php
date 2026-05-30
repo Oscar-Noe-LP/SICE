@@ -59,20 +59,33 @@ class UsuarioController extends Controller
                 return response()->json([]);
             }
 
-            $personas = Persona::where(function ($query) use ($q) {
-                $query->where('nombre', 'LIKE', "%{$q}%")
-                      ->orWhere('apellido_paterno', 'LIKE', "%{$q}%")
-                      ->orWhere('apellido_materno', 'LIKE', "%{$q}%")
-                      ->orWhere(DB::raw("CONCAT(nombre, ' ', COALESCE(apellido_paterno,''), ' ', COALESCE(apellido_materno,''))"), 'LIKE', "%{$q}%");
-            })
-            ->select('id_persona', 'nombre', 'apellido_paterno', 'apellido_materno', 'curp')
-            ->limit(12)
-            ->get();
+            $personas = Persona::join('empleado as e', 'persona.id_persona', '=', 'e.id_persona')
+                ->join('docente as d', 'e.id_empleado', '=', 'd.id_empleado')
+                ->where(function ($query) use ($q) {
+                    $query->where('persona.nombre', 'LIKE', "%{$q}%")
+                        ->orWhere('persona.apellido_paterno', 'LIKE', "%{$q}%")
+                        ->orWhere('persona.apellido_materno', 'LIKE', "%{$q}%")
+                        ->orWhere(
+                            DB::raw("CONCAT(persona.nombre, ' ', COALESCE(persona.apellido_paterno,''), ' ', COALESCE(persona.apellido_materno,''))"),
+                            'LIKE', "%{$q}%"
+                        );
+                })
+                ->select(
+                    'persona.id_persona',
+                    'persona.nombre',
+                    'persona.apellido_paterno',
+                    'persona.apellido_materno',
+                    'persona.curp',
+                    'd.id_docente'
+                )
+                ->limit(12)
+                ->get();
 
             $resultado = $personas->map(function ($p) {
                 return [
                     'id_persona'      => $p->id_persona,
-                    'nombre_completo' => trim("{$p->nombre} {$p->apellido_paterno} {$p->apellido_materno}"),
+                    'id_docente'      => $p->id_docente,
+                    'nombre_completo' => trim("{$p->apellido_paterno} {$p->apellido_materno} {$p->nombre}"),
                     'curp'            => $p->curp,
                 ];
             });

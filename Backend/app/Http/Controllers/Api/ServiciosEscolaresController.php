@@ -230,108 +230,33 @@ class ServiciosEscolaresController extends Controller
 
         $terminoUpper = strtoupper($termino);
 
-        // ── 1. Buscar ALUMNO ──────────────────────────────────────────────────
-        // Soporta: número de control exacto  O  fragmento del nombre completo
-        // El nombre se almacena en persona (nombre, apellido_paterno, apellido_materno).
-        // La búsqueda en frontend se pide en formato "APE_PAT APE_MAT NOMBRE"
-        // por lo que buscamos en el nombre concatenado en cualquier orden.
-        $alumno = DB::table('alumno as a')
+        $alumnos = DB::table('alumno as a')
             ->join('persona as p', 'a.id_persona', '=', 'p.id_persona')
             ->join('carrera as c', 'a.id_carrera', '=', 'c.id_carrera')
             ->where(function ($q) use ($terminoUpper) {
-                $q->whereRaw('UPPER(a.numero_control) = ?', [$terminoUpper])
-                  ->orWhereRaw(
-                      "UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)) LIKE ?",
-                      ["%{$terminoUpper}%"]
-                  )
-                  ->orWhereRaw(
-                      "UPPER(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', p.apellido_materno)) LIKE ?",
-                      ["%{$terminoUpper}%"]
-                  );
+                $q->whereRaw('UPPER(a.numero_control) LIKE ?', ["%{$terminoUpper}%"])
+                ->orWhereRaw(
+                    "UPPER(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', p.apellido_materno)) LIKE ?",
+                    ["%{$terminoUpper}%"]
+                )
+                ->orWhereRaw(
+                    "UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)) LIKE ?",
+                    ["%{$terminoUpper}%"]
+                );
             })
             ->select(
                 'a.id_alumno',
+                'a.id_persona',              // ← necesario para deduplicar en frontend
                 'a.numero_control',
                 'a.semestre_actual',
                 'a.estatus',
-                DB::raw("UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)) as nombre"),
+                DB::raw("UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)) as nombre_completo"),
                 'c.nombre as carrera'
             )
-            ->first();
+            ->limit(20)
+            ->get();
 
-        if ($alumno) {
-            // Horario: inscripciones activas → grupo → materia → aula
-            $horario = DB::table('inscripcion as i')
-                ->join('grupo as g', 'i.id_grupo', '=', 'g.id_grupo')
-                ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
-                ->join('aula as au', 'g.id_aula', '=', 'au.id_aula')
-                ->where('i.id_alumno', $alumno->id_alumno)
-                ->select(
-                    'm.nombre as materia',
-                    'g.dia',
-                    DB::raw("TIME_FORMAT(g.hora_inicio, '%H:%i') as hora_inicio"),
-                    DB::raw("TIME_FORMAT(g.hora_fin, '%H:%i') as hora_fin"),
-                    'au.nombre as aula'
-                )
-                ->get();
-
-            return response()->json([
-                'tipo'           => 'alumno',
-                'numero_control' => $alumno->numero_control,
-                'nombre'         => $alumno->nombre,
-                'carrera'        => $alumno->carrera,
-                'semestre'       => $alumno->semestre_actual,
-                'estatus'        => $alumno->estatus,
-                'horario'        => $horario,
-            ]);
-        }
-
-        // ── 2. Buscar DOCENTE ─────────────────────────────────────────────────
-        // docente → empleado → persona
-        $docente = DB::table('docente as d')
-            ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
-            ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
-            ->where(function ($q) use ($terminoUpper) {
-                $q->whereRaw(
-                      "UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)) LIKE ?",
-                      ["%{$terminoUpper}%"]
-                  )
-                  ->orWhereRaw(
-                      "UPPER(CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', p.apellido_materno)) LIKE ?",
-                      ["%{$terminoUpper}%"]
-                  );
-            })
-            ->select(
-                'd.id_docente',
-                'd.especialidad',
-                DB::raw("UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)) as nombre")
-            )
-            ->first();
-
-        if ($docente) {
-            // Horario: grupos que imparte → materia → aula
-            $horario = DB::table('grupo as g')
-                ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
-                ->where('g.id_docente', $docente->id_docente)
-                ->select(
-                    'm.nombre as materia',
-                    'g.clave_grupo as grupo',
-                    'g.dia',
-                    DB::raw("TIME_FORMAT(g.hora_inicio, '%H:%i') as hora_inicio"),
-                    DB::raw("TIME_FORMAT(g.hora_fin, '%H:%i') as hora_fin")
-                )
-                ->get();
-
-            return response()->json([
-                'tipo'        => 'docente',
-                'nombre'      => $docente->nombre,
-                'especialidad'=> $docente->especialidad,
-                'horario'     => $horario,
-            ]);
-        }
-
-        // ── 3. Sin resultados ────────────────────────────────────────────────
-        return response()->json(['mensaje' => 'No se encontraron resultados para la búsqueda'], 404);
+        return response()->json($alumnos);
     }
 
     // 🔹 GRUPOS / INSCRIPCIÓN
