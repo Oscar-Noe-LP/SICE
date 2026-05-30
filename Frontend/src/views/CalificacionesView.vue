@@ -211,6 +211,115 @@
           </div>
         </div>
 
+        <!-- Sección Actas -->
+        <div class="actas-seccion" style="margin-top: 2rem;">
+          <h3 class="seccion-titulo">Actas</h3>
+
+          <!-- KPIs actas -->
+          <div class="mini-resumen-grid" style="margin-bottom: 1rem;">
+            <div class="mini-resumen-item">
+              <span class="mini-resumen-numero color-verde">{{ kpisActas.generadas }}</span>
+              <span class="mini-resumen-etiqueta">Generadas</span>
+            </div>
+            <div class="mini-resumen-item">
+              <span class="mini-resumen-numero" style="color:#F59E0B;">{{ kpisActas.pendientes }}</span>
+              <span class="mini-resumen-etiqueta">Pendientes</span>
+            </div>
+            <div class="mini-resumen-item">
+              <span class="mini-resumen-numero color-rojo">{{ kpisActas.sinCalificacion }}</span>
+              <span class="mini-resumen-etiqueta">Sin calificación</span>
+            </div>
+            <div class="mini-resumen-item">
+              <span class="mini-resumen-numero">{{ actas.length }}</span>
+              <span class="mini-resumen-etiqueta">Total</span>
+            </div>
+          </div>
+
+          <div class="tabla-card">
+            <div class="tabla-scroll">
+              <table class="tabla-califs">
+                <thead>
+                  <tr>
+                    <th>Grupo</th>
+                    <th>Materia</th>
+                    <th>Docente</th>
+                    <th class="centrado">Estatus</th>
+                    <th class="centrado">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="cargandoActas">
+                    <td colspan="5" class="sin-resultados"><p>Cargando actas...</p></td>
+                  </tr>
+                  <tr v-else-if="actas.length === 0">
+                    <td colspan="5" class="sin-resultados"><p>No hay actas disponibles</p></td>
+                  </tr>
+                  <tr v-for="acta in actas" :key="acta.id_acta">
+                    <td><span class="control-chip">{{ acta.clave_grupo }}</span></td>
+                    <td>{{ acta.materia }}</td>
+                    <td>{{ acta.docente || 'Sin asignar' }}</td>
+                    <td class="centrado">
+                      <span
+                        class="badge-estado"
+                        :class="{
+                          'bien': acta.estatus === 'generada',
+                          'regular': acta.estatus === 'pendiente',
+                          'sin-calificar': acta.estatus === 'sin_calificacion'
+                        }"
+                      >
+                        {{
+                          acta.estatus === 'generada' ? 'Generada' :
+                          acta.estatus === 'pendiente' ? 'Pendiente' : 'Sin calificación'
+                        }}
+                      </span>
+                    </td>
+                    <td class="centrado acciones-cell">
+                      <div class="acciones-fila">
+                        <button
+                          @click="generarActa(acta)"
+                          class="btn-accion guardar"
+                          title="Generar acta"
+                          :disabled="acta.estatus === 'sin_calificacion'"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                          </svg>
+                        </button>
+                        <button
+                          @click="descargarActa(acta)"
+                          class="btn-accion ver"
+                          title="Descargar PDF"
+                          :disabled="acta.estatus !== 'generada'"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                          </svg>
+                        </button>
+                        <button
+                          @click="imprimirActa(acta)"
+                          class="btn-accion ver"
+                          title="Imprimir"
+                          :disabled="acta.estatus !== 'generada'"
+                          style="background:#EDE9FE;color:#7C3AED;"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <polyline points="6 9 6 2 18 2 18 9"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect x="6" y="14" width="12" height="8"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <!-- Tarjetas de Docentes (estilo visual diferente) -->
         <div class="docentes-seccion" style="margin-top: 2rem;">
           <h3 class="seccion-titulo">Docentes</h3>
@@ -302,8 +411,53 @@
           </div>
         </div>
 
+        <!-- KPIs del grupo -->
+        <div class="kpis-grupo-grid">
+          <div class="kpi-item">
+            <span class="kpi-valor" :class="clasePromedio(promedioGeneral)">{{ promedioGeneral }}</span>
+            <span class="kpi-label">Promedio grupo</span>
+          </div>
+          <div class="kpi-item">
+            <span class="kpi-valor kpi-verde">{{ alumnos.length - totalReprobados - totalNC }}</span>
+            <span class="kpi-label">Aprobados</span>
+          </div>
+          <div class="kpi-item">
+            <span class="kpi-valor kpi-rojo">{{ totalReprobados }}</span>
+            <span class="kpi-label">Reprobados</span>
+          </div>
+          <div class="kpi-item">
+            <span class="kpi-valor kpi-gris">{{ totalNC }}</span>
+            <span class="kpi-label">Sin calificar</span>
+          </div>
+        </div>
+
+
+        <!-- Sub‑pestañas de la tabla del grupo -->
+        <div class="subtab-nav">
+          <button 
+            class="subtab-btn" 
+            :class="{ activo: vistaTabla === 'calificaciones' }"
+            @click="vistaTabla = 'calificaciones'"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            Calificaciones
+          </button>
+          <button 
+            class="subtab-btn" 
+            :class="{ activo: vistaTabla === 'especiales' }"
+            @click="vistaTabla = 'especiales'"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
+            </svg>
+            Especiales / Globales
+          </button>
+        </div>
+
         <!-- Tabla principal (limpia) -->
-        <div class="tabla-card">
+        <div v-if="vistaTabla === 'calificaciones'" class="tabla-card">
           <div class="tabla-encabezado">
             <h3 class="seccion-titulo sin-margen">
               Registro de Calificaciones
@@ -481,6 +635,63 @@
             </div>
           </div>
         </div>
+
+            <!-- Tabla de Especiales / Globales -->
+            <div v-if="vistaTabla === 'especiales'" class="tabla-card">
+              <div class="tabla-encabezado">
+                <h3 class="seccion-titulo sin-margen">Solicitudes de Exámenes Especiales / Globales</h3>
+                <span class="tabla-contador">{{ especiales.length }} solicitud(es)</span>
+              </div>
+              <div class="tabla-scroll">
+                <table class="tabla-califs">
+                  <thead>
+                    <tr>
+                      <th>Alumno</th>
+                      <th class="centrado">Tipo</th>
+                      <th class="centrado">Calificación</th>
+                      <th class="centrado">Resultado</th>
+                      <th class="centrado">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="e in especiales" :key="e.id">
+                      <td>{{ e.alumno }}</td>
+                      <td class="centrado">
+                        <span class="tipo-badge" :class="e.tipo === 'especial' ? 'tipo-especial' : 'tipo-global'">
+                          {{ e.tipo === 'especial' ? 'Especial' : 'Global' }}
+                        </span>
+                      </td>
+                      <td class="centrado">
+                        <div class="final-chip" :class="e.calificacion ? clasePromedio(e.calificacion) : 'promedio-sin-calificar'">
+                          {{ e.calificacion ?? '–' }}
+                        </div>
+                      </td>
+                      <td class="centrado">
+                        <span class="badge-estado" :class="e.calificacion >= 60 ? 'excelente' : 'reprobado'">
+                          {{ e.calificacion >= 60 ? 'Aprobado' : 'Reprobado' }}
+                        </span>
+                      </td>
+                      <td class="centrado acciones-cell">
+                        <button class="btn-accion ver" title="Ver detalle">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                    <tr v-if="especiales.length === 0">
+                      <td colspan="5" class="sin-resultados">
+                        <div class="sin-resultados-inner">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="#E5E7EB" stroke-width="1.5" width="48" height="48"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                          <p>No hay solicitudes de exámenes especiales o globales</p>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
       </div>
 
       <!-- Atajos de teclado -->
@@ -654,15 +865,49 @@
               </div>
             </div>
 
-            <!-- Tab Historial (placeholder) -->
-            <div v-if="modalTab === 'historial'" class="tab-historial">
-              <div class="sin-resultados-inner" style="padding: 2rem;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#E5E7EB" stroke-width="1.5" width="48" height="48">
-                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-                </svg>
-                <p>No hay historial disponible para este alumno.</p>
-              </div>
+           <!-- Tab Historial -->
+          <div v-if="modalTab === 'historial'" class="tab-historial">
+            <div v-if="cargandoHistorial" class="sin-resultados-inner" style="padding: 2rem;">
+              <p style="color:#6B7280;font-size:0.9rem;">Cargando historial...</p>
             </div>
+            <div v-else-if="historialAlumno.length === 0" class="sin-resultados-inner" style="padding: 2rem;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#E5E7EB" stroke-width="1.5" width="48" height="48">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <p>No hay historial registrado para este alumno.</p>
+            </div>
+            <div v-else class="tabla-scroll">
+              <table class="tabla-califs">
+                <thead>
+                  <tr>
+                    <th>Periodo</th>
+                    <th>Materia</th>
+                    <th class="centrado">Calificación</th>
+                    <th class="centrado">Estatus</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="h in historialAlumno" :key="h.id ?? (h.periodo + h.materia)">
+                    <td>{{ h.periodo }}</td>
+                    <td>{{ h.materia }}</td>
+                    <td class="centrado">
+                      <div class="final-chip" :class="h.calificacion ? clasePromedio(h.calificacion) : 'promedio-sin-calificar'">
+                        {{ h.calificacion ?? '–' }}
+                      </div>
+                    </td>
+                    <td class="centrado">
+                      <span
+                        class="badge-estado"
+                        :class="!h.calificacion ? 'sin-calificar' : Number(h.calificacion) >= 60 ? 'bien' : 'reprobado'"
+                      >
+                        {{ !h.calificacion ? 'S/C' : Number(h.calificacion) >= 60 ? 'Aprobado' : 'Reprobado' }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
           </div>
         </div>
       </div>
@@ -751,6 +996,7 @@ import MainLayout from '@/layouts/MainLayout.vue'
 import { useCatalogos } from '@/composables/useCatalogos'
 import { getCalificacionesGrupo, guardarCalificaciones } from '../api/calificaciones'
 import api from '../api/axios'
+import * as XLSX from 'xlsx'
 
 // --- VISTA CARRERA: GRUPOS CARGADOS DESDE EL BACKEND ---
 const gruposDeCarrera = ref([])
@@ -838,6 +1084,47 @@ const reprobadosCarrera = computed(() => {
   return '—'
 })
 
+// --- MÓDULO ACTAS ---
+const actas = ref([])
+const cargandoActas = ref(false)
+
+const kpisActas = computed(() => ({
+  generadas: actas.value.filter(a => a.estatus === 'generada').length,
+  pendientes: actas.value.filter(a => a.estatus === 'pendiente').length,
+  sinCalificacion: actas.value.filter(a => a.estatus === 'sin_calificacion').length,
+}))
+
+async function cargarActas(idCarrera) {
+  cargandoActas.value = true
+  try {
+    const { data } = await api.get(`/carreras/${idCarrera}/actas`)
+    actas.value = data.actas ?? []
+  } catch {
+    actas.value = []
+    mostrarToast('Error al cargar actas', 'error')
+  } finally {
+    cargandoActas.value = false
+  }
+}
+
+async function generarActa(acta) {
+  try {
+    await api.post(`/actas/${acta.id_acta}/generar`)
+    mostrarToast('Acta generada correctamente')
+    await cargarActas(carreraSeleccionada.value.id_carrera)
+  } catch {
+    mostrarToast('Error al generar acta', 'error')
+  }
+}
+
+function descargarActa(acta) {
+  window.open(`/api/actas/${acta.id_acta}/pdf`, '_blank')
+}
+
+function imprimirActa(acta) {
+  window.open(`/api/actas/${acta.id_acta}/pdf?print=1`, '_blank')
+}
+
 // --- MODAL DOCENTE ---
 const showModalDocente = ref(false)
 const docenteSeleccionado = ref(null)
@@ -864,6 +1151,36 @@ const paginaActual = ref(1)
 const itemsPorPagina = ref(10)
 const filaActiva = ref(null)
 const filasRef = ref([])
+
+// --- ESPECIALES Y GLOBALES ---
+const especiales = ref([])
+const vistaTabla = ref('calificaciones') // 'calificaciones' | 'especiales'
+
+async function cargarEspeciales(grupoId) {
+  try {
+    const { data } = await api.get(`/grupos/${grupoId}/especiales`)
+    especiales.value = data.solicitudes ?? []
+  } catch {
+    mostrarToast('Error al cargar especiales', 'error')
+  }
+}
+
+// --- HISTORIAL ALUMNO ---
+const historialAlumno = ref([])
+const cargandoHistorial = ref(false)
+
+async function cargarHistorial(control) {
+  cargandoHistorial.value = true
+  historialAlumno.value = []
+  try {
+    const { data } = await api.get(`/alumnos/${control}/historial`)
+    historialAlumno.value = data.historial ?? []
+  } catch {
+    historialAlumno.value = []
+  } finally {
+    cargandoHistorial.value = false
+  }
+}
 
 // Modal alumno
 const showModalAlumno = ref(false)
@@ -953,8 +1270,12 @@ const colorNota = (n) => {
 const seleccionarCarrera = async (carrera) => {
   carreraSeleccionada.value = carrera
   vista.value = 'carrera'
-  await cargarGruposCarrera(carrera.id_carrera)
+  await Promise.all([
+    cargarGruposCarrera(carrera.id_carrera),
+    cargarActas(carrera.id_carrera),
+  ])
 }
+
 const volverACarreras = () => {
   carreraSeleccionada.value = null
   grupoSeleccionado.value = null
@@ -964,9 +1285,13 @@ const volverACarreras = () => {
 const seleccionarGrupo = async (grupo) => {
   grupoSeleccionado.value = grupo
   vista.value = 'tabla'
+  vistaTabla.value = 'calificaciones'  // ← reset al entrar
   paginaActual.value = 1
   filaActiva.value = null
-  await cargarCalificacionesGrupo(grupo.id_grupo)
+  await Promise.all([
+    cargarCalificacionesGrupo(grupo.id_grupo),
+    cargarEspeciales(grupo.id_grupo),  // ← agregar
+  ])
 }
 const volverACarrera = () => {
   grupoSeleccionado.value = null
@@ -992,7 +1317,9 @@ const abrirModalAlumno = (alumno) => {
   alumnoSeleccionado.value = { ...alumno }
   modalTab.value = 'general'
   showModalAlumno.value = true
+  cargarHistorial(alumno.control)
 }
+
 const cerrarModalAlumno = () => {
   showModalAlumno.value = false
   alumnoSeleccionado.value = null
@@ -1029,24 +1356,48 @@ const guardarTodo = async () => {
   catch { mostrarToast('Error al guardar.', 'error') }
   finally { cargando.value = false }
 }
+
 const exportar = () => {
   const datos = alumnosFiltrados.value
   if (!datos.length) return mostrarToast('No hay datos para exportar', 'error')
-  const encabezado = ['No. Control', 'Nombre', 'Parcial 1', 'Parcial 2', 'Proyecto', 'Final', 'Estado']
+
+  const clave = grupoSeleccionado.value?.clave_grupo ?? 'Grupo'
+  const materia = grupoSeleccionado.value?.materia ?? ''
+  const fecha = new Date().toLocaleDateString('es-MX')
+
+  // Fila de encabezado informativo
+  const info = [[`Calificaciones — ${clave} ${materia}`, '', '', '', '', '', ''], [`Fecha: ${fecha}`, '', '', '', '', '', ''], []]
+
   const filas = datos.map(a => {
     const final = calcularFinal(a)
-    const estado = final === null ? 'Sin calificar' : Number(final) >= 90 ? 'Excelente' : Number(final) >= 80 ? 'Bien' : Number(final) >= 60 ? 'Regular' : 'Reprobado'
-    return [a.control, a.nombre, a.p1 ?? '', a.p2 ?? '', a.proy ?? '', final ?? '', estado]
+    return {
+      'No. Control': a.control,
+      'Nombre': a.nombre,
+      'Parcial 1 (30%)': a.p1 ?? '',
+      'Parcial 2 (30%)': a.p2 ?? '',
+      'Proyecto (40%)': a.proy ?? '',
+      'Final': final ?? '',
+      'Estado': final === null ? 'Sin calificar'
+               : Number(final) >= 90 ? 'Excelente'
+               : Number(final) >= 80 ? 'Bien'
+               : Number(final) >= 60 ? 'Regular'
+               : 'Reprobado'
+    }
   })
-  const csv = [encabezado, ...filas].map(fila => fila.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `calificaciones_${new Date().toISOString().slice(0,10)}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
-  mostrarToast('CSV exportado correctamente')
+
+  const ws = XLSX.utils.aoa_to_sheet(info)
+  XLSX.utils.sheet_add_json(ws, filas, { origin: 'A4' })
+
+  // Ancho de columnas
+  ws['!cols'] = [
+    { wch: 14 }, { wch: 30 }, { wch: 14 },
+    { wch: 14 }, { wch: 14 }, { wch: 8 }, { wch: 14 }
+  ]
+
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, clave.slice(0, 31))
+  XLSX.writeFile(wb, `calificaciones_${clave}_${new Date().toISOString().slice(0,10)}.xlsx`)
+  mostrarToast('Excel exportado correctamente')
 }
 
 // Paginación
@@ -1545,5 +1896,89 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   .paginacion-container { flex-direction: column; align-items: center; }
   .modal-content { width: 95%; }
   .docentes-grid { grid-template-columns: 1fr; }
+}
+
+/* KPIs PANTALLA 3 */
+.kpis-grupo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.kpi-item {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.kpi-valor {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1A1A1A;
+}
+.kpi-label {
+  font-size: 0.78rem;
+  color: #6B7280;
+  font-weight: 600;
+  margin-top: 4px;
+  display: block;
+}
+.kpi-verde { color: #16A34A; }
+.kpi-rojo  { color: #DC2626; }
+.kpi-gris  { color: #6B7280; }
+
+@media (max-width: 640px) {
+  .kpis-grupo-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Sub‑pestañas de la pantalla 3 */
+.subtab-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  color: #6B7280;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.subtab-btn:hover {
+  background: #F0F4FF;
+  color: #1B396A;
+  border-color: #BFDBFE;
+}
+.subtab-btn.activo {
+  background: #1B396A;
+  color: white;
+  border-color: #1B396A;
+}
+
+/* Badges para tipo de examen */
+.tipo-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.tipo-especial {
+  background: #EDE9FE;
+  color: #7C3AED;
+}
+.tipo-global {
+  background: #FEF3C7;
+  color: #B45309;
 }
 </style>
