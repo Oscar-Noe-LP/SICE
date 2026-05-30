@@ -95,6 +95,7 @@
 
         <!-- Inicio (siempre visible) -->
         <router-link
+          v-if="['admin', 'docente'].includes(rolActual)"
           to="/inicio"
           class="nav-item nav-item-link"
           active-class="nav-activo"
@@ -123,9 +124,10 @@
             title="Dashboard — Panel principal de Servicios Escolares"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <span class="nav-label">DASHBOARD</span>
+            <span class="nav-label">PRINCIPAL</span>
             <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'se-dashboard' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
             </svg>
@@ -292,6 +294,28 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
+
+          <!-- ── EVENTOS ── -->
+          <template v-if="puedeVer.eventos">
+            <div
+              class="nav-item nav-item-tab"
+              :class="{ 'nav-activo': tabActivo === 'eventos' }"
+              @mouseenter="abrirTab('eventos')"
+              @focus="abrirTab('eventos')"
+              @click.stop="abrirTab('eventos')"
+              tabindex="0"
+              :title="tooltips.eventos"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span class="nav-label">EVENTOS</span>
+              <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'eventos' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </template>
         
         </template>
 
@@ -1962,6 +1986,7 @@ const regresarPagina = () => router.back()
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   flex-shrink: 0;
+  text-transform: uppercase;
 }
 .ribbon-item:hover               { background: #DBEAFE; color: var(--azul); border-color: #BFDBFE; }
 .ribbon-item.router-link-active  { background: #EFF6FF; color: var(--azul); border-color: #BFDBFE; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(27,57,106,0.08); }

@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/servicios-escolares',
       name: 'ServiciosEscolares',
-      component: () => import('@/views/ServiciosEscolares/DashboardSE.vue')
+      component: () => import('@/views/DashboardView.vue')
     },
     {
       path: '/servicios-escolares/graficas',
@@ -633,7 +633,6 @@ const PERMISOS_POR_ROL = {
     '/eventos',
   ],
   'servicios-escolares': [
-    '/inicio',
     '/servicios-escolares',
     '/alumnos',
     '/formulario-alumno',
