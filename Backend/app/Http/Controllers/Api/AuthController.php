@@ -13,28 +13,56 @@ class AuthController extends Controller
     /**
      * POST /api/login
      *
-     * Request:  { nombre_usuario: string, contrasena: string }
+     * Request:  { correo: string, contrasena: string }
      * Response: { success: true,  token: string, usuario: {...} }
      *        o: { success: false, message: string }
      *
-     * Verifica contra la tabla `usuario` de la BD SICE.
-     * Soporta bcrypt (Hash::make de Laravel) y MD5 como fallback
-     * para contraseñas insertadas manualmente en la BD.
+     * Formato de correo institucional:
+     *   nombre.iniciales@matehuala.tecnm.mx
+     *   Ej: pedro.lj@matehuala.tecnm.mx
+     *
+     * Flujo:
+     *   1. Busca el correo en persona_correo → obtiene id_persona
+     *   2. Busca el usuario por id_persona   → obtiene usuario + hash
+     *   3. Verifica contraseña (bcrypt → MD5 → texto plano como fallback)
      */
     public function login(Request $request)
     {
         try {
             $request->validate([
-                'nombre_usuario' => 'required|string',
-                'contrasena'     => 'required|string|min:1',
+                'correo'     => 'required|string|email',
+                'contrasena' => 'required|string|min:1',
             ]);
 
-            // Buscar usuario + datos de persona + rol en un solo query
+            $correoBuscado = strtolower(trim($request->correo));
+            $dominioValido = '@matehuala.tecnm.mx';
+
+            // Validar dominio institucional
+            if (!str_ends_with($correoBuscado, $dominioValido)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Debes usar tu correo institucional (@matehuala.tecnm.mx).'
+                ], 422);
+            }
+
+            // Buscar persona por correo institucional en persona_correo
+            $personaCorreo = DB::table('persona_correo')
+                ->where('correo', $correoBuscado)
+                ->first();
+
+            if (!$personaCorreo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Correo o contraseña incorrectos.'
+                ], 401);
+            }
+
+            // Buscar usuario + datos de persona + rol usando el id_persona
             $usuario = DB::table('usuario as u')
                 ->join('persona as p', 'u.id_persona', '=', 'p.id_persona')
                 ->leftJoin('usuario_rol as ur', 'u.id_usuario', '=', 'ur.id_usuario')
                 ->leftJoin('rol as r', 'ur.id_rol', '=', 'r.id_rol')
-                ->where('u.nombre_usuario', $request->nombre_usuario)
+                ->where('u.id_persona', $personaCorreo->id_persona)
                 ->select(
                     'u.id_usuario',
                     'u.nombre_usuario',
@@ -49,12 +77,12 @@ class AuthController extends Controller
                 )
                 ->first();
 
-            // Usuario no existe
+            // La persona existe en persona_correo pero no tiene usuario del sistema
             if (!$usuario) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Usuario o contraseña incorrectos.'
-                ], 401);
+                    'message' => 'Esta cuenta no tiene acceso al sistema. Contacta al administrador.'
+                ], 403);
             }
 
             // Cuenta desactivada
@@ -68,7 +96,7 @@ class AuthController extends Controller
             // Verificar contraseña:
             // 1° bcrypt via Hash::check (estándar Laravel)
             // 2° MD5 como fallback para passwords insertados manualmente en la BD
-            // Después — bcrypt con fallback seguro a MD5
+            // 3° texto plano como último recurso temporal
             try {
                 $bcryptValido = Hash::check($request->contrasena, $usuario->password_hash);
             } catch (\Exception $e) {
@@ -77,12 +105,12 @@ class AuthController extends Controller
 
             $passwordValido = $bcryptValido
                         || md5($request->contrasena) === $usuario->password_hash
-                        || $request->contrasena     === $usuario->password_hash; // texto plano temporal
+                        || $request->contrasena      === $usuario->password_hash;
 
             if (!$passwordValido) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Usuario o contraseña incorrectos.'
+                    'message' => 'Correo o contraseña incorrectos.'
                 ], 401);
             }
 
@@ -91,12 +119,11 @@ class AuthController extends Controller
                 ->where('id_usuario', $usuario->id_usuario)
                 ->update(['ultimo_acceso' => now()]);
 
-            // Token simple sin Sanctum: base64 del id + usuario + timestamp + random
-            // El frontend lo guarda en localStorage y lo manda como Bearer en cada request
+            // Token simple sin Sanctum: base64 del id + correo + timestamp + random
             $token = base64_encode(
                 $usuario->id_usuario . '|' .
-                $usuario->nombre_usuario . '|' .
-                time() . '|' .
+                $correoBuscado       . '|' .
+                time()               . '|' .
                 bin2hex(random_bytes(16))
             );
 
@@ -112,6 +139,7 @@ class AuthController extends Controller
                 'usuario' => [
                     'id_usuario'     => $usuario->id_usuario,
                     'nombre_usuario' => $usuario->nombre_usuario,
+                    'correo'         => $correoBuscado,
                     'nombre'         => $nombreCompleto,
                     'id_rol'         => $usuario->id_rol,
                     'rol'            => $usuario->nombre_rol ?? 'Sin rol',
@@ -135,7 +163,7 @@ class AuthController extends Controller
 
     /**
      * POST /api/logout
-     * El token vive en localStorage del frontend — basta con que el Vue lo elimine.
+     * El token vive en localStorage del frontend — basta con que Vue lo elimine.
      * Este endpoint solo registra el último acceso.
      */
     public function logout(Request $request)
