@@ -15,9 +15,6 @@
       <!-- Encabezado -->
       <div class="page-header">
         <div class="header-left">
-          <div class="header-icon-wrap">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
           <div>
             <h1 class="page-title">ASPIRANTES</h1>
             <p class="page-subtitle"> GESTIÓN DE ASPIRANTES DE NUEVO INGRESO</p>
@@ -615,7 +612,7 @@ const mostrarToast=(msg,tipo='ok')=>{toast.value={visible:true,msg,tipo};setTime
 .header-left { display:flex; align-items:center; gap:14px; }
 .header-icon-wrap { width:52px; height:52px; border-radius:12px; background:rgba(29,82,183,0.10); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .header-icon-wrap svg { stroke:#1D52B7; }
-.page-title { font-size:26px; font-weight:700; color:#333333; margin:0; }
+.page-title { font-size:26px; font-weight:700; color:#333333; margin:0;  font-family: 'Montserrat', sans-serif;}
 .page-subtitle { font-size:13px; color:#4F4F4F; margin:4px 0 0; font-weight:400; }
 
 /* ── Botones ── */
