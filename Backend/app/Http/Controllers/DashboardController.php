@@ -7,6 +7,179 @@ use Illuminate\Support\Facades\Schema;
 
 class DashboardController extends Controller
 {
+    public function carreras()
+    {
+        try {
+            $periodo  = DB::table('periodo')->where('estatus', 1)->orderByDesc('id_periodo')->first();
+            $carreras = $this->_carrerasKpis($periodo);
+            $maxMat   = count($carreras) > 0 ? max(array_column($carreras, 'matriculas')) : 1;
+            $maxMat   = $maxMat ?: 1;
+            $carreraData = array_map(fn($c) => [
+                'carrera'    => $c['nombre'],
+                'total'      => $c['matriculas'],
+                'porcentaje' => (int) round($c['matriculas'] / $maxMat * 100),
+            ], $carreras);
+            return response()->json([
+                'carreras'    => $carreras,
+                'carreraData' => $carreraData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function semestres()
+    {
+        try {
+            $semestres = $this->alumnosConEstatus(['Activo', '1', 'true'])
+                ->select(
+                    DB::raw('COALESCE(a.semestre_actual, 0) as semestre'),
+                    DB::raw('COUNT(*) as cantidad')
+                )
+                ->groupBy('a.semestre_actual')
+                ->orderBy('a.semestre_actual')
+                ->get()
+                ->map(fn($s) => ['semestre' => (string) $s->semestre, 'cantidad' => (int) $s->cantidad])
+                ->values()
+                ->toArray();
+            return response()->json(['semestres' => $semestres]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function kpis()
+    {
+        try {
+            $periodo      = DB::table('periodo')->where('estatus', 1)->orderByDesc('id_periodo')->first();
+            $totalAlumnos = $this->alumnosConEstatus(['Activo', '1', 'true'])->count();
+
+            $alumnosInscritos = DB::table('inscripcion')->distinct()->count('id_alumno');
+
+            $totalInscripciones = DB::table('inscripcion')->count();
+            $conCalif = DB::table('inscripcion as i')
+                ->join('calificacion as c', 'i.id_inscripcion', '=', 'c.id_inscripcion')
+                ->distinct('i.id_inscripcion')
+                ->count('i.id_inscripcion');
+            $sinCalif = max(0, $totalInscripciones - $conCalif);
+            $pct      = $totalInscripciones > 0 ? (int) round($conCalif / $totalInscripciones * 100) : 0;
+
+            $gruposActivos   = DB::table('grupo')->where('estatus', 1)->count();
+            $numCarreras     = DB::table('carrera')->where('estatus', 1)->count();
+            $materiasActivas = DB::table('materia')->where('estatus', 1)->count();
+            $adeudos         = DB::table('adeudo')->where('pagado', false)->count();
+
+            $egresados        = $this->alumnosConEstatus(['Egresado'])->count();
+            $titulados        = $this->alumnosConEstatus(['Titulado'])->count();
+            $bajasTemporales  = $this->alumnosConEstatus(['Baja Temporal'])->count();
+            $bajasDefinitivas = $this->alumnosConEstatus(['Baja Definitiva'])->count();
+
+            $hoy          = now()->toDateString();
+            $consultasHoy = DB::table('bitacora')->whereDate('fecha_hora', $hoy)->count();
+
+            $nuevosAlumnos = 0;
+
+            $carreras = $this->_carrerasKpis($periodo);
+
+            $maxMat = count($carreras) > 0
+                ? max(array_column($carreras, 'matriculas'))
+                : 1;
+            $maxMat = $maxMat ?: 1;
+
+            $carreraData = array_map(fn($c) => [
+                'carrera'    => $c['nombre'],
+                'total'      => $c['matriculas'],
+                'porcentaje' => (int) round($c['matriculas'] / $maxMat * 100),
+            ], $carreras);
+
+            $semestreData = $this->alumnosConEstatus(['Activo', '1', 'true'])
+                ->select(
+                    DB::raw('COALESCE(a.semestre_actual, 0) as semestre'),
+                    DB::raw('COUNT(*) as cantidad')
+                )
+                ->groupBy('a.semestre_actual')
+                ->orderBy('a.semestre_actual')
+                ->get()
+                ->map(fn($s) => ['semestre' => (string) $s->semestre, 'cantidad' => (int) $s->cantidad])
+                ->values()
+                ->toArray();
+
+            return response()->json([
+                'kpis' => [
+                    'totalAlumnos'            => $totalAlumnos,
+                    'alumnosInscritos'        => $alumnosInscritos,
+                    'nuevosAlumnos'           => $nuevosAlumnos,
+                    'inscripciones'           => $totalInscripciones,
+                    'inscripcionesCompletas'  => $conCalif,
+                    'inscripcionesPendientes' => $sinCalif,
+                    'pctInscripciones'        => $pct,
+                    'gruposActivos'           => $gruposActivos,
+                    'numCarreras'             => $numCarreras,
+                    'materiasActivas'         => $materiasActivas,
+                    'adeudosPendientes'       => $adeudos,
+                    'egresados'               => $egresados,
+                    'titulados'               => $titulados,
+                    'bajasTemporales'         => $bajasTemporales,
+                    'bajasDefinitivas'        => $bajasDefinitivas,
+                    'consultasHoy'            => $consultasHoy,
+                    'periodoActivo'           => $periodo->nombre_periodo ?? 'Sin periodo',
+                ],
+                'carreras'     => $carreras,
+                'carrera_data' => $carreraData,
+                'semestre_data'=> $semestreData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function _carrerasKpis(?object $periodo)
+    {
+        $carreras = DB::table('carrera')->where('estatus', 1)->get();
+        $resultado = [];
+
+        foreach ($carreras as $carrera) {
+            $matriculas = DB::table('alumno')
+                ->where('id_carrera', $carrera->id_carrera)
+                ->whereIn('estatus', ['Activo', '1'])
+                ->count();
+
+            $grupos = $periodo
+                ? DB::table('grupo as g')
+                    ->join('inscripcion as i', 'g.id_grupo', '=', 'i.id_grupo')
+                    ->join('alumno as a', 'i.id_alumno', '=', 'a.id_alumno')
+                    ->where('a.id_carrera', $carrera->id_carrera)
+                    ->where('g.id_periodo', $periodo->id_periodo)
+                    ->where('g.estatus', 1)
+                    ->distinct('g.id_grupo')
+                    ->count('g.id_grupo')
+                : 0;
+
+            $irregulares = $periodo
+                ? DB::table('alumno as a')
+                    ->join('inscripcion as i', 'a.id_alumno', '=', 'i.id_alumno')
+                    ->join('grupo as g', 'i.id_grupo', '=', 'g.id_grupo')
+                    ->join('calificacion as c', 'i.id_inscripcion', '=', 'c.id_inscripcion')
+                    ->where('a.id_carrera', $carrera->id_carrera)
+                    ->where('g.id_periodo', $periodo->id_periodo)
+                    ->where('c.calificacion', '<', 70)
+                    ->distinct('a.id_alumno')
+                    ->count('a.id_alumno')
+                : 0;
+
+            $resultado[] = [
+                'id_carrera'  => $carrera->id_carrera,
+                'nombre'      => $carrera->nombre,
+                'grupos'      => $grupos,
+                'matriculas'  => $matriculas,
+                'regulares'   => max(0, $matriculas - $irregulares),
+                'irregulares' => $irregulares,
+            ];
+        }
+
+        return $resultado;
+    }
+
     public function index()
     {
         try {

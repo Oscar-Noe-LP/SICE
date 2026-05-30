@@ -321,17 +321,23 @@ const state = reactive({
   semestreData:          [],
   bitacora:              [],
   kpis: {
-    totalAlumnos:          0,
-    nuevosAlumnos:         0,
-    inscripciones:         0,
-    inscripcionesCompletas:0,
+    totalAlumnos:           0,
+    alumnosInscritos:       0,
+    nuevosAlumnos:          0,
+    inscripciones:          0,
+    inscripcionesCompletas: 0,
     inscripcionesPendientes:0,
-    pctInscripciones:      0,
-    gruposActivos:         0,
-    numCarreras:           0,
-    adeudosPendientes:     0,
-    consultasHoy:          0,
-    periodoActivo:         'N/D',
+    pctInscripciones:       0,
+    gruposActivos:          0,
+    numCarreras:            0,
+    materiasActivas:        0,
+    adeudosPendientes:      0,
+    egresados:              0,
+    titulados:              0,
+    bajasTemporales:        0,
+    bajasDefinitivas:       0,
+    consultasHoy:           0,
+    periodoActivo:          'N/D',
   },
 })
 
@@ -360,28 +366,52 @@ watch(() => props.busquedaGlobal, (v) => {
 // ── StatsGrid config ───────────────────────────────────────────────────
 const statsConfig = computed(() => [
   {
-    key:'alumnos', featured:true, label:'TOTAL ALUMNOS',
+    key:'alumnos', featured:true, label:'ALUMNOS ACTIVOS',
     valor: state.kpis.totalAlumnos, iconoTipo:'users', icoClass:'ico-azul',
     ruta:'/alumnos', linkLabel:'VER ALUMNOS',
     cambio:{ tipo:'up', texto:`+${state.kpis.nuevosAlumnos} VS ANTERIOR`, clase:'cambio-up' },
   },
   {
-    key:'inscripciones', label:'INSCRIPCIONES',
-    valor: state.kpis.inscripciones, iconoTipo:'list', icoClass:'ico-verde',
+    key:'inscritos', label:'ALUMNOS INSCRITOS',
+    valor: state.kpis.alumnosInscritos, iconoTipo:'list', icoClass:'ico-verde',
     ruta:'/inscripciones', linkLabel:'VER INSCRIPCIONES',
-    cambio:{ tipo:'up', texto:`${state.kpis.pctInscripciones}% COMPLETADAS`, clase:'cambio-up' },
+    cambio:{ tipo:'up', texto:`${state.kpis.pctInscripciones}% CON CALIFICACION`, clase:'cambio-up' },
   },
   {
-    key:'grupos', label:'GRUPOS ACTIVOS',
+    key:'grupos', label:'GRUPOS ABIERTOS',
     valor: state.kpis.gruposActivos, iconoTipo:'grid', icoClass:'ico-naranja',
     ruta:'/gestion-grupos', linkLabel:'VER GRUPOS',
     cambio:{ tipo:'ne', texto:`${state.kpis.numCarreras} CARRERAS · 3 TURNOS`, clase:'cambio-ne' },
   },
   {
-    key:'adeudos', label:'ADEUDOS PENDIENTES',
-    valor: state.kpis.adeudosPendientes, iconoTipo:'alert', icoClass:'ico-rojo',
+    key:'materias', label:'MATERIAS ACTIVAS',
+    valor: state.kpis.materiasActivas, iconoTipo:'book', icoClass:'ico-morado',
     ruta:null, linkLabel:null,
-    cambio:{ tipo:'dn', texto:'REQUIEREN ATENCION', clase:'cambio-dn' },
+    cambio:{ tipo:'ne', texto:'EN EL PERIODO ACTUAL', clase:'cambio-ne' },
+  },
+  {
+    key:'egresados', label:'EGRESADOS',
+    valor: state.kpis.egresados, iconoTipo:'graduation', icoClass:'ico-verde',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'up', texto:'PROCESO COMPLETADO', clase:'cambio-up' },
+  },
+  {
+    key:'titulados', label:'TITULADOS',
+    valor: state.kpis.titulados, iconoTipo:'graduation', icoClass:'ico-azul',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'up', texto:'TITULO OBTENIDO', clase:'cambio-up' },
+  },
+  {
+    key:'bajas-temp', label:'BAJAS TEMPORALES',
+    valor: state.kpis.bajasTemporales, iconoTipo:'ban', icoClass:'ico-naranja',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'dn', texto:'REQUIEREN SEGUIMIENTO', clase:'cambio-dn' },
+  },
+  {
+    key:'bajas-def', label:'BAJAS DEFINITIVAS',
+    valor: state.kpis.bajasDefinitivas, iconoTipo:'ban', icoClass:'ico-rojo',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'dn', texto:'BAJA PERMANENTE', clase:'cambio-dn' },
   },
 ])
 
@@ -448,11 +478,11 @@ const cargarDashboard = async () => {
   state.error    = null
   try {
     const [resKpis, resCarreras, resSem] = await Promise.all([
-      fetch(`${API_URL}/dashboard/kpis`).then(r => r.json()),
-      fetch(`${API_URL}/dashboard/carreras`).then(r => r.json()),
-      fetch(`${API_URL}/dashboard/semestres`).then(r => r.json()),
+      fetch(`${API_URL}/api/dashboard/kpis`).then(r => r.json()),
+      fetch(`${API_URL}/api/dashboard/carreras`).then(r => r.json()),
+      fetch(`${API_URL}/api/dashboard/semestres`).then(r => r.json()),
     ])
-    Object.assign(state.kpis, resKpis)
+    Object.assign(state.kpis, resKpis.kpis ?? resKpis)
     state.carreras     = resCarreras.carreras    ?? resCarreras  ?? []
     state.carreraData  = resCarreras.carreraData ?? []
     state.semestreData = resSem.semestres        ?? resSem       ?? []
@@ -468,7 +498,7 @@ const cargarBitacora = async () => {
   state.cargandoBitacora = true
   state.errorBitacora    = false
   try {
-    const res = await fetch(`${API_URL}/bitacora?limit=8`)
+    const res = await fetch(`${API_URL}/api/bitacora?limit=8`)
     const data = await res.json()
     state.bitacora = data.registros ?? data ?? []
   } catch (e) {
