@@ -103,210 +103,259 @@
     </header>
 
     <!-- ══ BARRA DE NAVEGACIÓN HORIZONTAL (solo desktop) ══ -->
-    <nav class="barra-nav-horizontal" @click.stop aria-label="Menú principal">
+    <nav class="barra-nav-horizontal" @click.stop @mouseenter="cancelarCierreTab" @mouseleave="cerrarTabConRetardo" aria-label="Menú principal">
       <div class="nav-scroll-inner" ref="navScrollRef">
 
-        <!-- Inicio -->
-        <router-link
-          to="/inicio"
-          class="nav-item nav-item-link"
-          active-class="nav-activo"
-          :title="tooltips.inicio"
-          @click="cerrarTab"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          <span class="nav-label">Inicio</span>
-        </router-link>
+         <!-- Inicio -->
+<router-link
+  to="/inicio"
+  class="nav-item nav-item-link"
+  active-class="nav-activo"
+  :title="tooltips.inicio"
+  @click="cerrarTab"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+  </svg>
+  <span class="nav-label">INICIO</span>
+</router-link>
 
-        <!-- ── Servicios Escolares ── -->
-        <template v-if="puedeVer.serviciosEscolares">
+<!-- ── ESCOLARES ── -->
+<template v-if="puedeVer.serviciosEscolares">
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'servicios' }"
+    @mouseenter="abrirTab('servicios')"
+    @focus="abrirTab('servicios')"
+    @click.stop="abrirTab('servicios')"
+    :title="tooltips.servicios"
+    aria-haspopup="true"
+    :aria-expanded="tabActivo === 'servicios'"
+    tabindex="0"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+    <span class="nav-label">ESCOLARES</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'servicios' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+</template>
+
+<!-- ── GESTION ── -->
+<template v-if="puedeVer.gestionAcademica">
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'academica' }"
+    @mouseenter="abrirTab('academica')"
+    @focus="abrirTab('academica')"
+    @click.stop="abrirTab('academica')"
+    tabindex="0"
+    :title="tooltips.academica"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 14l9-5-9-5-9 5 9 5zM12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+    </svg>
+    <span class="nav-label">GESTION</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'academica' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+</template>
+
+        <!-- ── Carreras ── -->
+        <template v-if="puedeVer.carreras">
           <div
             class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'servicios' }"
-            @click.stop="toggleTab('servicios')"
-            :title="tooltips.servicios"
-            aria-haspopup="true"
-            :aria-expanded="tabActivo === 'servicios'"
+            :class="{ 'nav-activo': tabActivo === 'carreras' }"
+            @click.stop="toggleTab('carreras')"
+            :title="tooltips.carreras"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
             </svg>
-            <span class="nav-label">Servicios Escolares</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'servicios' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <span class="nav-label">Carreras</span>
+            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'carreras' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
         </template>
 
-        <!-- ── Gestión Académica ── -->
-        <template v-if="puedeVer.gestionAcademica">
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'academica' }"
-            @click.stop="toggleTab('academica')"
-            :title="tooltips.academica"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 14l9-5-9-5-9 5 9 5zM12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-            </svg>
-            <span class="nav-label">Gestión Académica</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'academica' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </template>
+<!-- ── EVENTOS ── -->
+<template v-if="puedeVer.eventos">
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'eventos' }"
+    @mouseenter="abrirTab('eventos')"
+    @focus="abrirTab('eventos')"
+    @click.stop="abrirTab('eventos')"
+    tabindex="0"
+    :title="tooltips.eventos"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+    <span class="nav-label">EVENTOS</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'eventos' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+</template>
 
-        <!-- ── Eventos ── -->
-        <template v-if="puedeVer.eventos">
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'eventos' }"
-            @click.stop="toggleTab('eventos')"
-            :title="tooltips.eventos"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span class="nav-label">Eventos</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'eventos' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </template>
+<!-- ── COMITE ── -->
+<template v-if="puedeVer.comite">
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'comite' }"
+    @mouseenter="abrirTab('comite')"
+    @focus="abrirTab('comite')"
+    @click.stop="abrirTab('comite')"
+    tabindex="0"
+    :title="tooltips.comite"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+    </svg>
+    <span class="nav-label">COMITE</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'comite' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+</template>
 
-        <!-- ── Comité Académico ── -->
-        <template v-if="puedeVer.comite">
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'comite' }"
-            @click.stop="toggleTab('comite')"
-            :title="tooltips.comite"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-            </svg>
-            <span class="nav-label">Comité Académico</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'comite' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </template>
+<!-- ══ ADMIN ══ -->
+<template v-if="rolActual === 'admin'">
+  <div class="nav-separador-admin">
+    <span class="nav-separador-admin-label">ADMIN</span>
+  </div>
 
-        <!-- ══ ADMINISTRACIÓN (solo admin) ══ -->
-        <template v-if="rolActual === 'admin'">
-          <div class="nav-separador-admin">
-            <span class="nav-separador-admin-label">ADMINISTRACIÓN</span>
-          </div>
+  <!-- SEGURIDAD -->
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'seguridad' }"
+    @mouseenter="abrirTab('seguridad')"
+    @focus="abrirTab('seguridad')"
+    @click.stop="abrirTab('seguridad')"
+    tabindex="0"
+    :title="tooltips.seguridad"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+    <span class="nav-label">SEGURIDAD</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'seguridad' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
 
-          <!-- Seguridad y Usuarios -->
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'seguridad' }"
-            @click.stop="toggleTab('seguridad')"
-            :title="tooltips.seguridad"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            <span class="nav-label">Seguridad y Usuarios</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'seguridad' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
+  <!-- RECURSOS -->
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'rrhh' }"
+    @mouseenter="abrirTab('rrhh')"
+    @focus="abrirTab('rrhh')"
+    @click.stop="abrirTab('rrhh')"
+    tabindex="0"
+    :title="tooltips.rrhh"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+    <span class="nav-label">RH</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'rrhh' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
 
-          <!-- Recursos Humanos -->
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'rrhh' }"
-            @click.stop="toggleTab('rrhh')"
-            :title="tooltips.rrhh"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-            <span class="nav-label">Recursos Humanos</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'rrhh' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
+  <!-- PERSONAS -->
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'personas' }"
+    @mouseenter="abrirTab('personas')"
+    @focus="abrirTab('personas')"
+    @click.stop="abrirTab('personas')"
+    tabindex="0"
+    :title="tooltips.personas"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    <span class="nav-label">PERSONAS</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'personas' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+</template>
 
-          <!-- Personas -->
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'personas' }"
-            @click.stop="toggleTab('personas')"
-            :title="tooltips.personas"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span class="nav-label">Personas</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'personas' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </template>
+<!-- ── ASIGNACION ── -->
+<template v-if="puedeVer.asignacionDocente">
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'asignacion' }"
+    @mouseenter="abrirTab('asignacion')"
+    @focus="abrirTab('asignacion')"
+    @click.stop="abrirTab('asignacion')"
+    tabindex="0"
+    :title="tooltips.asignacion"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+    <span class="nav-label">ASIGNACION</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'asignacion' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+</template>
 
-        <!-- ── Asignación Docente ── -->
-        <template v-if="puedeVer.asignacionDocente">
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'asignacion' }"
-            @click.stop="toggleTab('asignacion')"
-            :title="tooltips.asignacion"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-            <span class="nav-label">Asignación Docente</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'asignacion' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </template>
+<!-- KARDEX E HISTORIAL SOLO ADMIN -->
+<template v-if="rolActual === 'admin'">
+  <!-- KARDEX -->
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'kardex' }"
+    @mouseenter="abrirTab('kardex')"
+    @focus="abrirTab('kardex')"
+    @click.stop="abrirTab('kardex')"
+    tabindex="0"
+    :title="tooltips.kardex"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+    <span class="nav-label">KARDEX</span>
+    <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'kardex' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
 
-        <!-- Kardex e Historial solo admin -->
-        <template v-if="rolActual === 'admin'">
-          <!-- Kardex -->
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'kardex' }"
-            @click.stop="toggleTab('kardex')"
-            :title="tooltips.kardex"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <span class="nav-label">Kardex</span>
-            <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'kardex' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-
-          <!-- Historial Académico -->
-          <div
-            class="nav-item nav-item-tab"
-            :class="{ 'nav-activo': tabActivo === 'historial' }"
-            @click.stop="toggleTab('historial')"
-            :title="tooltips.historial"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <span class="nav-label">Historial Académico</span>
+  <!-- HISTORIAL -->
+  <div
+    class="nav-item nav-item-tab"
+    :class="{ 'nav-activo': tabActivo === 'historial' }"
+    @mouseenter="abrirTab('historial')"
+    @focus="abrirTab('historial')"
+    @click.stop="abrirTab('historial')"
+    tabindex="0"
+    :title="tooltips.historial"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="nav-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+    <span class="nav-label">HISTORIAL</span>
             <svg class="nav-flecha" :class="{ 'nav-flecha-activa': tabActivo === 'historial' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
             </svg>
@@ -315,64 +364,72 @@
 
       </div>
 
-      <!-- ══ RIBBON PANEL — fuera del scroll, pegado al fondo del nav ══ -->
+      <!-- ══ RIBBON PANEL ══ -->
       <Transition name="ribbon">
         <div v-if="tabActivo" class="ribbon-panel" @click.stop>
 
           <!-- ── Servicios Escolares ── -->
-          <template v-if="tabActivo === 'servicios'">
-            <router-link v-if="puedeVerItem('/servicios-escolares')" to="/servicios-escolares" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              </div>
-              <span>Principal</span>
-            </router-link>
-            <router-link v-if="puedeVerItem('/alumnos')" to="/alumnos" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-              </div>
-              <span>Alumnos</span>
-            </router-link>
-            <router-link v-if="puedeVerItem('/evaluaciones')" to="/evaluaciones" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-              </div>
-              <span>Evaluaciones</span>
-            </router-link>
-            <router-link v-if="puedeVerItem('/calificaciones')" to="/calificaciones" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-              </div>
-              <span>Calificaciones</span>
-            </router-link>
-            <router-link v-if="puedeVerItem('/inscripcion')" to="/inscripcion" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-              </div>
-              <span>Inscripción</span>
-            </router-link>
-            <router-link v-if="puedeVerItem('/gestion-grupos')" to="/gestion-grupos" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-              </div>
-              <span>Grupos y Horarios</span>
-            </router-link>
-            <template v-if="puedeVerItem('/inscripciones')">
-              <div class="ribbon-separador"></div>
-              <router-link to="/inscripciones" class="ribbon-item" @click="cerrarTab">
-                <div class="ribbon-icono-wrap">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                </div>
-                <span>Insc. Detalladas</span>
-              </router-link>
-              <router-link to="/inscripciones/historial" class="ribbon-item" @click="cerrarTab">
-                <div class="ribbon-icono-wrap">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <span>Historial Insc.</span>
-              </router-link>
-            </template>
-          </template>
+<template v-if="tabActivo === 'servicios'">
+  <router-link v-if="puedeVerItem('/servicios-escolares')" to="/servicios-escolares" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    </div>
+    <span>PRINCIPAL</span>
+  </router-link>
+
+  <router-link v-if="puedeVerItem('/alumnos')" to="/alumnos" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+    </div>
+    <span>ALUMNOS</span>
+  </router-link>
+
+  <router-link v-if="puedeVerItem('/evaluaciones')" to="/evaluaciones" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+    </div>
+    <span>EVALUACIONES</span>
+  </router-link>
+
+  <router-link v-if="puedeVerItem('/calificaciones')" to="/calificaciones" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    </div>
+    <span>CALIFICACIONES</span>
+  </router-link>
+
+  <router-link v-if="puedeVerItem('/inscripcion')" to="/inscripcion" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+    </div>
+    <span>INSCRIPCIÓN</span>
+  </router-link>
+
+  <router-link v-if="puedeVerItem('/gestion-grupos')" to="/gestion-grupos" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    </div>
+    <span>GRUPOS Y HORARIOS</span>
+  </router-link>
+
+  <template v-if="puedeVerItem('/inscripciones')">
+    <div class="ribbon-separador"></div>
+
+    <router-link to="/inscripciones" class="ribbon-item" @click="cerrarTab">
+      <div class="ribbon-icono-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+      </div>
+      <span>INSC. DETALLADAS</span>
+    </router-link>
+
+    <router-link to="/inscripciones/historial" class="ribbon-item" @click="cerrarTab">
+      <div class="ribbon-icono-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <span>HISTORIAL INSC.</span>
+    </router-link>
+  </template>
+</template>
 
           <!-- ── Gestión Académica ── -->
           <template v-if="tabActivo === 'academica'">
@@ -381,12 +438,6 @@
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
               </div>
               <span>Panel Principal</span>
-            </router-link>
-            <router-link to="/gestion-academica/carreras" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-              </div>
-              <span>Carreras</span>
             </router-link>
             <router-link to="/gestion-academica/planes" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
@@ -418,183 +469,278 @@
               </div>
               <span>Edificios y Aulas</span>
             </router-link>
-          </template>
-
-          <!-- ── Eventos ── -->
-          <template v-if="tabActivo === 'eventos'">
-            <router-link to="/eventos" class="ribbon-item" @click="cerrarTab">
+            <!-- NUEVO: Enlace a Carreras dentro de Gestión Académica -->
+            <router-link to="/gestion-academica/carreras" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
               </div>
-              <span>Lista de Eventos</span>
-            </router-link>
-            <router-link to="/eventos/nuevo" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
-              </div>
-              <span>Nuevo Evento</span>
+              <span>Carreras</span>
             </router-link>
           </template>
 
-          <!-- ── Comité Académico ── -->
-          <template v-if="tabActivo === 'comite'">
-            <router-link to="/comite" class="ribbon-item" @click="cerrarTab">
+          <!-- ── Carreras ── -->
+          <template v-if="tabActivo === 'carreras'">
+            <!-- CORREGIDO: Ahora apunta a la vista correcta de gestión de carreras -->
+            <router-link to="/gestion-academica/carreras" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
               </div>
-              <span>Panel Principal</span>
+              <span>Lista de Carreras</span>
             </router-link>
-            <router-link to="/comite/solicitudes" class="ribbon-item" @click="cerrarTab">
+            <router-link to="/analytics" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
               </div>
-              <span>Solicitudes</span>
+              <span>Analíticas</span>
             </router-link>
-            <router-link to="/comite/solicitudes/nueva" class="ribbon-item" @click="cerrarTab">
+            <div class="ribbon-separador"></div>
+            <router-link to="/carreras/1" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                </svg>
               </div>
-              <span>Nueva Solicitud</span>
+              <span>Sistemas Comp.</span>
             </router-link>
-            <router-link to="/comite/sesiones" class="ribbon-item" @click="cerrarTab">
+            <router-link to="/carreras/2" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
               </div>
-              <span>Sesiones</span>
+              <span>Ing. Industrial</span>
             </router-link>
-            <router-link to="/comite/resoluciones" class="ribbon-item" @click="cerrarTab">
+            <router-link to="/carreras/3" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
               </div>
-              <span>Resoluciones</span>
+              <span>Ing. Eléctrica</span>
             </router-link>
-          </template>
-
-          <!-- ── Seguridad y Usuarios ── -->
-          <template v-if="tabActivo === 'seguridad'">
-            <router-link to="/roles" class="ribbon-item" @click="cerrarTab">
+            <router-link to="/carreras/4" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/>
+                </svg>
               </div>
-              <span>Roles</span>
+              <span>Ing. Mecánica</span>
             </router-link>
-            <router-link to="/permisos" class="ribbon-item" @click="cerrarTab">
+            <router-link to="/carreras/5" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
               </div>
-              <span>Permisos</span>
+              <span>Gest. Empresarial</span>
             </router-link>
-            <router-link to="/usuarios" class="ribbon-item" @click="cerrarTab">
+            <router-link to="/carreras/6" class="ribbon-item" @click="cerrarTab">
               <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
               </div>
-              <span>Usuarios</span>
-            </router-link>
-            <router-link to="/bitacora" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-              </div>
-              <span>Bitácora</span>
-            </router-link>
-            <router-link to="/nuevo-usuario" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-              </div>
-              <span>Nuevo Usuario</span>
-            </router-link>
-          </template>
-
-          <!-- ── Recursos Humanos ── -->
-          <template v-if="tabActivo === 'rrhh'">
-            <router-link to="/recursos-humanos" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              </div>
-              <span>Principal</span>
-            </router-link>
-            <router-link to="/recursos-humanos/empleados" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-              </div>
-              <span>Empleados</span>
-            </router-link>
-            <router-link to="/recursos-humanos/docentes" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
-              </div>
-              <span>Docentes</span>
-            </router-link>
-            <router-link to="/recursos-humanos/adscripciones" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-              </div>
-              <span>Adscripciones</span>
-            </router-link>
-            <router-link to="/recursos-humanos/puestos" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              </div>
-              <span>Puestos</span>
-            </router-link>
-            <router-link to="/recursos-humanos/departamentos" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-              </div>
-              <span>Departamentos</span>
+              <span>Bioquímica</span>
             </router-link>
           </template>
 
-          <!-- ── Personas ── -->
-          <template v-if="tabActivo === 'personas'">
-            <router-link to="/personas" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-              </div>
-              <span>Catálogo</span>
-            </router-link>
-            <router-link to="/personas/nueva" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-              </div>
-              <span>Nueva Persona</span>
-            </router-link>
-          </template>
+<!-- ── Eventos ── -->
+<template v-if="tabActivo === 'eventos'">
+  <router-link to="/eventos" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    </div>
+    <span>LISTA DE EVENTOS</span>
+  </router-link>
 
-          <!-- ── Asignación Docente ── -->
-          <template v-if="tabActivo === 'asignacion'">
-            <router-link v-if="rolActual === 'admin'" to="/asignacion-docente" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-              </div>
-              <span>Asignación de Grupos</span>
-            </router-link>
-            <router-link to="/asignacion-docente/carga" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-              </div>
-              <span>Carga Académica</span>
-            </router-link>
-          </template>
+  <router-link to="/eventos/nuevo" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+    </div>
+    <span>NUEVO EVENTO</span>
+  </router-link>
+</template>
 
-          <!-- ── Kardex ── -->
-          <template v-if="tabActivo === 'kardex'">
-            <router-link to="/kardex" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              </div>
-              <span>Consulta de Kardex</span>
-            </router-link>
-          </template>
+<!-- ── Comité Académico ── -->
+<template v-if="tabActivo === 'comite'">
+  <router-link to="/comite" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    </div>
+    <span>PANEL PRINCIPAL</span>
+  </router-link>
 
-          <!-- ── Historial Académico ── -->
-          <template v-if="tabActivo === 'historial'">
-            <router-link to="/historial-academico" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-              </div>
-              <span>Avance Curricular</span>
-            </router-link>
-          </template>
+  <router-link to="/comite/solicitudes" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+    </div>
+    <span>SOLICITUDES</span>
+  </router-link>
+
+  <router-link to="/comite/solicitudes/nueva" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+    </div>
+    <span>NUEVA SOLICITUD</span>
+  </router-link>
+
+  <router-link to="/comite/sesiones" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    </div>
+    <span>SESIONES</span>
+  </router-link>
+
+  <router-link to="/comite/resoluciones" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    </div>
+    <span>RESOLUCIONES</span>
+  </router-link>
+</template>
+
+<!-- ── Seguridad y Usuarios ── -->
+<template v-if="tabActivo === 'seguridad'">
+  <router-link to="/roles" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+    </div>
+    <span>ROLES</span>
+  </router-link>
+
+  <router-link to="/permisos" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+    </div>
+    <span>PERMISOS</span>
+  </router-link>
+
+  <router-link to="/usuarios" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+    </div>
+    <span>USUARIOS</span>
+  </router-link>
+
+  <router-link to="/bitacora" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    </div>
+    <span>BITÁCORA</span>
+  </router-link>
+
+  <router-link to="/nuevo-usuario" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+    </div>
+    <span>NUEVO USUARIO</span>
+  </router-link>
+</template>
+
+<!-- ── Recursos Humanos ── -->
+<template v-if="tabActivo === 'rrhh'">
+  <router-link to="/recursos-humanos" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+    </div>
+    <span>PRINCIPAL</span>
+  </router-link>
+
+  <router-link to="/recursos-humanos/empleados" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+    </div>
+    <span>EMPLEADOS</span>
+  </router-link>
+
+  <router-link to="/recursos-humanos/docentes" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+    </div>
+    <span>DOCENTES</span>
+  </router-link>
+
+  <router-link to="/recursos-humanos/adscripciones" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+    </div>
+    <span>ADSCRIPCIONES</span>
+  </router-link>
+
+  <router-link to="/recursos-humanos/puestos" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+    </div>
+    <span>PUESTOS</span>
+  </router-link>
+
+  <router-link to="/recursos-humanos/departamentos" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+    </div>
+    <span>DEPARTAMENTOS</span>
+  </router-link>
+</template>
+
+<!-- ── Personas ── -->
+<template v-if="tabActivo === 'personas'">
+  <router-link to="/personas" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    </div>
+    <span>CATÁLOGO</span>
+  </router-link>
+
+  <router-link to="/personas/nueva" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+    </div>
+    <span>NUEVA PERSONA</span>
+  </router-link>
+</template>
+
+<!-- ── Asignación Docente ── -->
+<template v-if="tabActivo === 'asignacion'">
+  <router-link v-if="rolActual === 'admin'" to="/asignacion-docente" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+    </div>
+    <span>ASIGNACIÓN DE GRUPOS</span>
+  </router-link>
+
+  <router-link to="/asignacion-docente/carga" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+    </div>
+    <span>CARGA ACADÉMICA</span>
+  </router-link>
+</template>
+
+<!-- ── Kardex ── -->
+<template v-if="tabActivo === 'kardex'">
+  <router-link to="/kardex" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    </div>
+    <span>CONSULTA DE KARDEX</span>
+  </router-link>
+</template>
+
+<!-- ── Historial Académico ── -->
+<template v-if="tabActivo === 'historial'">
+  <router-link to="/historial-academico" class="ribbon-item" @click="cerrarTab">
+    <div class="ribbon-icono-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    </div>
+    <span>AVANCE CURRICULAR</span>
+  </router-link>
+</template>
 
         </div>
       </Transition>
@@ -657,12 +803,37 @@
             </div>
             <div v-if="drawerSeccionAbierta === 'academica'" class="drawer-submenu">
               <router-link to="/gestion-academica"                 class="drawer-subitem" @click="drawerAbierto = false">Panel Principal</router-link>
-              <router-link to="/gestion-academica/carreras"        class="drawer-subitem" @click="drawerAbierto = false">Carreras</router-link>
               <router-link to="/gestion-academica/planes"          class="drawer-subitem" @click="drawerAbierto = false">Planes de Estudio</router-link>
               <router-link to="/gestion-academica/materias"        class="drawer-subitem" @click="drawerAbierto = false">Materias</router-link>
               <router-link to="/gestion-academica/prerrequisitos"  class="drawer-subitem" @click="drawerAbierto = false">Prerrequisitos</router-link>
               <router-link to="/gestion-academica/periodos"        class="drawer-subitem" @click="drawerAbierto = false">Periodos Académicos</router-link>
               <router-link to="/gestion-academica/edificios-aulas" class="drawer-subitem" @click="drawerAbierto = false">Edificios y Aulas</router-link>
+              <!-- NUEVO: Enlace a Carreras dentro de Gestión Académica en drawer -->
+              <router-link to="/gestion-academica/carreras"        class="drawer-subitem" @click="drawerAbierto = false">Carreras</router-link>
+            </div>
+          </template>
+
+          <!-- Carreras -->
+          <template v-if="puedeVer.carreras">
+            <div class="drawer-grupo-titulo" @click="toggleDrawerSeccion('carreras')">
+              <svg xmlns="http://www.w3.org/2000/svg" class="drawer-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+              </svg>
+              <span>Carreras</span>
+              <svg class="drawer-flecha" :class="{ rotada: drawerSeccionAbierta === 'carreras' }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            <div v-if="drawerSeccionAbierta === 'carreras'" class="drawer-submenu">
+              <!-- CORREGIDO: Ahora apunta a la vista correcta de gestión de carreras -->
+              <router-link to="/gestion-academica/carreras"   class="drawer-subitem" @click="drawerAbierto = false">Lista de Carreras</router-link>
+              <router-link to="/analytics"  class="drawer-subitem" @click="drawerAbierto = false">Analíticas</router-link>
+              <router-link to="/carreras/1" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Sistemas Comp.</router-link>
+              <router-link to="/carreras/2" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Ing. Industrial</router-link>
+              <router-link to="/carreras/3" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Ing. Eléctrica</router-link>
+              <router-link to="/carreras/4" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Ing. Mecánica</router-link>
+              <router-link to="/carreras/5" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Gest. Empresarial</router-link>
+              <router-link to="/carreras/6" class="drawer-subitem drawer-subitem--anidado" @click="drawerAbierto = false">Bioquímica</router-link>
             </div>
           </template>
 
@@ -811,7 +982,7 @@
     <!-- ══ CONTENIDO PRINCIPAL ══ -->
     <main class="area-contenido" :class="{ 'con-ribbon': tabActivo !== null }">
       <slot :busquedaGlobal="busquedaGlobal" />
-    </main> 
+    </main>
 
     <!-- ══ BOTÓN REGRESAR FLOTANTE ══ -->
     <Transition name="fab-back">
@@ -840,8 +1011,10 @@ import { ref, computed, watch, onMounted, onUnmounted, onBeforeUnmount } from 'v
 import { useRouter, useRoute } from 'vue-router'
 
 const tooltips = {
+  inicio:     'Ir al inicio del sistema',
   servicios:  'Servicios Escolares → Alumnos, calificaciones, inscripciones y grupos',
   academica:  'Gestión Académica → Planes de estudio, materias, edificios y periodos',
+  carreras:   'Carreras → Programas educativos, matrícula y estadísticas por carrera',
   eventos:    'Eventos → Consulta y crea eventos institucionales',
   comite:     'Comité Académico → Solicitudes, sesiones y resoluciones',
   seguridad:  'Seguridad → Roles, permisos, usuarios y bitácora',
@@ -851,6 +1024,7 @@ const tooltips = {
   kardex:     'Kardex → Consulta el historial de calificaciones',
   historial:  'Historial Académico → Avance curricular del alumno',
 }
+
 const router = useRouter()
 const route  = useRoute()
 
@@ -858,8 +1032,8 @@ const route  = useRoute()
 const busquedaGlobal = ref('')
 
 // ── Control de ventana ────────────────────────────────────────────────
-const anchoVentana = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
-const esMobil      = computed(() => anchoVentana.value <= 768)
+const anchoVentana   = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
+const esMobil        = computed(() => anchoVentana.value <= 768)
 const busquedaOculta = computed(() => anchoVentana.value <= 480)
 
 let resizeTimer = null
@@ -872,21 +1046,44 @@ if (typeof window !== 'undefined') window.addEventListener('resize', onResize, {
 onUnmounted(() => {
   if (typeof window !== 'undefined') window.removeEventListener('resize', onResize)
   if (resizeTimer) clearTimeout(resizeTimer)
+  if (cerrarTabTimer) clearTimeout(cerrarTabTimer)
 })
 
-// ── Tab activo (estilo Word) ──────────────────────────────────────────
+// ── Tab activo ────────────────────────────────────────────────────────
 const tabActivo = ref(null)
+let cerrarTabTimer = null
 
-const toggleTab = (nombre) => {
-  tabActivo.value = tabActivo.value === nombre ? null : nombre
+const abrirTab = (nombre) => {
+  cancelarCierreTab()
+  tabActivo.value = nombre
 }
 
+const toggleTab = (nombre) => {
+  cancelarCierreTab()
+  tabActivo.value = tabActivo.value === nombre ? null : nombre
+}
 const cerrarTab = () => {
+  cancelarCierreTab()
   tabActivo.value = null
 }
 
+const cerrarTabConRetardo = () => {
+  cancelarCierreTab()
+
+  cerrarTabTimer = setTimeout(() => {
+    tabActivo.value = null
+  }, 180)
+}
+
+const cancelarCierreTab = () => {
+  if (cerrarTabTimer) {
+    clearTimeout(cerrarTabTimer)
+    cerrarTabTimer = null
+  }
+}
+
 // ── Drawer móvil ──────────────────────────────────────────────────────
-const drawerAbierto       = ref(false)
+const drawerAbierto        = ref(false)
 const drawerSeccionAbierta = ref(null)
 
 const toggleDrawer = () => { drawerAbierto.value = !drawerAbierto.value }
@@ -914,16 +1111,24 @@ const nombreUsuarioActual = computed(() => usuarioLogueado.value?.nombre_usuario
 // ── Permisos por módulo ───────────────────────────────────────────────
 const MODULOS_POR_ROL = {
   'docente':             ['servicios-escolares', 'eventos', 'asignacion-docente'],
-  'servicios-escolares': ['servicios-escolares', 'gestion-academica', 'eventos', 'comite'],
+  'servicios-escolares': ['servicios-escolares', 'gestion-academica', 'carreras', 'eventos', 'comite'],
 }
 
 const puedeVer = computed(() => {
   const rol = rolActual.value
-  if (rol === 'admin') return { serviciosEscolares: true, gestionAcademica: true, eventos: true, comite: true, asignacionDocente: true }
+  if (rol === 'admin') return {
+    serviciosEscolares: true,
+    gestionAcademica:   true,
+    carreras:           true,
+    eventos:            true,
+    comite:             true,
+    asignacionDocente:  true,
+  }
   const modulos = MODULOS_POR_ROL[rol] ?? []
   return {
     serviciosEscolares: modulos.includes('servicios-escolares'),
     gestionAcademica:   modulos.includes('gestion-academica'),
+    carreras:           modulos.includes('carreras'),
     eventos:            modulos.includes('eventos'),
     comite:             modulos.includes('comite'),
     asignacionDocente:  modulos.includes('asignacion-docente'),
@@ -947,7 +1152,7 @@ const puedeVerItem = computed(() => (ruta) => {
 const cerrarMenus = () => {
   mostrarMenuUsuario.value    = false
   mostrarNotificaciones.value = false
-  tabActivo.value = null        // ← Modificado
+  tabActivo.value             = null
 }
 
 const toggleMenuUsuario = () => {
@@ -991,7 +1196,6 @@ watch(esMobil, (ahoraMobil) => {
 })
 
 onMounted(() => {
-  // Scroll horizontal con rueda del ratón en el nav
   const navScroll = document.querySelector('.nav-scroll-inner')
   if (navScroll) {
     navScroll.addEventListener('wheel', (e) => {
@@ -1008,11 +1212,13 @@ onBeforeUnmount(() => {
 })
 
 const RUTAS_PRINCIPALES = new Set([
-  '/inicio', '/dashboard', '/servicios-escolares', '/alumnos', '/evaluaciones',
-  '/calificaciones', '/inscripcion', '/inscripciones', '/gestion-grupos',
-  '/gestion-academica', '/eventos', '/comite', '/kardex', '/historial-academico',
-  '/asignacion-docente', '/roles', '/permisos', '/usuarios', '/bitacora',
-  '/nuevo-usuario', '/recursos-humanos', '/personas',
+  '/inicio', '/dashboard', '/servicios-escolares', '/alumnos',
+  '/evaluaciones', '/calificaciones', '/inscripcion', '/inscripciones',
+  '/gestion-grupos', '/gestion-academica', '/eventos', '/comite',
+  '/kardex', '/historial-academico', '/asignacion-docente',
+  '/roles', '/permisos', '/usuarios', '/bitacora', '/nuevo-usuario',
+  '/recursos-humanos', '/personas',
+  '/gestion-academica/carreras',  // CORREGIDO: Ahora incluye la ruta correcta
 ])
 
 const mostrarBotonRegresar = computed(() => {
@@ -1022,6 +1228,7 @@ const mostrarBotonRegresar = computed(() => {
 
 const regresarPagina = () => router.back()
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
@@ -1041,7 +1248,7 @@ const regresarPagina = () => router.back()
   --gris:           #6B7280;
   --header-h:       62px;
   --nav-h:          74px;
-  --ribbon-h:       42px;           /* Se ajusta dinámicamente */
+  --ribbon-h:       42px;
   --total-h:        calc(var(--header-h) + var(--nav-h));
 
   font-family: 'Montserrat', sans-serif;
@@ -1070,7 +1277,6 @@ const regresarPagina = () => router.back()
 .logo-encabezado { height: 44px; filter: drop-shadow(0 0 6px rgba(255,255,255,0.8)); }
 .titulo-sistema  { font-size: 0.98rem; font-weight: 700; color: #fff; letter-spacing: 0.01em; white-space: nowrap; }
 
-/* Hamburguesa: solo visible en móvil */
 .btn-hamburguesa {
   display: none;
   background: none; border: none; color: white;
@@ -1181,17 +1387,15 @@ const regresarPagina = () => router.back()
 
 /* ══════════════════════════════════════
    BARRA DE NAVEGACIÓN PRINCIPAL
-   Módulos grandes
 ══════════════════════════════════════ */
 .barra-nav-horizontal {
   position: fixed;
   top: var(--header-h);
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   height: var(--nav-h);
   background: var(--blanco);
   border-bottom: 1px solid var(--borde);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   z-index: 995;
   overflow: visible;
 }
@@ -1206,10 +1410,7 @@ const regresarPagina = () => router.back()
   padding: 0 1.4rem;
   scrollbar-width: none;
 }
-
-.nav-scroll-inner::-webkit-scrollbar {
-  display: none;
-}
+.nav-scroll-inner::-webkit-scrollbar { display: none; }
 
 .nav-item {
   position: relative;
@@ -1225,93 +1426,43 @@ const regresarPagina = () => router.back()
   text-decoration: none;
   cursor: pointer;
   border-bottom: 3px solid transparent;
-  transition:
-    color 0.16s ease,
-    background 0.16s ease,
-    border-color 0.16s ease;
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
   flex-shrink: 0;
   user-select: none;
 }
-
-.nav-item:hover {
-  color: var(--azul);
-  background: #F0F4FF;
-}
-
+.nav-item:hover { color: var(--azul); background: #F0F4FF; }
 .nav-item.nav-activo,
-.nav-item.router-link-active {
-  color: var(--azul);
-  font-weight: 700;
-  border-bottom-color: var(--azul);
-  background: #EFF6FF;
-}
+.nav-item.router-link-active { color: var(--azul); font-weight: 700; border-bottom-color: var(--azul); background: #EFF6FF; }
+.nav-item-tab.nav-activo     { color: var(--azul); font-weight: 700; border-bottom-color: var(--azul); background: #EFF6FF; }
 
-.nav-item-tab.nav-activo {
-  color: var(--azul);
-  font-weight: 700;
-  border-bottom-color: var(--azul);
-  background: #EFF6FF;
-}
+.nav-icono  { width: 23px; height: 23px; stroke: currentColor; flex-shrink: 0; }
+.nav-label  { font-size: 0.76rem; font-weight: 600; line-height: 1.1; text-align: center; white-space: nowrap; }
+.nav-flecha { display: none; }
 
-.nav-icono {
-  width: 23px;
-  height: 23px;
-  stroke: currentColor;
-  flex-shrink: 0;
-}
-
-.nav-label {
-  font-size: 0.76rem;
-  font-weight: 600;
-  line-height: 1.1;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.nav-flecha {
-  display: none;
-}
-
-/* Separador admin en la barra */
 .nav-separador-admin {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 10px;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 10px; flex-shrink: 0;
 }
-
 .nav-separador-admin-label {
-  font-size: 0.62rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #9CA3AF;
-  white-space: nowrap;
-  padding: 3px 9px;
-  background: #F3F4F6;
-  border-radius: 999px;
+  font-size: 0.62rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF;
+  white-space: nowrap; padding: 3px 9px;
+  background: #F3F4F6; border-radius: 999px;
 }
 
 /* ══════════════════════════════════════
-   RIBBON PANEL (Nuevo)
-══════════════════════════════════════ */
-/* ══════════════════════════════════════
-   SUBMENÚ CONTEXTUAL
-   Recuadros compactos
+   RIBBON PANEL
 ══════════════════════════════════════ */
 .ribbon-panel {
   position: fixed;
   top: var(--total-h);
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   min-height: var(--ribbon-h);
   background: #F8FAFC;
   border-top: 1px solid #E5E7EB;
   border-bottom: 1px solid var(--borde);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
   z-index: 990;
-
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1320,19 +1471,9 @@ const regresarPagina = () => router.back()
   overflow-y: hidden;
   white-space: nowrap;
 }
-
-.ribbon-panel::-webkit-scrollbar {
-  height: 4px;
-}
-
-.ribbon-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.ribbon-panel::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 999px;
-}
+.ribbon-panel::-webkit-scrollbar        { height: 4px; }
+.ribbon-panel::-webkit-scrollbar-track  { background: transparent; }
+.ribbon-panel::-webkit-scrollbar-thumb  { background: #CBD5E1; border-radius: 999px; }
 
 .ribbon-item {
   height: 30px;
@@ -1341,73 +1482,33 @@ const regresarPagina = () => router.back()
   border-radius: 7px;
   border: 1px solid transparent;
   background: transparent;
-
   display: inline-flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
   gap: 7px;
-
   text-decoration: none;
   color: #374151;
   font-size: 0.78rem;
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   flex-shrink: 0;
 }
-
-.ribbon-item:hover {
-  background: #DBEAFE;
-  color: var(--azul);
-  border-color: #BFDBFE;
-}
-
-.ribbon-item.router-link-active {
-  background: #EFF6FF;
-  color: var(--azul);
-  border-color: #BFDBFE;
-  font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(27, 57, 106, 0.08);
-}
+.ribbon-item:hover               { background: #DBEAFE; color: var(--azul); border-color: #BFDBFE; }
+.ribbon-item.router-link-active  { background: #EFF6FF; color: var(--azul); border-color: #BFDBFE; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(27,57,106,0.08); }
 
 .ribbon-icono-wrap {
-  width: 18px;
-  height: 18px;
-  background: transparent;
-  border-radius: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
+.ribbon-icono-wrap svg { width: 15px; height: 15px; stroke: currentColor; }
 
-.ribbon-icono-wrap svg {
-  width: 15px;
-  height: 15px;
-  stroke: currentColor;
-}
-
-.ribbon-item:hover .ribbon-icono-wrap {
-  background: transparent;
-}
-
-.ribbon-separador {
-  width: 1px;
-  height: 24px;
-  background: #D1D5DB;
-  margin: 0 5px;
-  flex-shrink: 0;
-}
+.ribbon-separador { width: 1px; height: 24px; background: #D1D5DB; margin: 0 5px; flex-shrink: 0; }
 
 /* ══════════════════════════════════════
-   ÁREA DE CONTENIDO (con ribbon)
+   ÁREA DE CONTENIDO
 ══════════════════════════════════════ */
 .area-contenido {
   margin-top: var(--total-h);
@@ -1437,17 +1538,14 @@ const regresarPagina = () => router.back()
 }
 .drawer-encabezado {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 16px;
-  height: 60px;
-  background: var(--azul);
-  flex-shrink: 0;
+  padding: 0 16px; height: 60px;
+  background: var(--azul); flex-shrink: 0;
 }
 .drawer-titulo { font-size: 1rem; font-weight: 700; color: white; }
 .drawer-cerrar {
   background: none; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 6px;
-  transition: background 0.2s;
+  width: 32px; height: 32px; border-radius: 6px; transition: background 0.2s;
 }
 .drawer-cerrar svg { width: 20px; height: 20px; stroke: white; }
 .drawer-cerrar:hover { background: rgba(255,255,255,0.15); }
@@ -1471,7 +1569,7 @@ const regresarPagina = () => router.back()
   transition: background 0.15s; user-select: none;
 }
 .drawer-grupo-titulo:hover { background: #F3F4F6; }
-.drawer-icono { width: 18px; height: 18px; stroke: var(--gris); flex-shrink: 0; }
+.drawer-icono  { width: 18px; height: 18px; stroke: var(--gris); flex-shrink: 0; }
 .drawer-grupo-titulo span { flex: 1; }
 .drawer-flecha { width: 14px; height: 14px; stroke: var(--gris); transition: transform 0.22s; }
 .drawer-flecha.rotada { transform: rotate(180deg); }
@@ -1488,33 +1586,28 @@ const regresarPagina = () => router.back()
 .drawer-subitem.router-link-active { color: var(--azul); font-weight: 600; }
 .drawer-subitem--anidado { padding-left: 60px; font-size: 0.81rem; color: var(--gris); }
 
-.drawer-separador {
-  padding: 10px 18px 4px; margin-top: 4px;
-  border-top: 1px solid var(--borde);
-}
-.drawer-separador span {
-  font-size: 0.68rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 0.08em; color: var(--gris);
-}
+.drawer-separador { padding: 10px 18px 4px; margin-top: 4px; border-top: 1px solid var(--borde); }
+.drawer-separador span { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gris); }
 
 /* Overlay */
-.drawer-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 1100;
-}
+.drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1100; }
 
 /* Transiciones drawer */
-.drawer-enter-active { transition: transform 0.28s ease; }
-.drawer-leave-active { transition: transform 0.22s ease; }
+.drawer-enter-active  { transition: transform 0.28s ease; }
+.drawer-leave-active  { transition: transform 0.22s ease; }
 .drawer-enter-from, .drawer-leave-to { transform: translateX(-100%); }
 
 .overlay-enter-active { transition: opacity 0.25s ease; }
 .overlay-leave-active { transition: opacity 0.2s ease; }
 .overlay-enter-from, .overlay-leave-to { opacity: 0; }
 
+/* Ribbon transition */
+.ribbon-enter-active { transition: opacity 0.18s ease, transform 0.18s ease; }
+.ribbon-leave-active { transition: opacity 0.14s ease, transform 0.14s ease; }
+.ribbon-enter-from, .ribbon-leave-to { opacity: 0; transform: translateY(-6px); }
+
 /* ══════════════════════════════════════
-   BOTÓN REGRESAR FLOTANTE (FAB)
+   BOTÓN REGRESAR FLOTANTE
 ══════════════════════════════════════ */
 .fab-regresar {
   position: fixed; bottom: 1.5rem; left: 1.5rem; z-index: 1200;
@@ -1535,10 +1628,7 @@ const regresarPagina = () => router.back()
 /* ══════════════════════════════════════
    BARRA DE SCROLL GLOBAL
 ══════════════════════════════════════ */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #1a3a5f #f1f5f9;
-}
+* { scrollbar-width: thin; scrollbar-color: #1a3a5f #f1f5f9; }
 *::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
 *::-webkit-scrollbar-thumb { background: #1a3a5f; border-radius: 4px; }
@@ -1547,40 +1637,15 @@ const regresarPagina = () => router.back()
 /* ══════════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════════ */
-
-/* ── Tablet (≤1200px) ── */
 @media (max-width: 1200px) {
-  .sistema-layout {
-    --nav-h: 68px;
-    --ribbon-h: 40px;
-  }
-
-  .nav-item {
-    min-width: 74px;
-    padding: 7px 10px 6px;
-  }
-
-  .nav-icono {
-    width: 21px;
-    height: 21px;
-  }
-
-  .nav-label {
-    font-size: 0.7rem;
-  }
-
-  .ribbon-item {
-    height: 29px;
-    padding: 0 9px;
-    font-size: 0.74rem;
-  }
-
-  .grupo-busqueda {
-    width: 200px;
-  }
+  .sistema-layout { --nav-h: 68px; --ribbon-h: 40px; }
+  .nav-item { min-width: 74px; padding: 7px 10px 6px; }
+  .nav-icono { width: 21px; height: 21px; }
+  .nav-label { font-size: 0.7rem; }
+  .ribbon-item { height: 29px; padding: 0 9px; font-size: 0.74rem; }
+  .grupo-busqueda { width: 200px; }
 }
 
-/* ── Tablet pequeña (≤1024px) ── */
 @media (max-width: 1024px) {
   .titulo-sistema { font-size: 0.86rem; }
   .grupo-busqueda { width: 180px; }
@@ -1589,51 +1654,29 @@ const regresarPagina = () => router.back()
   .area-contenido { padding: 1.2rem 1.4rem; }
 }
 
-/* ── Móvil (≤768px) ── */
 @media (max-width: 768px) {
   .sistema-layout { --header-h: 56px; --nav-h: 0px; }
-
   .btn-hamburguesa { display: flex; }
   .barra-nav-horizontal { display: none; }
-
   .titulo-sistema { font-size: 0; }
-  .titulo-sistema::after {
-    content: 'SICE';
-    font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; color: white;
-  }
-
+  .titulo-sistema::after { content: 'SICE'; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.12em; color: white; }
   .grupo-busqueda { width: 150px; }
   .grupo-busqueda input { font-size: 0.82rem; padding: 7px 10px 7px 32px; }
   .logo-encabezado { height: 38px; }
-
-  .area-contenido {
-    margin-top: var(--header-h);
-    padding: 1rem;
-    min-height: calc(100vh - var(--header-h));
-  }
-
+  .area-contenido { margin-top: var(--header-h); padding: 1rem; min-height: calc(100vh - var(--header-h)); }
   .panel-notificaciones { width: 300px; right: -50px; }
   .nombre-usuario { display: none; }
   .flecha-desplegable { display: none; }
   .encabezado-derecha { gap: 0.6rem; }
-
   .fab-regresar { width: 46px; height: 46px; bottom: 1.2rem; left: 1rem; opacity: 1; }
   .fab-icono { width: 21px; height: 21px; }
 }
 
-/* ── Móvil pequeño (≤480px) ── */
 @media (max-width: 480px) {
   .grupo-busqueda { width: 34px; overflow: hidden; }
   .grupo-busqueda input { opacity: 0; width: 0; padding: 0; pointer-events: none; position: absolute; }
-  .grupo-busqueda:focus-within {
-    width: 170px; position: fixed;
-    top: 9px; left: 56px; right: 8px; z-index: 1100;
-  }
-  .grupo-busqueda:focus-within input {
-    opacity: 1; width: 100%;
-    padding: 7px 10px 7px 32px;
-    pointer-events: auto; position: relative;
-  }
+  .grupo-busqueda:focus-within { width: 170px; position: fixed; top: 9px; left: 56px; right: 8px; z-index: 1100; }
+  .grupo-busqueda:focus-within input { opacity: 1; width: 100%; padding: 7px 10px 7px 32px; pointer-events: auto; position: relative; }
   .encabezado-superior { padding: 0 0.7rem; }
   .panel-notificaciones { width: 270px; right: -70px; }
   .desplegable-usuario { right: -8px; min-width: 175px; }
@@ -1641,14 +1684,9 @@ const regresarPagina = () => router.back()
 }
 
 /* ══════════════════════════════════════
-   ANTI-ZOOM & TIPOGRAFÍA RESPONSIVE
+   ANTI-ZOOM & TIPOGRAFÍA
 ══════════════════════════════════════ */
-html {
-  font-size: 16px;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  overflow-x: hidden;
-}
+html { font-size: 16px; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; overflow-x: hidden; }
 button, input, select, textarea, a { min-height: 36px; font-size: 0.875rem; }
 @media (max-width: 768px) { input, select, textarea { font-size: 16px !important; } }
 

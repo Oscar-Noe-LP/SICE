@@ -2,12 +2,10 @@
   <MainLayout v-slot="{ busquedaGlobal }">
     <div class="dashboard-page">
 
-      <!-- Barra de carga top -->
       <div class="barra-carga" :class="{ activa: state.cargando }" aria-hidden="true">
         <div class="barra-progreso"></div>
       </div>
 
-      <!-- BREADCRUMB -->
       <div class="bc">
         <span>SICE</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" class="bc-sep" aria-hidden="true">
@@ -16,7 +14,6 @@
         <b>INICIO</b>
       </div>
 
-      <!-- GREETING -->
       <div class="greeting">
         <div class="gr-left">
           <h2>{{ saludo }}, {{ nombreUsuario }}</h2>
@@ -30,16 +27,12 @@
         </div>
       </div>
 
-      <!-- KPI STATS GRID -->
       <StatsGrid
         :stats="statsConfig"
         :cargando="state.cargando"
         @navegar="router.push($event)"
       />
 
-      <!-- ═══════════════════════════════════
-           SECCION CARRERAS
-      ═══════════════════════════════════ -->
       <div class="carreras-seccion">
 
         <div class="sec-header">
@@ -55,7 +48,6 @@
           </router-link>
         </div>
 
-        <!-- FILTROS CON ICONOS -->
         <CareerFilters
           :carreras="state.carreras"
           :carrera-activa="state.carreraActiva"
@@ -63,10 +55,8 @@
           @filtrar="setCarreraActiva"
         />
 
-        <!-- CARDS GRANDES POR CARRERA -->
         <div class="carreras-wrap">
 
-          <!-- Skeletons carga -->
           <template v-if="state.cargando">
             <div v-for="i in 6" :key="'sk-'+i" class="cc-sk" aria-hidden="true">
               <div class="sk-barra"></div>
@@ -77,7 +67,6 @@
             </div>
           </template>
 
-          <!-- Cards -->
           <template v-else>
             <CareerCard
               v-for="(carrera, i) in carrerasMostradas"
@@ -90,7 +79,6 @@
             />
           </template>
 
-          <!-- Vacío -->
           <div v-if="!state.cargando && state.carreras.length === 0" class="carreras-vacio">
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#BDBDBD" stroke-width="1.5" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
@@ -102,10 +90,8 @@
         </div>
       </div>
 
-      <!-- FILA GRAFICAS + BITACORA -->
       <div class="row-graficas">
 
-        <!-- Alumnos por carrera -->
         <div class="card">
           <div class="ch">
             <span class="ct">ALUMNOS POR CARRERA</span>
@@ -126,7 +112,6 @@
           <div v-else class="ev">SIN DATOS DISPONIBLES</div>
         </div>
 
-        <!-- Por semestre -->
         <div class="card">
           <div class="ch">
             <span class="ct">DISTRIBUCION POR SEMESTRE</span>
@@ -142,7 +127,6 @@
           <div v-else class="ev">SIN DATOS DISPONIBLES</div>
         </div>
 
-        <!-- Bitácora -->
         <div class="card card-bit">
           <div class="ch">
             <span class="ct">ACTIVIDAD RECIENTE</span>
@@ -190,10 +174,8 @@
 
       </div>
 
-      <!-- FILA BUSQUEDA + ACCIONES + INSCRIPCIONES -->
       <div class="row-bottom">
 
-        <!-- Hero búsqueda -->
         <div class="hero">
           <div class="hero-top">
             <div class="hero-ico" aria-hidden="true">
@@ -202,23 +184,21 @@
               </svg>
             </div>
             <div>
-              <div class="hero-title">CONSULTA RAPIDA DE ALUMNO</div>
-              <div class="hero-sub">NUMERO DE CONTROL → KARDEX COMPLETO AL INSTANTE</div>
+              <div class="hero-title">CONSULTA RAPIDA DE ALUMNOS</div>
+              <div class="hero-sub">NÚMERO DE CONTROL, NOMBRE O APELLIDO</div>
             </div>
           </div>
           <div class="hero-form">
             <input
               class="hero-input"
               v-model.trim="busquedaControl"
-              placeholder="EJ. 25000001"
-              maxlength="8"
-              inputmode="numeric"
+              placeholder="NÚMERO DE CONTROL, NOMBRE O APELLIDO"
+              maxlength="100"
               type="text"
-              aria-label="NUMERO DE CONTROL DEL ALUMNO"
+              aria-label="NUMERO DE CONTROL O NOMBRE DEL ALUMNO"
               @keydown.enter="irAKardex"
-              @input="busquedaControl = busquedaControl.replace(/\D/g,'')"
             />
-            <button class="hero-btn" @click="irAKardex" :disabled="busquedaControl.length < 8" type="button">
+            <button class="hero-btn" @click="irAKardex" :disabled="!esValidaBusqueda" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
               </svg>
@@ -231,7 +211,6 @@
           </div>
         </div>
 
-        <!-- Acciones rápidas -->
         <div class="card">
           <div class="ch"><span class="ct">ACCIONES RAPIDAS</span></div>
           <div class="acc-grid">
@@ -240,18 +219,17 @@
               :key="acc.label"
               class="acc"
               :class="{ 'acc--prim': acc.primario }"
-              @click="router.push(acc.ruta)"
+              @click="router.push(acc.ruta || '')"
               type="button"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path :d="acc.d" stroke-linecap="round" stroke-linejoin="round"/>
+                <path :d="acc.iconPath" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-              <span class="acc-lbl">{{ acc.label }}</span>
+              <span class="acc-lbl">{{ acc.label?.toUpperCase() }}</span>
             </button>
           </div>
         </div>
 
-        <!-- Estado inscripciones -->
         <div class="card">
           <div class="ch">
             <span class="ct">ESTADO DE INSCRIPCIONES</span>
@@ -273,7 +251,6 @@
 
       </div>
 
-      <!-- ALERTA ERROR -->
       <Transition name="fade">
         <div v-if="state.error" class="alerta-error" role="alert">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -283,7 +260,6 @@
         </div>
       </Transition>
 
-      <!-- MODAL BITACORA -->
       <Teleport to="body">
         <Transition name="fade">
           <div v-if="modalItem" class="modal-overlay" @click.self="modalItem = null">
@@ -316,72 +292,139 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import MainLayout    from '@/layouts/MainLayout.vue'
+import MainLayout from '@/layouts/MainLayout.vue'
+
+// ── Importa tus componentes hijos ──────────────────────────────────────
 import StatsGrid     from '@/components/dashboard/StatsGrid.vue'
-import CareerCard    from '@/components/dashboard/CareerCard.vue'
 import CareerFilters from '@/components/dashboard/CareerFilters.vue'
-import {
-  dashboardState as state,
-  cargarDashboard,
-  cargarBitacora,
-  setCarreraActiva,
-  COLORES_CARRERA,
-  formatNum,
-  tiempoRelativo,
-  claseBadge,
-} from '@/store/dashboardStore.js'
+import CareerCard    from '@/components/dashboard/CareerCard.vue'
 
-const router = useRouter()
+const router  = useRouter()
+const API_URL = import.meta.env.VITE_API_URL
 
-// ── Saludo ────────────────────────────────────────────────────────────
+// ── Props ──────────────────────────────────────────────────────────────
+const props = defineProps({
+  busquedaGlobal: { type: String, default: '' }
+})
+
+// ── Estado UNIFICADO (el template usa state.xxx) ───────────────────────
+const state = reactive({
+  cargando:              true,
+  cargandoBitacora:      false,
+  error:                 null,
+  errorBitacora:         false,
+  carreras:              [],
+  carreraActiva:         null,
+  carreraData:           [],
+  semestreData:          [],
+  bitacora:              [],
+  kpis: {
+    totalAlumnos:           0,
+    alumnosInscritos:       0,
+    nuevosAlumnos:          0,
+    inscripciones:          0,
+    inscripcionesCompletas: 0,
+    inscripcionesPendientes:0,
+    pctInscripciones:       0,
+    gruposActivos:          0,
+    numCarreras:            0,
+    materiasActivas:        0,
+    adeudosPendientes:      0,
+    egresados:              0,
+    titulados:              0,
+    bajasTemporales:        0,
+    bajasDefinitivas:       0,
+    consultasHoy:           0,
+    periodoActivo:          'N/D',
+  },
+})
+
+// ── Colores por carrera ────────────────────────────────────────────────
+const COLORES_CARRERA = [
+  '#1D52B7','#27AE60','#F2994A','#EB5757','#9B51E0','#2F80ED',
+]
+
+// ── Info usuario / fecha ───────────────────────────────────────────────
+const nombreUsuario = ref('USUARIO')
+const horaAcceso    = ref('')
+const fechaCorta    = computed(() =>
+  new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' }).toUpperCase()
+)
 const saludo = computed(() => {
   const h = new Date().getHours()
-  if (h < 12) return 'BUENOS DIAS'
+  if (h < 12) return 'BUENOS DÍAS'
   if (h < 19) return 'BUENAS TARDES'
   return 'BUENAS NOCHES'
 })
-const nombreUsuario = ref('USUARIO')
-const horaAcceso    = ref('—')
-const fechaCorta    = computed(() =>
-  new Date().toLocaleDateString('es-MX', { weekday:'short', day:'numeric', month:'short' }).toUpperCase()
-)
 
-// ── StatsGrid config ──────────────────────────────────────────────────
+watch(() => props.busquedaGlobal, (v) => {
+  console.log('[Dashboard] Búsqueda global:', v)
+})
+
+// ── StatsGrid config ───────────────────────────────────────────────────
 const statsConfig = computed(() => [
   {
-    key:'alumnos', featured:true, label:'TOTAL ALUMNOS',
+    key:'alumnos', featured:true, label:'ALUMNOS ACTIVOS',
     valor: state.kpis.totalAlumnos, iconoTipo:'users', icoClass:'ico-azul',
     ruta:'/alumnos', linkLabel:'VER ALUMNOS',
     cambio:{ tipo:'up', texto:`+${state.kpis.nuevosAlumnos} VS ANTERIOR`, clase:'cambio-up' },
   },
   {
-    key:'inscripciones', label:'INSCRIPCIONES',
-    valor: state.kpis.inscripciones, iconoTipo:'list', icoClass:'ico-verde',
+    key:'inscritos', label:'ALUMNOS INSCRITOS',
+    valor: state.kpis.alumnosInscritos, iconoTipo:'list', icoClass:'ico-verde',
     ruta:'/inscripciones', linkLabel:'VER INSCRIPCIONES',
-    cambio:{ tipo:'up', texto:`${state.kpis.pctInscripciones}% COMPLETADAS`, clase:'cambio-up' },
+    cambio:{ tipo:'up', texto:`${state.kpis.pctInscripciones}% CON CALIFICACION`, clase:'cambio-up' },
   },
   {
-    key:'grupos', label:'GRUPOS ACTIVOS',
+    key:'grupos', label:'GRUPOS ABIERTOS',
     valor: state.kpis.gruposActivos, iconoTipo:'grid', icoClass:'ico-naranja',
     ruta:'/gestion-grupos', linkLabel:'VER GRUPOS',
     cambio:{ tipo:'ne', texto:`${state.kpis.numCarreras} CARRERAS · 3 TURNOS`, clase:'cambio-ne' },
   },
   {
-    key:'adeudos', label:'ADEUDOS PENDIENTES',
-    valor: state.kpis.adeudosPendientes, iconoTipo:'alert', icoClass:'ico-rojo',
+    key:'materias', label:'MATERIAS ACTIVAS',
+    valor: state.kpis.materiasActivas, iconoTipo:'book', icoClass:'ico-morado',
     ruta:null, linkLabel:null,
-    cambio:{ tipo:'dn', texto:'REQUIEREN ATENCION', clase:'cambio-dn' },
+    cambio:{ tipo:'ne', texto:'EN EL PERIODO ACTUAL', clase:'cambio-ne' },
+  },
+  {
+    key:'egresados', label:'EGRESADOS',
+    valor: state.kpis.egresados, iconoTipo:'graduation', icoClass:'ico-verde',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'up', texto:'PROCESO COMPLETADO', clase:'cambio-up' },
+  },
+  {
+    key:'titulados', label:'TITULADOS',
+    valor: state.kpis.titulados, iconoTipo:'graduation', icoClass:'ico-azul',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'up', texto:'TITULO OBTENIDO', clase:'cambio-up' },
+  },
+  {
+    key:'bajas-temp', label:'BAJAS TEMPORALES',
+    valor: state.kpis.bajasTemporales, iconoTipo:'ban', icoClass:'ico-naranja',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'dn', texto:'REQUIEREN SEGUIMIENTO', clase:'cambio-dn' },
+  },
+  {
+    key:'bajas-def', label:'BAJAS DEFINITIVAS',
+    valor: state.kpis.bajasDefinitivas, iconoTipo:'ban', icoClass:'ico-rojo',
+    ruta:null, linkLabel:null,
+    cambio:{ tipo:'dn', texto:'BAJA PERMANENTE', clase:'cambio-dn' },
   },
 ])
 
-// ── Cards filtradas ───────────────────────────────────────────────────
+// ── Carreras filtradas ─────────────────────────────────────────────────
 const carrerasMostradas = computed(() =>
   state.carreraActiva === null
     ? state.carreras
     : state.carreras.filter(c => c.id_carrera === state.carreraActiva)
 )
+
+const setCarreraActiva = (id) => {
+  state.carreraActiva = state.carreraActiva === id ? null : id
+}
 
 const getIcono = (nombre = '') => {
   const n = nombre.toLowerCase()
@@ -393,39 +436,134 @@ const getIcono = (nombre = '') => {
   return 'flask'
 }
 
-// ── Gráficas ──────────────────────────────────────────────────────────
+// ── Gráfica semestres ──────────────────────────────────────────────────
 const calcPctSem = (cant) => {
   const max = Math.max(...state.semestreData.map(s => s.cantidad), 1)
   return Math.round((cant / max) * 100)
 }
 
-// ── Búsqueda ──────────────────────────────────────────────────────────
-const busquedaControl = ref('')
-const irAKardex = () => {
-  if (busquedaControl.value.length < 8) return
-  router.push(`/kardex/${busquedaControl.value.trim()}`)
+// ── Helpers formato ────────────────────────────────────────────────────
+const formatNum = (n) => Number(n || 0).toLocaleString('es-MX')
+
+const claseBadge = (accion = '') => {
+  const a = accion.toLowerCase()
+  if (a.includes('insert') || a.includes('crear') || a.includes('nuevo')) return 'bdg bg-g'
+  if (a.includes('update') || a.includes('edit')  || a.includes('modif')) return 'bdg bg-b'
+  if (a.includes('delet')  || a.includes('elim'))                          return 'bdg bg-r'
+  return 'bdg bg-a'
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────
-const modalItem = ref(null)
+const tiempoRelativo = (fecha) => {
+  if (!fecha) return '—'
+  const diff = Date.now() - new Date(fecha).getTime()
+  const min  = Math.floor(diff / 60000)
+  if (min < 1)  return 'HACE UN MOMENTO'
+  if (min < 60) return `HACE ${min} MIN`
+  const h = Math.floor(min / 60)
+  if (h  < 24)  return `HACE ${h} H`
+  return `HACE ${Math.floor(h / 24)} DÍAS`
+}
+
 const formatFecha = (f) => {
   if (!f) return '—'
   return new Date(f).toLocaleString('es-MX', {
-    year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit',
+    year:'numeric', month:'long', day:'numeric',
+    hour:'2-digit', minute:'2-digit',
   }).toUpperCase()
 }
 
-// ── Acciones rápidas ──────────────────────────────────────────────────
+// ── Carga de datos ─────────────────────────────────────────────────────
+const cargarDashboard = async () => {
+  state.cargando = true
+  state.error    = null
+  try {
+    const [resKpis, resCarreras, resSem] = await Promise.all([
+      fetch(`${API_URL}/api/dashboard/kpis`).then(r => r.json()),
+      fetch(`${API_URL}/api/dashboard/carreras`).then(r => r.json()),
+      fetch(`${API_URL}/api/dashboard/semestres`).then(r => r.json()),
+    ])
+    Object.assign(state.kpis, resKpis.kpis ?? resKpis)
+    state.carreras     = resCarreras.carreras    ?? resCarreras  ?? []
+    state.carreraData  = resCarreras.carreraData ?? []
+    state.semestreData = resSem.semestres        ?? resSem       ?? []
+  } catch (e) {
+    state.error = 'Error al cargar datos del dashboard'
+    console.error(e)
+  } finally {
+    state.cargando = false
+  }
+}
+
+const cargarBitacora = async () => {
+  state.cargandoBitacora = true
+  state.errorBitacora    = false
+  try {
+    const res = await fetch(`${API_URL}/api/bitacora?limit=8`)
+    const data = await res.json()
+    state.bitacora = data.registros ?? data ?? []
+  } catch (e) {
+    state.errorBitacora = true
+    console.error(e)
+  } finally {
+    state.cargandoBitacora = false
+  }
+}
+
+// ── Búsqueda ───────────────────────────────────────────────────────────
+const busquedaControl = ref('')
+const buscando        = ref(false)
+
+const esValidaBusqueda = computed(() => {
+  const t = busquedaControl.value.trim()
+  if (!t) return false
+  return /^\d+$/.test(t) ? t.length === 8 : t.length >= 3
+})
+
+const irAKardex = async () => {
+  if (!esValidaBusqueda.value) return
+  buscando.value = true
+  state.error    = null
+  try {
+    const t = busquedaControl.value.trim()
+    if (/^\d{8}$/.test(t)) {
+      router.push(`/kardex/${t}`)
+      return
+    }
+    const res  = await fetch(`${API_URL}/kardex/buscar-por-nombre?q=${encodeURIComponent(t)}`)
+    const data = await res.json()
+    const nc   = data.resultados?.[0]?.numero_control
+    if (nc) router.push(`/kardex/${nc}`)
+    else state.error = 'No se encontraron alumnos con ese nombre'
+  } catch (e) {
+    state.error = 'Error: ' + e.message
+  } finally {
+    buscando.value = false
+  }
+}
+
+// ── Modal bitácora ─────────────────────────────────────────────────────
+const modalItem = ref(null)
+
+// ── Acciones rápidas ───────────────────────────────────────────────────
 const accionesRapidas = [
-  { label:'NUEVA INSCRIPCION', primario:true,  ruta:'/formulario-alumno', d:'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' },
-  { label:'LISTA DE ALUMNOS',  primario:false, ruta:'/alumnos',           d:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
-  { label:'GESTION DE GRUPOS', primario:false, ruta:'/gestion-grupos',    d:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
-  { label:'CALIFICACIONES',    primario:false, ruta:'/calificaciones',    d:'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-  { label:'GENERAR REPORTE',   primario:false, ruta:'/reportes',          d:'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-  { label:'COMITE ACADEMICO',  primario:false, ruta:'/comite',            d:'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+  { label:'Nueva inscripción', primario:true,
+    d:'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z',
+    ruta:'/formulario-alumno' },
+  { label:'Lista de alumnos',
+    d:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+    ruta:'/alumnos' },
+  { label:'Lista de Carreras',
+    d:'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z',
+    ruta:'/gestion-academica/carreras' },
+  { label:'Gestión de grupos',
+    d:'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z',
+    ruta:'/gestion-grupos' },
+  { label:'Cargar calificaciones',
+    d:'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+    ruta:'/calificaciones' },
 ]
 
-// ── Lifecycle ─────────────────────────────────────────────────────────
+// ── Lifecycle ──────────────────────────────────────────────────────────
 onMounted(() => {
   cargarDashboard()
   cargarBitacora()

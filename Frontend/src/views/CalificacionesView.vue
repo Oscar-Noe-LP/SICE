@@ -171,17 +171,26 @@
                   <tr>
                     <th>Clave</th>
                     <th>Materia</th>
+                    <th class="centrado">Semestre</th>
                     <th>Docente</th>
                     <th class="centrado">Alumnos</th>
                     <th class="centrado">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
+                  <tr v-if="cargandoGruposCarrera">
+                    <td colspan="5" class="sin-resultados">
+                      <p>Cargando grupos...</p>
+                    </td>
+                  </tr>
                   <tr v-for="grupo in gruposCarreraFiltrados" :key="grupo.id_grupo">
                     <td><span class="control-chip">{{ grupo.clave_grupo }}</span></td>
                     <td>{{ grupo.materia }}</td>
+                    <td class="centrado">                          <!-- ← agregar -->
+                      <span class="semestre-badge">{{ grupo.semestre ?? '—' }}</span>
+                    </td>
                     <td>{{ grupo.docente || 'Sin asignar' }}</td>
-                    <td class="centrado">{{ grupo.totalAlumnos || 0 }}</td>
+                    <td class="centrado">{{ grupo.inscritos ?? 0 }}</td>
                     <td class="centrado acciones-cell">
                       <button @click="seleccionarGrupo(grupo)" class="btn-accion ver" title="Ver calificaciones">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -191,8 +200,8 @@
                       </button>
                     </td>
                   </tr>
-                  <tr v-if="gruposCarreraFiltrados.length === 0">
-                    <td colspan="5" class="sin-resultados">
+                  <tr v-if="!cargandoGruposCarrera && gruposCarreraFiltrados.length === 0">
+                    <td colspan="6" class="sin-resultados">
                       <p>No se encontraron grupos para esta búsqueda</p>
                     </td>
                   </tr>
@@ -712,7 +721,7 @@
                     <tr v-for="grupo in getGruposPorDocente(docenteSeleccionado)" :key="grupo.id_grupo">
                       <td><span class="control-chip">{{ grupo.clave_grupo }}</span></td>
                       <td>{{ grupo.materia }}</td>
-                      <td class="centrado">{{ grupo.totalAlumnos || 0 }}</td>
+                      <td class="centrado">{{ grupo.inscritos ?? 0 }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -741,6 +750,27 @@ import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 import { useCatalogos } from '@/composables/useCatalogos'
 import { getCalificacionesGrupo, guardarCalificaciones } from '../api/calificaciones'
+import api from '../api/axios'
+
+// --- VISTA CARRERA: GRUPOS CARGADOS DESDE EL BACKEND ---
+const gruposDeCarrera = ref([])
+const cargandoGruposCarrera = ref(false)
+
+async function cargarGruposCarrera(idCarrera) {
+  cargandoGruposCarrera.value = true
+  gruposDeCarrera.value = []
+  try {
+    const { data } = await api.get(`/carreras/${idCarrera}/grupos`)
+    console.log('Respuesta backend:', data)          // ← temporal para verificar
+    gruposDeCarrera.value = data.grupos ?? []
+    console.log('Grupos cargados:', gruposDeCarrera.value.length)
+  } catch (err) {
+    const msg = err.response?.data?.message ?? 'Error al cargar grupos de la carrera'
+    mostrarToast(msg, 'error')
+  } finally {
+    cargandoGruposCarrera.value = false
+  }
+}
 
 // Catálogos dinámicos
 const { periodos, carreras, materias, grupos, cargandoCatalogos, errorCatalogos, cargarCatalogos } = useCatalogos()
@@ -762,10 +792,7 @@ const carrerasFiltradas = computed(() => {
 // --- VISTA CARRERA: GRUPOS Y DOCENTES ---
 const busquedaCarreraDetalle = ref('')
 
-const gruposCarrera = computed(() => {
-  if (!carreraSeleccionada.value) return []
-  return grupos.value.filter(g => g.id_carrera === carreraSeleccionada.value.id_carrera)
-})
+const gruposCarrera = computed(() => gruposDeCarrera.value)
 
 const gruposCarreraFiltrados = computed(() => {
   const term = busquedaCarreraDetalle.value.toLowerCase()
@@ -923,13 +950,15 @@ const colorNota = (n) => {
 }
 
 // Navegación entre vistas
-const seleccionarCarrera = (carrera) => {
+const seleccionarCarrera = async (carrera) => {
   carreraSeleccionada.value = carrera
   vista.value = 'carrera'
+  await cargarGruposCarrera(carrera.id_carrera)
 }
 const volverACarreras = () => {
   carreraSeleccionada.value = null
   grupoSeleccionado.value = null
+  gruposDeCarrera.value = []
   vista.value = 'carreras'
 }
 const seleccionarGrupo = async (grupo) => {
@@ -1082,6 +1111,18 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
   font-family: 'Montserrat', sans-serif;
   box-sizing: border-box;
   padding: 1rem 1rem 2rem;
+}
+
+.semestre-badge {
+  display: inline-block;
+  background: #EDE9FE;
+  color: #7C3AED;
+  font-weight: 700;
+  font-size: 0.78rem;
+  padding: 2px 10px;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
 }
 
 .alerta-error-catalogos { display: flex; align-items: center; gap: 0.6rem; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 10px; padding: 0.8rem 1.2rem; margin-bottom: 1rem; font-size: 0.875rem; font-weight: 600; }

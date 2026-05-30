@@ -24,6 +24,19 @@
         <svg v-else-if="stat.iconoTipo==='grid'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
         </svg>
+        <!-- book -->
+        <svg v-else-if="stat.iconoTipo==='book'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        <!-- graduation -->
+        <svg v-else-if="stat.iconoTipo==='graduation'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+        </svg>
+        <!-- ban -->
+        <svg v-else-if="stat.iconoTipo==='ban'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+        </svg>
         <!-- alert -->
         <svg v-else xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -97,10 +110,11 @@ defineEmits(['navegar'])
 }
 .sg-ico svg { stroke:currentColor; }
 .sg-ico--white { background:rgba(255,255,255,0.15); color:#FFFFFF; }
-.ico-azul    { background:rgba(47,128,237,0.10); color:#1D52B7; }
-.ico-verde   { background:rgba(39,174,96,0.10);  color:#27AE60; }
-.ico-naranja { background:rgba(242,153,74,0.10); color:#F2994A; }
-.ico-rojo    { background:rgba(235,87,87,0.10);  color:#EB5757; }
+.ico-azul    { background:rgba(47,128,237,0.10);  color:#1D52B7; }
+.ico-verde   { background:rgba(39,174,96,0.10);   color:#27AE60; }
+.ico-naranja { background:rgba(242,153,74,0.10);  color:#F2994A; }
+.ico-rojo    { background:rgba(235,87,87,0.10);   color:#EB5757; }
+.ico-morado  { background:rgba(155,81,224,0.10);  color:#9B51E0; }
 
 .sg-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
 

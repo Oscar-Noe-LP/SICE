@@ -24,7 +24,7 @@ class CarreraController extends Controller
                 'n.nombre_nivel',
 
                 // 1. Alumnos Activos totales inscritos en esta carrera
-                DB::raw('(SELECT COUNT(*) FROM alumno as a 
+                DB::raw('(SELECT COUNT(*) FROM alumno as a
                           WHERE a.id_carrera = c.id_carrera AND a.estatus = "Activo") as total_alumnos'),
 
                 // 2. Grupos abiertos que pertenecen al plan de estudios de esta carrera
@@ -142,48 +142,58 @@ class CarreraController extends Controller
             return response()->json(['message' => 'Carrera no encontrada'], 404);
         }
 
-        $idMaterias = DB::table('plan_estudio as pe')
+        // Obtener materias del plan Y su semestre al mismo tiempo
+        $materiasConSemestre = DB::table('plan_estudio as pe')
             ->join('plan_materia as pm', 'pe.id_plan', '=', 'pm.id_plan')
             ->where('pe.id_carrera', $id)
             ->where('pe.estatus', 1)
-            ->pluck('pm.id_materia');
+            ->select('pm.id_materia', 'pm.semestre')
+            ->get()
+            ->keyBy('id_materia');  // ← indexado por id_materia para búsqueda rápida
 
-        if ($idMaterias->isEmpty()) {
+        if ($materiasConSemestre->isEmpty()) {
             return response()->json([
                 'carrera' => $carrera->nombre,
                 'grupos'  => []
             ]);
         }
 
+        $idMaterias = $materiasConSemestre->keys();
+
         $grupos = DB::table('grupo as g')
             ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
-            ->join('docente as d', 'g.id_docente', '=', 'd.id_docente')
-            ->join('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
-            ->join('persona as p', 'e.id_persona', '=', 'p.id_persona')
-            ->leftJoin('turno as t', 'g.id_turno', '=', 't.id_turno')
+            ->leftJoin('docente as d', 'g.id_docente', '=', 'd.id_docente')
+            ->leftJoin('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+            ->leftJoin('persona as p', 'e.id_persona', '=', 'p.id_persona')
             ->whereIn('g.id_materia', $idMaterias)
             ->where('g.estatus', 1)
             ->select(
                 'g.id_grupo',
+                'g.id_materia',   // ← auxiliar para buscar semestre
                 'g.clave_grupo',
                 'm.nombre as materia',
-                DB::raw("UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)) as docente"),
-                't.nombre_turno as turno',
-                'g.dia',
-                DB::raw("TIME_FORMAT(g.hora_inicio, '%H:%i') as hora_inicio"),
-                DB::raw("TIME_FORMAT(g.hora_fin, '%H:%i') as hora_fin"),
+                DB::raw("IF(
+                    p.id_persona IS NOT NULL,
+                    UPPER(CONCAT(p.apellido_paterno, ' ', p.apellido_materno, ' ', p.nombre)),
+                    'Sin asignar'
+                ) as docente"),
                 'g.capacidad',
                 DB::raw("(
                     SELECT COUNT(*)
                     FROM inscripcion AS i
                     WHERE i.id_grupo = g.id_grupo
-                      AND i.estatus = 'Activo'
+                    AND i.estatus = 'Activo'
                 ) as inscritos")
             )
             ->orderBy('m.nombre')
-            ->orderBy('g.dia')
-            ->orderBy('g.hora_inicio')
-            ->get();
+            ->get()
+            ->map(function ($g) use ($materiasConSemestre) {
+                $g->semestre = $materiasConSemestre[$g->id_materia]->semestre ?? null;
+                unset($g->id_materia);  // limpiar campo auxiliar
+                return $g;
+            })
+            ->sortBy('semestre')   // ← ordenar por semestre en PHP
+            ->values();            // ← reindexar el array
 
         return response()->json([
             'carrera' => $carrera->nombre,
@@ -191,3 +201,4 @@ class CarreraController extends Controller
         ]);
     }
 }
+
