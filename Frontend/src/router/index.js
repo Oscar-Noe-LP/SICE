@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/servicios-escolares',
       name: 'ServiciosEscolares',
-      component: () => import('@/views/DashboardView.vue')
+      component: () => import('@/views/ServiciosEscolares/DashboardSE.vue')
     },
     {
       path: '/servicios-escolares/graficas',
@@ -50,13 +50,14 @@ const router = createRouter({
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — ALUMNOS
+    // Ruta raíz redirige al primer subtab
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/alumnos',
       redirect: () => {
         const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
         if (usuario?.rol === 'servicios-escolares') return '/alumnos/gestion'
-        return '/alumnos/lista'
+        return '/alumnos/lista' // fallback otros roles (ajusta si aplica)
       }
     },
     {
@@ -64,8 +65,7 @@ const router = createRouter({
       name: 'AlumnosGestion',
       component: () => import('@/views/ServiciosEscolares/AlumnosSE.vue')
     },
-
-    // ── EXPEDIENTE ACADÉMICO — módulo 2.2  ─────────────────────────
+    // ── EXPEDIENTE ACADÉMICO — módulo 2.2 (NELLY) ─────────────────────────
     // Ruta sin noControl: redirige a gestión (el alumno se busca desde ahí)
     {
       path: '/alumnos/expediente',
@@ -78,8 +78,7 @@ const router = createRouter({
       name: 'ExpedienteDetalle',
       component: () => import('@/views/ServiciosEscolares/ExpedienteSE.vue')
     },
-
-    // ── Formulario alumno ─────────────────────────────────────────────────
+    // Rutas existentes de formulario alumno — se mantienen
     {
       path: '/formulario-alumno',
       name: 'FormularioAlumno',
@@ -109,6 +108,7 @@ const router = createRouter({
       name: 'HistorialInscripciones',
       component: () => import('@/views/Inscripciones_detalladas/HistorialInscripcionesView.vue')
     },
+    // Rutas existentes inscripciones detalladas — se mantienen
     {
       path: '/inscripciones',
       name: 'InscripcionesPanel',
@@ -119,6 +119,7 @@ const router = createRouter({
       name: 'GestionInscripcion',
       component: () => import('@/views/Inscripciones_detalladas/GestionInscripcionView.vue')
     },
+    // Ruta legacy inscripcion simple
     {
       path: '/inscripcion',
       name: 'Inscripcion',
@@ -127,6 +128,7 @@ const router = createRouter({
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — CALIFICACIONES
+    // Ruta raíz redirige al primer subtab según rol
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/calificaciones',
@@ -161,6 +163,7 @@ const router = createRouter({
       name: 'CalificacionesAnalitica',
       component: () => import('@/views/ServiciosEscolares/CalificacionesSE.vue')
     },
+    // Rutas existentes calificaciones — se mantienen para otros roles
     {
       path: '/evaluaciones',
       name: 'EvaluacionesGeneral',
@@ -184,6 +187,7 @@ const router = createRouter({
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — GRUPOS Y HORARIOS
+    // Ruta raíz redirige al primer subtab
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/gestion-grupos',
@@ -211,6 +215,7 @@ const router = createRouter({
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — DOCUMENTOS
+    // Ruta raíz redirige al primer subtab
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/documentos',
@@ -249,6 +254,7 @@ const router = createRouter({
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — EGRESADOS
+    // Ruta raíz redirige al primer subtab
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/egresados',
@@ -277,6 +283,7 @@ const router = createRouter({
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — ASPIRANTES
+    // Ruta raíz redirige al primer subtab
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/aspirantes',
@@ -300,6 +307,7 @@ const router = createRouter({
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — CONFIGURACIÓN
+    // Ruta raíz redirige al primer subtab
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/configuracion',
@@ -328,6 +336,7 @@ const router = createRouter({
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — PROCESOS
+    // Ruta raíz redirige al primer subtab
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/procesos',
@@ -578,6 +587,15 @@ const router = createRouter({
       component: () => import('@/views/Modulo_Kardex/KardexDetalleView.vue')
     },
 
+    // ══════════════════════════════════════════════════════════════════════
+    // MÓDULO: ASPIRANTES (TERESA — Módulo 8)
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      path: '/aspirantes',
+      name: 'Aspirantes',
+      component: () => import('@/views/AspirantesView.vue')
+    },
+
     // ── Ruta 404 ──────────────────────────────────────────────────────────
     {
       path: '/:pathMatch(.*)*',
@@ -592,8 +610,13 @@ const router = createRouter({
 // ══════════════════════════════════════════════════════════════════════
 
 const RUTAS_PUBLICAS = ['/login']
-const RUTA_FALLBACK  = '/inicio'
 
+// /inicio es accesible para cualquier usuario autenticado — siempre
+const RUTA_FALLBACK = '/inicio'
+
+// Normaliza el nombre_rol de la BD al identificador interno usado en el frontend.
+// BD: 'Administrador' | 'Docente' | 'Escolares'
+// Frontend: 'admin'   | 'docente' | 'servicios-escolares'
 const normalizarRol = (rol) => {
   if (!rol) return ''
   const mapa = {
@@ -620,7 +643,6 @@ const PERMISOS_POR_ROL = {
   'servicios-escolares': [
     '/servicios-escolares',
     '/alumnos',
-    '/alumnos/expediente',          // Expediente académico — módulo 2.2 
     '/formulario-alumno',
     '/evaluaciones',
     '/calificaciones',
@@ -636,6 +658,8 @@ const PERMISOS_POR_ROL = {
     '/aspirantes',
     '/configuracion',
     '/procesos',
+    '/aspirantes',                       // Módulo 8 — Teresa
+
   ],
 }
 
@@ -659,7 +683,9 @@ router.beforeEach((to, from, next) => {
     return next()
   }
 
-  // 4. /inicio es el fallback universal para cualquier usuario autenticado
+  // 4. /inicio es el fallback universal para cualquier usuario autenticado.
+  //    Permitirlo siempre evita el loop infinito cuando el rol no tiene
+  //    rutas configuradas o cuando el guard mismo redirige aquí.
   if (to.path === RUTA_FALLBACK) {
     return next()
   }
@@ -672,7 +698,7 @@ router.beforeEach((to, from, next) => {
     return next()
   }
 
-  // 6. Sin permiso → redirigir al inicio
+  // 6. Sin permiso → redirigir al inicio (nunca producirá loop gracias al paso 4)
   return next(RUTA_FALLBACK)
 })
 
