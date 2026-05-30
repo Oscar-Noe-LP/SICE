@@ -308,7 +308,7 @@ use App\Http\Controllers\Api\ReporteController;
 
 Route::get('/reportes/resumen',       [ReporteController::class, 'resumen']);
 Route::get('/reportes/alumnos',       [ReporteController::class, 'alumnos']);
-Route::get('/reportes/calificaciones',[ReporteController::class, 'calificaciones']);
+Route::get('/reportes/calificaciones', [ReporteController::class, 'calificaciones']);
 Route::get('/reportes/inscripciones', [ReporteController::class, 'inscripciones']);
 Route::get('/reportes/grupos',        [ReporteController::class, 'grupos']);
 
@@ -317,7 +317,7 @@ Route::get('/reportes/grupos',        [ReporteController::class, 'grupos']);
 use App\Http\Controllers\Api\CatalogosController;
 
 Route::get('/generos',       [CatalogosController::class, 'generos']);
-Route::get('/estatus-alumno',[CatalogosController::class, 'estatusAlumno']);
+Route::get('/estatus-alumno', [CatalogosController::class, 'estatusAlumno']);
 Route::get('/turnos',        [CatalogosController::class, 'turnos']);
 
 // ====================== KARDEX ======================
@@ -374,13 +374,19 @@ use App\Http\Controllers\HistorialInscripcionController;
 Route::prefix('form')->group(function () {
 
     Route::get('historial/alumno/{numero_control}', [HistorialInscripcionController::class, 'buscarPorControl']);
-    
+
     Route::get('inscripciones/historial/{id_alumno}/exportar', [HistorialInscripcionController::class, 'exportar']);
 
     Route::get('inscripciones/historial/{id_alumno}', [HistorialInscripcionController::class, 'historial']);
-
 });
 
+use App\Http\Controllers\Api\AnaliticaController;
+
+Route::prefix('analitica')->group(function () {
+    Route::get('/resumen', [AnaliticaController::class, 'resumen']);
+    Route::get('/carreras', [AnaliticaController::class, 'rendimientoPorCarreras']);
+    Route::get('/materias-criticas', [AnaliticaController::class, 'materiasCriticas']);
+});
 // =============== Resumen de cacrreras =====================================
 use App\Http\Controllers\Api\CarreraResumenController;
 
