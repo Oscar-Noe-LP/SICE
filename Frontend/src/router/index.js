@@ -292,17 +292,17 @@ const router = createRouter({
     {
       path: '/aspirantes/solicitudes',
       name: 'SolicitudesAspirantes',
-      component: () => import('@/views/ServiciosEscolares/AspirantesSE.vue')
+      component: () => import('@/views/AspirantesView.vue')
     },
     {
       path: '/aspirantes/configuracion',
       name: 'ConfiguracionAspirantes',
-      component: () => import('@/views/ServiciosEscolares/AspirantesSE.vue')
+      component: () => import('@/views/AspirantesView.vue')
     },
     {
       path: '/aspirantes/fichas',
       name: 'FichasAspirantes',
-      component: () => import('@/views/ServiciosEscolares/AspirantesSE.vue')
+      component: () => import('@/views/AspirantesView.vue')
     },
 
     // ══════════════════════════════════════════════════════════════════════
