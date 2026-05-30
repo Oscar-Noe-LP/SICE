@@ -25,7 +25,10 @@ Route::post('/logout', [AuthController::class, 'logout']);
 
 
 // DASHBOARD
-Route::get('/dashboard', [DashboardController::class, 'index']);
+Route::get('/dashboard',           [DashboardController::class, 'index']);
+Route::get('/dashboard/kpis',      [DashboardController::class, 'kpis']);
+Route::get('/dashboard/carreras',  [DashboardController::class, 'carreras']);
+Route::get('/dashboard/semestres', [DashboardController::class, 'semestres']);
 
 // 🔹 CALIFICACIONES
 Route::get('/calificaciones-grupo', [ServiciosEscolaresController::class, 'getCalificacionesGrupo']);
