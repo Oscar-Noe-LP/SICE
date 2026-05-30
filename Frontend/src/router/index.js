@@ -191,20 +191,11 @@ const router = createRouter({
     // ══════════════════════════════════════════════════════════════════════
     {
       path: '/gestion-grupos',
-      redirect: () => {
-        const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
-        if (usuario?.rol === 'servicios-escolares') return '/gestion-grupos/lista'
-        return '/gestion-grupos/lista'
-      }
+      redirect: '/gestion-grupos/lista'
     },
     {
       path: '/gestion-grupos/lista',
       name: 'GestionGrupos',
-      component: () => import('@/views/ServiciosEscolares/GruposSE.vue')
-    },
-    {
-      path: '/gestion-grupos/detalle',
-      name: 'DetalleGrupo',
       component: () => import('@/views/ServiciosEscolares/GruposSE.vue')
     },
     {
@@ -213,6 +204,12 @@ const router = createRouter({
       component: () => import('@/views/ServiciosEscolares/GruposSE.vue')
     },
 
+    // ✅ NUEVA — detalle individual de grupo
+    {
+      path: '/gestion-grupos/:id',
+      name: 'GrupoDetail',
+      component: () => import('@/views/ServiciosEscolares/GrupoDetailView.vue')
+    },
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — DOCUMENTOS
     // Ruta raíz redirige al primer subtab
@@ -421,6 +418,13 @@ const router = createRouter({
       name: 'Analytics',
       component: () => import('@/views/Analiticas/AcademicAnalyticsView.vue')
     },
+    
+    {
+      path: '/analytics/academica',
+      name: 'Analitica',
+      component: () => import('@/views/AnaliticaAcademica.vue')
+    },
+
 
     // ══════════════════════════════════════════════════════════════════════
     // RUTAS LEGACY
@@ -658,8 +662,8 @@ const PERMISOS_POR_ROL = {
     '/aspirantes',
     '/configuracion',
     '/procesos',
-    '/aspirantes',                       // Módulo 8 — Teresa
-
+    '/aspirantes',                       
+    '/analytics',
   ],
 }
 
