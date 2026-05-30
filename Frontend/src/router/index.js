@@ -40,13 +40,9 @@ const router = createRouter({
     {
       path: '/servicios-escolares/graficas',
       name: 'SEGraficas',
-      component: () => import('@/views/ServiciosEscolares/DashboardSE.vue')
+      component: () => import('@/views/ServiciosEscolares/GraficasSE.vue')
     },
-    {
-      path: '/servicios-escolares/actividad',
-      name: 'SEActividad',
-      component: () => import('@/views/ServiciosEscolares/DashboardSE.vue')
-    },
+
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — ALUMNOS

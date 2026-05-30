@@ -1753,8 +1753,24 @@ const confirmarEliminar = async () => {
 .page-header-left  { display: flex; flex-direction: column; gap: 4px; }
 .page-header-btns  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .page-title {
+<<<<<<< Updated upstream
   font-size: 1.7rem; font-weight: 800; color: #0F172A;
   letter-spacing: -0.01em; margin: 0;
+=======
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.01em;
+  margin: 0;
+  font-family: 'Montserrat', sans-serif;
+}
+.page-subtitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6B7280;
+  letter-spacing: 0.04em;
+  margin: 0;
+>>>>>>> Stashed changes
 }
 .page-subtitle { font-size: 0.82rem; font-weight: 600; color: #6B7280; letter-spacing: 0.04em; margin: 0; }
 .subtitle-sel  { color: #1B396A; }

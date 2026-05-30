@@ -680,25 +680,63 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
-const router = useRouter()
-const API    = `${import.meta.env.VITE_API_URL}/api`
+const router  = useRouter()
+const API_URL = import.meta.env.VITE_API_URL
 
-// ── Refs canvas (gráficas) ─────────────────────────────────────────────
+// ── Estado (patrón DashboardView) ─────────────────────────────────────
+const state = reactive({
+  cargando:         true,
+  cargandoBitacora: false,
+  error:            null,
+  errorBitacora:    false,
+  bitacora:         [],
+  carreraData:      [],   // [{ carrera, total, porcentaje }]  → Chart 1
+  semestreData:     [],   // [{ semestre, cantidad }]          → Chart 2
+  kpis: {
+    totalAlumnos:           0,
+    inscripciones:          0,
+    inscripcionesCompletas: 0,
+    inscripcionesPendientes:0,
+    pctInscripciones:       0,
+    gruposActivos:          0,
+    evaluaciones:           0,
+    periodoActivo:          'N/D',
+  },
+})
+
+// ── Canvas refs (Chart.js) ────────────────────────────────────────────
 const c1 = ref(null)
 const c2 = ref(null)
 const c3 = ref(null)
 let chart1 = null, chart2 = null, chart3 = null
 
-// ── Búsqueda ──────────────────────────────────────────────────────────
+// ── Alias para el template (usa los mismos nombres que el template original) ──
+const cargando   = computed(() => state.cargando)
+const errorCarga = computed(() => !!state.error)
+const bitacora   = computed(() => state.bitacora)
+const cargandoBit= computed(() => state.cargandoBitacora)
+
+// El template usa kpis.alumnosActivos, kpis.inscripcionesPeriodo, etc.
+const kpis = computed(() => ({
+  alumnosActivos:          state.kpis.totalAlumnos,
+  inscripcionesPeriodo:    state.kpis.inscripciones,
+  inscripcionesCompletas:  state.kpis.inscripcionesCompletas,
+  inscripcionesPendientes: state.kpis.inscripcionesPendientes,
+  pctInscripciones:        state.kpis.pctInscripciones,
+  gruposAbiertos:          state.kpis.gruposActivos,
+  evaluacionesPendientes:  state.kpis.evaluaciones,
+}))
+
+// ── Búsqueda de alumno (sin cambios) ─────────────────────────────────
 const inputRef       = ref(null)
 const numCtrl        = ref('')
 const ultimaBusq     = ref('')
 const inputFocused   = ref(false)
-const estadoBusqueda = ref('idle')   // idle | cargando | exito | no-encontrado | error
+const estadoBusqueda = ref('idle')
 const mensajeError   = ref('')
 const alumno         = ref(null)
 const tabActivo      = ref('general')
@@ -736,233 +774,167 @@ const buscar = async () => {
   alumno.value         = null
   tabActivo.value      = 'general'
   try {
-    const res = await fetch(`${API}/alumnos/buscar?numero_control=${encodeURIComponent(nc)}`)
+    const res = await fetch(`${API_URL}/api/alumnos/buscar?numero_control=${encodeURIComponent(nc)}`)
     if (res.status === 404) { estadoBusqueda.value = 'no-encontrado'; return }
-    if (!res.ok) throw new Error(`Error ${res.status}`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const data = await res.json()
     if (!data || (!data.id && !data.numero_control)) { estadoBusqueda.value = 'no-encontrado'; return }
     alumno.value         = data
     estadoBusqueda.value = 'exito'
     mostrarNotif(`Alumno encontrado: ${data.nombre}`, 'exito')
   } catch (e) {
-    console.error('[Escolares] buscar:', e)
+    console.error('[ServiciosEscolares] buscar:', e)
     estadoBusqueda.value = 'error'
-    mensajeError.value   = 'Ocurrió un error al conectar con el servidor. Intenta de nuevo.'
+    mensajeError.value   = 'Error al conectar con el servidor. Intenta de nuevo.'
   }
 }
 
-const irExpediente = () => { if (alumno.value?.id) router.push(`/alumnos/${alumno.value.id}`) }
+const irExpediente = () => {
+  if (alumno.value?.id) router.push(`/alumnos/${alumno.value.id}`)
+}
 
-// ── KPIs dashboard ────────────────────────────────────────────────────
-const cargando   = ref(false)
-const errorCarga = ref(false)
-const kpis = ref({
-  alumnosActivos:          0,
-  inscripcionesPeriodo:    0,
-  inscripcionesCompletas:  0,
-  inscripcionesPendientes: 0,
-  pctInscripciones:        0,
-  gruposAbiertos:          0,
-  evaluacionesPendientes:  0,
-})
-
+// ── Carga del dashboard (lógica exacta de DashboardView) ──────────────
 const cargarDatos = async () => {
-  cargando.value   = true
-  errorCarga.value = false
+  state.cargando = true
+  state.error    = null
   try {
-    const res  = await fetch(`${API}/dashboard`)
-    if (!res.ok) throw new Error()
-    const data = await res.json()
-    kpis.value.alumnosActivos          = data.kpis?.alumnos       ?? 0
-    kpis.value.inscripcionesPeriodo    = data.kpis?.inscripciones ?? 0
-    kpis.value.gruposAbiertos          = data.kpis?.grupos        ?? 0
-    kpis.value.evaluacionesPendientes  = data.kpis?.evaluaciones  ?? 0
-    kpis.value.inscripcionesCompletas  = data.kpis?.ins_completas ?? Math.round((data.kpis?.inscripciones ?? 0) * 0.89)
-    kpis.value.inscripcionesPendientes = data.kpis?.ins_pendientes ?? Math.round((data.kpis?.inscripciones ?? 0) * 0.11)
-    kpis.value.pctInscripciones        = data.kpis?.pct_ins       ?? 89
-  } catch {
-    errorCarga.value = true
-    // Fallback con datos realistas
-    kpis.value = {
-      alumnosActivos: 1235, inscripcionesPeriodo: 7020,
-      inscripcionesCompletas: 1147, inscripcionesPendientes: 137,
-      pctInscripciones: 89, gruposAbiertos: 72, evaluacionesPendientes: 0,
-    }
+    // Promise.all con los mismos 3 endpoints de DashboardView
+    const [resKpis, resCarreras, resSem] = await Promise.all([
+      fetch(`${API_URL}/api/dashboard/kpis`).then(r => r.json()),
+      fetch(`${API_URL}/api/dashboard/carreras`).then(r => r.json()),
+      fetch(`${API_URL}/api/dashboard/semestres`).then(r => r.json()),
+    ])
+
+    // KPIs — igual que DashboardView: acepta { kpis: {...} } o el objeto plano
+    Object.assign(state.kpis, resKpis.kpis ?? resKpis)
+
+    // Carreras — para Chart 1 (barras)
+    state.carreraData  = resCarreras.carreraData ?? resCarreras.carreras ?? resCarreras ?? []
+
+    // Semestres — para Chart 2 (línea por semestre)
+    state.semestreData = resSem.semestres ?? resSem ?? []
+
+  } catch (e) {
+    state.error = 'Error al cargar los datos del panel escolar.'
+    console.error('[ServiciosEscolares] cargarDatos:', e)
   } finally {
-    cargando.value = false
+    state.cargando = false
     nextTick(() => inicializarCharts())
   }
 }
 
-// ── Bitácora ──────────────────────────────────────────────────────────
-const bitacora    = ref([])
-const cargandoBit = ref(false)
-
+// ── Carga de bitácora (igual que DashboardView) ───────────────────────
 const cargarBitacora = async () => {
-  cargandoBit.value = true
+  state.cargandoBitacora = true
+  state.errorBitacora    = false
   try {
-    const res  = await fetch(`${API}/bitacora?limit=5`)
-    if (!res.ok) throw new Error()
+    const res  = await fetch(`${API_URL}/api/bitacora?limit=5`)
     const data = await res.json()
-    bitacora.value = Array.isArray(data) ? data : (data.bitacora ?? [])
-  } catch { /* silencioso */ }
-  finally { cargandoBit.value = false }
+    state.bitacora = data.registros ?? data ?? []
+  } catch (e) {
+    state.errorBitacora = true
+    console.error('[ServiciosEscolares] cargarBitacora:', e)
+  } finally {
+    state.cargandoBitacora = false
+  }
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// CHARTS con Chart.js (CDN)
-// Configuración fiel al maq_escolares.html + paleta del PDF COLORIMETRIA
-// ══════════════════════════════════════════════════════════════════════
+// ── Charts (sin cambios respecto al original — solo los datos son reales) ──
+const COLORES_CARRERA = ['#132B4F','#1A4184','#1D52B7','#2F80ED','#27AE60','#F2994A']
+
 const inicializarCharts = () => {
   if (typeof window === 'undefined' || !window.Chart) return
-  const ChartJS = window.Chart
+  const C = window.Chart
+  C.defaults.font.family = "'Montserrat', system-ui, sans-serif"
+  C.defaults.font.size   = 11
+  C.defaults.color       = '#828282'
 
-  // Defaults globales — fuente Montserrat del PDF
-  ChartJS.defaults.font.family = "'Montserrat', system-ui, sans-serif"
-  ChartJS.defaults.font.size   = 11
-  ChartJS.defaults.color       = '#828282'  // Gris Medio Inactivo del PDF
+  const tooltip = {
+    backgroundColor: '#0B2545',
+    titleColor: 'rgba(255,255,255,0.6)',
+    bodyColor: '#FFFFFF',
+    borderColor: '#1D52B7',
+    borderWidth: 1,
+    padding: 10,
+  }
 
-  // ── CHART 1: Barras verticales — Alumnos por Carrera ──────────────
-  // Colores: Bloque Azules + semántico del PDF (#132B4F → #F2994A)
+  // Chart 1: Barras — Alumnos por carrera (datos reales de BD)
   if (c1.value) {
     if (chart1) chart1.destroy()
-    chart1 = new ChartJS(c1.value, {
+    const labels = state.carreraData.map(c => c.carrera ?? c.nombre ?? '')
+    const data   = state.carreraData.map(c => c.total   ?? c.cantidad ?? 0)
+    chart1 = new C(c1.value, {
       type: 'bar',
       data: {
-        labels: ['ISC', 'Industrial', 'Eléctrica', 'Bioquímica', 'Mecánica', 'Empresarial'],
+        labels,
         datasets: [{
-          data: [312, 268, 198, 176, 174, 156],
-          // Paleta exacta del PDF — Bloque Azules de Cobalto Oscuro a Cyan + verde y naranja
-          backgroundColor: ['#132B4F', '#1A4184', '#1D52B7', '#2F80ED', '#27AE60', '#F2994A'],
-          borderRadius: 6,         // Esquinas redondeadas según maqueta
-          borderSkipped: false,    // Redondear también la base
-          hoverBackgroundColor: ['#0B2545', '#132B4F', '#1A4184', '#1D52B7', '#1e8449', '#d68910'],
+          data,
+          backgroundColor: COLORES_CARRERA.slice(0, labels.length),
+          borderRadius: 6,
+          borderSkipped: false,
+          hoverBackgroundColor: ['#0B2545','#132B4F','#1A4184','#1D52B7','#1e8449','#d68910'].slice(0, labels.length),
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0B2545',      // Azul Marino Profundo del PDF
-            titleColor: 'rgba(255,255,255,0.6)',
-            bodyColor: '#FFFFFF',
-            borderColor: '#1D52B7',
-            borderWidth: 1,
-            padding: 10,
-            callbacks: { label: c => ' ' + c.parsed.y + ' alumnos' }
-          }
-        },
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: { label: c => ` ${c.parsed.y} alumnos` } } },
         scales: {
-          x: {
-            grid: { display: false },
-            border: { display: false },
-            ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' }
-          },
-          y: {
-            grid: { color: '#F4F6F9' },   // Gris Hielo del PDF como líneas de cuadrícula
-            border: { display: false },
-            ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' }
-          }
+          x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' } },
+          y: { grid: { color: '#F4F6F9' }, border: { display: false }, ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' } },
         }
       }
     })
   }
 
-  // ── CHART 2: Línea con fill — Inscripciones por Semestre ──────────
-  // Color principal: #1D52B7 (Azul Rey de Enfoque — Primary Brand del PDF)
-  // Fill: rgba(29,82,183,0.07) según PDF: "Ideal para cartas modernas como sombra suave"
+  // Chart 2: Línea — Alumnos por semestre (datos reales de BD)
   if (c2.value) {
     if (chart2) chart2.destroy()
-    chart2 = new ChartJS(c2.value, {
+    const labels = state.semestreData.map(s => `${s.semestre ?? s.nombre}°`)
+    const data   = state.semestreData.map(s => s.cantidad ?? s.total ?? 0)
+    chart2 = new C(c2.value, {
       type: 'line',
       data: {
-        labels: ['1°', '2°', '3°', '4°', '5°', '6°', '7°', '8°'],
+        labels,
         datasets: [{
-          data: [180, 165, 158, 144, 152, 138, 175, 172],
-          borderColor: '#1D52B7',                    // Azul Rey — Primary Brand
-          backgroundColor: 'rgba(29,82,183,0.07)',   // Sombra suave del PDF
-          borderWidth: 2.5,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#FFFFFF',           // Blanco Absoluto del PDF
-          pointBorderColor: '#1D52B7',
-          pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          pointHoverBackgroundColor: '#1D52B7',
-          pointHoverBorderColor: '#FFFFFF',
-          pointHoverBorderWidth: 2,
+          data,
+          borderColor: '#1D52B7',
+          backgroundColor: 'rgba(29,82,183,0.07)',
+          borderWidth: 2.5, fill: true, tension: 0.4,
+          pointBackgroundColor: '#FFFFFF', pointBorderColor: '#1D52B7',
+          pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+          pointHoverBackgroundColor: '#1D52B7', pointHoverBorderColor: '#FFFFFF', pointHoverBorderWidth: 2,
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0B2545',
-            titleColor: 'rgba(255,255,255,0.6)',
-            bodyColor: '#FFFFFF',
-            borderColor: '#1D52B7',
-            borderWidth: 1,
-            padding: 10,
-            callbacks: { label: c => ' ' + c.parsed.y + ' alumnos' }
-          }
-        },
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: { label: c => ` ${c.parsed.y} alumnos` } } },
         scales: {
-          x: {
-            grid: { display: false },
-            border: { display: false },
-            ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' }
-          },
-          y: {
-            grid: { color: '#F4F6F9' },
-            border: { display: false },
-            min: 100,
-            ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' }
-          }
+          x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' } },
+          y: { grid: { color: '#F4F6F9' }, border: { display: false }, ticks: { font: { size: 10, family: "'Montserrat', sans-serif" }, color: '#828282' } },
         }
       }
     })
   }
 
-  // ── CHART 3: Donut — Estado de Inscripciones ─────────────────────
-  // cutout 72% igual que maqueta
-  // Color principal: #1D52B7 (completas), pendientes rgba(242,153,74,0.15)
-  // Borde naranja #F2994A (Naranja Calma — Advertencia del PDF)
+  // Chart 3: Donut — Estado inscripciones (datos reales de BD)
   if (c3.value) {
     if (chart3) chart3.destroy()
-    const pct = kpis.value.pctInscripciones || 89
-    chart3 = new ChartJS(c3.value, {
+    const pct = state.kpis.pctInscripciones || 0
+    chart3 = new C(c3.value, {
       type: 'doughnut',
       data: {
         labels: [`Completadas ${pct}%`, `Pendientes ${100 - pct}%`],
         datasets: [{
-          data: [pct, 100 - pct],
-          backgroundColor: ['#1D52B7', 'rgba(242,153,74,0.15)'],  // PDF: Azul Rey + Naranja con 85% transparencia
-          borderColor: ['#1D52B7', '#F2994A'],                     // PDF: Azul Rey + Naranja Calma
-          borderWidth: 1,
-          hoverOffset: 4,
+          data: [state.kpis.inscripcionesCompletas || pct, state.kpis.inscripcionesPendientes || (100 - pct)],
+          backgroundColor: ['#1D52B7', 'rgba(242,153,74,0.15)'],
+          borderColor: ['#1D52B7', '#F2994A'],
+          borderWidth: 1, hoverOffset: 4,
           hoverBackgroundColor: ['#1A4184', 'rgba(242,153,74,0.25)'],
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '72%',              // Grosor del anillo — igual que maqueta
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#0B2545',
-            bodyColor: '#FFFFFF',
-            borderColor: '#1D52B7',
-            borderWidth: 1,
-            padding: 10,
-            callbacks: { label: c => ' ' + c.label }
-          }
-        }
+        responsive: true, maintainAspectRatio: false, cutout: '72%',
+        plugins: { legend: { display: false }, tooltip: { ...tooltip, callbacks: { label: c => ` ${c.label}` } } }
       }
     })
   }
@@ -978,13 +950,14 @@ const mostrarNotif = (mensaje, tipo = 'exito') => {
   timerNotif = setTimeout(() => { notif.value.visible = false }, 3500)
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────
-const fmt      = (n) => n?.toLocaleString('es-MX') ?? '0'
-const iniciales = (n = '') => n.split(' ').slice(0,2).map(p => p[0]).join('').toUpperCase()
+// ── Helpers (sin cambios) ─────────────────────────────────────────────
+const fmt = (n) => Number(n || 0).toLocaleString('es-MX')
+
+const iniciales = (n = '') => n.split(' ').slice(0, 2).map(p => p[0] ?? '').join('').toUpperCase()
 
 const fFecha = (iso) => {
   if (!iso) return 'No registrado'
-  try { return new Date(iso).toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' }) }
+  try { return new Date(iso).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }) }
   catch { return iso }
 }
 
@@ -1000,41 +973,40 @@ const califClass = (c) => {
   return 'ca-r'
 }
 
-const tRel = (f) => {
-  if (!f) return ''
-  const m = Math.floor((Date.now() - new Date(f).getTime()) / 60000)
-  if (m < 1)  return 'Ahora'
-  if (m < 60) return `Hace ${m} min`
-  const h = Math.floor(m/60)
-  if (h < 24) return `Hace ${h} h`
-  return `Hace ${Math.floor(h/24)} día(s)`
+const tRel = (fecha) => {
+  if (!fecha) return '—'
+  const diff = Date.now() - new Date(fecha).getTime()
+  const min  = Math.floor(diff / 60000)
+  if (min < 1)  return 'Ahora'
+  if (min < 60) return `Hace ${min} min`
+  const h = Math.floor(min / 60)
+  if (h  < 24)  return `Hace ${h} h`
+  return `Hace ${Math.floor(h / 24)} día(s)`
 }
 
-const claseBadge = (a = '') => {
-  const s = a.toLowerCase()
-  if (s.includes('inscri') || s.includes('cre') || s.includes('alta')) return 'bg-g'
-  if (s.includes('edit') || s.includes('actualiz'))                      return 'bg-a'
-  if (s.includes('elim') || s.includes('baja'))                          return 'bg-r'
+const claseBadge = (accion = '') => {
+  const a = accion.toLowerCase()
+  if (a.includes('insert') || a.includes('crear') || a.includes('inscri') || a.includes('alta')) return 'bg-g'
+  if (a.includes('update') || a.includes('edit')  || a.includes('actualiz'))                     return 'bg-a'
+  if (a.includes('delet')  || a.includes('elim')  || a.includes('baja'))                         return 'bg-r'
   return 'bg-b'
 }
 
-// ── Lifecycle ─────────────────────────────────────────────────────────
+// ── Lifecycle (igual que DashboardView) ──────────────────────────────
 onMounted(() => {
   cargarDatos()
   cargarBitacora()
   nextTick(() => inputRef.value?.focus())
 
-  // Carga Chart.js desde CDN si no está ya en window
   if (!window.Chart) {
-    const script    = document.createElement('script')
-    script.src      = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
-    script.onload   = () => nextTick(() => inicializarCharts())
+    const script  = document.createElement('script')
+    script.src    = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
+    script.onload = () => nextTick(() => inicializarCharts())
     document.head.appendChild(script)
-  } else {
-    nextTick(() => inicializarCharts())
   }
 })
 </script>
+
 
 <style scoped>
 /* ══════════════════════════════════════════════════════════════
