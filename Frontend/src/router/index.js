@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/servicios-escolares',
       name: 'ServiciosEscolares',
-      component: () => import('@/views/ServiciosEscolares/DashboardSE.vue')
+      component: () => import('@/views/ServiciosEscolaresView.vue')
     },
     {
       path: '/servicios-escolares/graficas',

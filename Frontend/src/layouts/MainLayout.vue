@@ -1926,7 +1926,7 @@ const regresarPagina = () => router.back()
 .nav-item.router-link-active { color: var(--azul); font-weight: 700; border-bottom-color: var(--azul); background: #EFF6FF; }
 .nav-item-tab.nav-activo     { color: var(--azul); font-weight: 700; border-bottom-color: var(--azul); background: #EFF6FF; }
 
-.nav-icono  { width: 23px; height: 23px; stroke: currentColor; flex-shrink: 0; }
+.nav-icono  { width: 26px; height: 26px; stroke: currentColor; flex-shrink: 0; }
 .nav-label  { font-size: 0.76rem; font-weight: 600; line-height: 1.1; text-align: center; white-space: nowrap; }
 .nav-flecha { display: none; }
 
