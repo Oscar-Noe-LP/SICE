@@ -579,6 +579,15 @@ const router = createRouter({
       component: () => import('@/views/Modulo_Kardex/KardexDetalleView.vue')
     },
 
+    // ══════════════════════════════════════════════════════════════════════
+    // MÓDULO: ASPIRANTES (TERESA — Módulo 8)
+    // ══════════════════════════════════════════════════════════════════════
+    {
+      path: '/aspirantes',
+      name: 'Aspirantes',
+      component: () => import('@/views/AspirantesView.vue')
+    },
+
     // ── Ruta 404 ──────────────────────────────────────────────────────────
     {
       path: '/:pathMatch(.*)*',
@@ -642,6 +651,8 @@ const PERMISOS_POR_ROL = {
     '/aspirantes',
     '/configuracion',
     '/procesos',
+    '/aspirantes',                       // Módulo 8 — Teresa
+
   ],
 }
 
