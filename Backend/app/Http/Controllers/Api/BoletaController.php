@@ -5,188 +5,97 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Alumno;
 use App\Models\Periodo;
-use App\Models\Inscripcion;
-use App\Models\Grupo;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use ZipArchive;
+use Illuminate\Support\Facades\DB;
 
 class BoletaController extends Controller
 {
-    /**
-     * Generar boleta de calificaciones individual
-     * GET /api/documentos/boleta/{numero_control}
-     */
     public function generarBoleta($numero_control, Request $request)
     {
-        $alumno = Alumno::with(['persona', 'carrera', 'kardex'])
+        // 1. Obtener alumno
+        $alumno = Alumno::with(['persona', 'carrera'])
             ->where('numero_control', $numero_control)
             ->firstOrFail();
 
         $periodoId = $request->get('periodo');
+        $periodo = $periodoId ? Periodo::find($periodoId) : null;
 
-        // Obtener inscripciones del alumno en el periodo
-        $inscripciones = Inscripcion::with(['grupo.materia', 'calificaciones'])
-            ->where('id_alumno', $alumno->id_alumno)
-            ->when($periodoId, function($query) use ($periodoId) {
-                return $query->whereHas('grupo', function($q) use ($periodoId) {
-                    $q->where('id_periodo', $periodoId);
-                });
-            })
-            ->get();
+        // 2. Consulta SQL corregida (agrupar por todos los campos no agregados)
+        $query = "
+            SELECT
+                m.clave,
+                m.nombre as materia_nombre,
+                m.creditos,
+                COALESCE(AVG(c.calificacion), 0) as calificacion
+            FROM inscripcion i
+            INNER JOIN grupo g ON i.id_grupo = g.id_grupo
+            INNER JOIN materia m ON g.id_materia = m.id_materia
+            LEFT JOIN calificacion c ON i.id_inscripcion = c.id_inscripcion
+            WHERE i.id_alumno = ?
+        ";
 
-        $periodo = null;
+        $bindings = [$alumno->id_alumno];
+
         if ($periodoId) {
-            $periodo = Periodo::find($periodoId);
+            $query .= " AND g.id_periodo = ?";
+            $bindings[] = $periodoId;
         }
 
-        // Calcular calificaciones por materia
-        $materias = [];
-        foreach ($inscripciones as $inscripcion) {
-            $materia = $inscripcion->grupo->materia;
-            $calificacionFinal = $inscripcion->getCalificacionFinalAttribute();
+        // ⭐ Agrupar por todos los campos que seleccionamos (excepto el AVG)
+        $query .= " GROUP BY m.id_materia, m.clave, m.nombre, m.creditos";
 
-            $materias[] = (object)[
+        $materias = DB::select($query, $bindings);
+
+        // Procesar materias
+        $materiasList = [];
+        foreach ($materias as $materia) {
+            $calificacion = round($materia->calificacion, 2);
+            $materiasList[] = (object)[
                 'clave' => $materia->clave ?? 'N/A',
-                'nombre' => $materia->nombre ?? 'N/A',
+                'nombre' => $materia->materia_nombre ?? 'N/A',
                 'creditos' => $materia->creditos ?? 0,
-                'calificacion' => $calificacionFinal,
-                'estado' => $calificacionFinal >= 6 ? 'APROBADA' : 'REPROBADA'
+                'calificacion' => $calificacion,
+                'estado' => $calificacion >= 6 ? 'APROBADA' : ($calificacion > 0 ? 'REPROBADA' : 'SIN CALIFICACIÓN')
             ];
         }
 
-        // Calcular promedio del periodo
-        $promedioPeriodo = count($materias) > 0
-            ? collect($materias)->avg('calificacion')
+        // Obtener nombre completo
+        $nombreCompleto = 'N/A';
+        if ($alumno->persona) {
+            $nombreCompleto = trim(
+                ($alumno->persona->nombre ?? '') . ' ' .
+                ($alumno->persona->apellido_paterno ?? '') . ' ' .
+                ($alumno->persona->apellido_materno ?? '')
+            );
+        }
+
+        $promedioPeriodo = count($materiasList) > 0
+            ? collect($materiasList)->avg('calificacion')
             : 0;
 
         $data = [
-            'alumno' => $alumno,
+            'materias' => $materiasList,
             'periodo' => $periodo,
-            'materias' => $materias,
             'tipo_documento' => 'BOLETA DE CALIFICACIONES',
             'subtitulo' => 'DOCUMENTO OFICIAL DE CALIFICACIONES',
             'fecha_emision' => now(),
             'folio' => 'BOL-' . $alumno->numero_control . '-' . date('YmdHis'),
             'numero_control' => $alumno->numero_control,
-            'nombre_completo' => $alumno->nombre_completo,
-            'carrera' => $alumno->nombre_carrera,
+            'nombre_completo' => $nombreCompleto,
+            'carrera' => $alumno->carrera ? $alumno->carrera->nombre : 'N/A',
             'semestre' => $alumno->semestre_actual ?? 'N/A',
             'promedio_periodo' => round($promedioPeriodo, 2),
-            'promedio_general' => $alumno->kardex->promedio_general ?? 0,
-            'creditos_obtenidos' => $alumno->kardex->creditos_acumulados ?? 0,
-            'materias_cursadas' => count($materias),
-            'materias_aprobadas' => collect($materias)->where('estado', 'APROBADA')->count(),
-            'materias_reprobadas' => collect($materias)->where('estado', 'REPROBADA')->count()
+            'materias_cursadas' => count($materiasList),
+            'materias_aprobadas' => collect($materiasList)->where('estado', 'APROBADA')->count(),
+            'materias_reprobadas' => collect($materiasList)->where('estado', 'REPROBADA')->count()
         ];
 
         $pdf = Pdf::loadView('pdf.boleta', $data);
         $pdf->setPaper('letter', 'portrait');
 
-        $pdf->setOptions([
-            'defaultFont' => 'sans-serif',
-            'isHtml5ParserEnabled' => true,
-            'isRemoteEnabled' => false
-        ]);
-
         $filename = sprintf('BOLETA_%s_%s.pdf', $alumno->numero_control, $periodoId ?? date('Y'));
 
         return $pdf->download($filename);
-    }
-
-    /**
-     * Generar boletas masivas en ZIP
-     * GET /api/documentos/boleta-masiva
-     */
-    public function generarBoletasMasivas(Request $request)
-    {
-        $carreraNombre = $request->get('carrera');
-        $semestre = $request->get('semestre');
-        $periodoId = $request->get('periodo');
-
-        // Buscar alumnos por carrera y semestre
-        $query = Alumno::with(['persona', 'carrera', 'kardex']);
-
-        if ($carreraNombre) {
-            $query->whereHas('carrera', function($q) use ($carreraNombre) {
-                $q->where('nombre', 'LIKE', '%' . $carreraNombre . '%');
-            });
-        }
-
-        if ($semestre) {
-            $query->where('semestre_actual', $semestre);
-        }
-
-        $alumnos = $query->get();
-
-        if ($alumnos->isEmpty()) {
-            return response()->json(['error' => 'No se encontraron alumnos con los criterios especificados'], 404);
-        }
-
-        $zip = new ZipArchive();
-        $zipName = tempnam(sys_get_temp_dir(), 'boletas_') . '.zip';
-
-        if ($zip->open($zipName, ZipArchive::CREATE) === TRUE) {
-            foreach ($alumnos as $alumno) {
-                // Obtener inscripciones del alumno
-                $inscripciones = Inscripcion::with(['grupo.materia', 'calificaciones'])
-                    ->where('id_alumno', $alumno->id_alumno)
-                    ->when($periodoId, function($query) use ($periodoId) {
-                        return $query->whereHas('grupo', function($q) use ($periodoId) {
-                            $q->where('id_periodo', $periodoId);
-                        });
-                    })
-                    ->get();
-
-                $periodo = $periodoId ? Periodo::find($periodoId) : null;
-
-                // Calcular materias
-                $materias = [];
-                foreach ($inscripciones as $inscripcion) {
-                    $materia = $inscripcion->grupo->materia;
-                    $calificacionFinal = $inscripcion->getCalificacionFinalAttribute();
-
-                    $materias[] = (object)[
-                        'clave' => $materia->clave ?? 'N/A',
-                        'nombre' => $materia->nombre ?? 'N/A',
-                        'creditos' => $materia->creditos ?? 0,
-                        'calificacion' => $calificacionFinal,
-                        'estado' => $calificacionFinal >= 6 ? 'APROBADA' : 'REPROBADA'
-                    ];
-                }
-
-                $promedioPeriodo = count($materias) > 0
-                    ? collect($materias)->avg('calificacion')
-                    : 0;
-
-                $data = [
-                    'alumno' => $alumno,
-                    'periodo' => $periodo,
-                    'materias' => $materias,
-                    'tipo_documento' => 'BOLETA DE CALIFICACIONES',
-                    'subtitulo' => 'DOCUMENTO OFICIAL DE CALIFICACIONES',
-                    'fecha_emision' => now(),
-                    'numero_control' => $alumno->numero_control,
-                    'nombre_completo' => $alumno->nombre_completo,
-                    'carrera' => $alumno->nombre_carrera,
-                    'semestre' => $alumno->semestre_actual ?? 'N/A',
-                    'promedio_periodo' => round($promedioPeriodo, 2),
-                    'promedio_general' => $alumno->kardex->promedio_general ?? 0
-                ];
-
-                $pdf = Pdf::loadView('pdf.boleta', $data);
-                $pdfContent = $pdf->output();
-
-                $filename = sprintf('BOLETA_%s_%s.pdf', $alumno->numero_control, $periodoId ?? date('Y'));
-                $zip->addFromString($filename, $pdfContent);
-            }
-
-            $zip->close();
-
-            return response()->download($zipName, 'BOLETAS_MASIVAS_' . ($periodoId ?? date('Y')) . '.zip')
-                ->deleteFileAfterSend(true);
-        }
-
-        return response()->json(['error' => 'No se pudo crear el archivo ZIP'], 500);
     }
 }

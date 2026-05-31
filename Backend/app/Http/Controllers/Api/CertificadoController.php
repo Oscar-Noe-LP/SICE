@@ -4,79 +4,83 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Alumno;
-use App\Models\DetalleKardex;
-use App\Models\Materia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CertificadoController extends Controller
 {
-    /**
-     * Generar certificado de estudios
-     * GET /api/documentos/certificado/{numero_control}
-     */
     public function generarCertificado($numero_control, Request $request)
     {
-        $alumno = Alumno::with(['persona', 'carrera', 'kardex'])
+        // 1. Obtener alumno
+        $alumno = Alumno::with(['persona', 'carrera'])
             ->where('numero_control', $numero_control)
             ->firstOrFail();
 
-        // Obtener historial académico completo
-        $historial = DetalleKardex::with(['materia'])
-            ->where('id_kardex', $alumno->kardex->id_kardex ?? 0)
-            ->orderBy('fecha_registro')
-            ->get();
+        // 2. Obtener total de materias cursadas
+        $totalMaterias = DB::select("
+            SELECT COUNT(DISTINCT m.id_materia) as total
+            FROM inscripcion i
+            INNER JOIN grupo g ON i.id_grupo = g.id_grupo
+            INNER JOIN materia m ON g.id_materia = m.id_materia
+            WHERE i.id_alumno = ?
+        ", [$alumno->id_alumno]);
 
-        // Agrupar por semestre (esto puede requerir ajuste según tu estructura)
-        $materiasPorSemestre = [];
-        foreach ($historial as $detalle) {
-            // Asumiendo que tienes una relación para obtener el semestre
-            // Si no, puedes usar otro campo o dejar sin agrupar
-            $semestre = $detalle->materia->semestre ?? 'General';
-            if (!isset($materiasPorSemestre[$semestre])) {
-                $materiasPorSemestre[$semestre] = [];
-            }
-            $materiasPorSemestre[$semestre][] = $detalle;
+        $totalMaterias = $totalMaterias[0]->total ?? 0;
+
+        // 3. Obtener materias aprobadas (calificación >= 6)
+        $aprobadas = DB::select("
+            SELECT COUNT(DISTINCT m.id_materia) as total
+            FROM inscripcion i
+            INNER JOIN grupo g ON i.id_grupo = g.id_grupo
+            INNER JOIN materia m ON g.id_materia = m.id_materia
+            INNER JOIN calificacion c ON i.id_inscripcion = c.id_inscripcion
+            WHERE i.id_alumno = ?
+            AND c.calificacion >= 6
+        ", [$alumno->id_alumno]);
+
+        $aprobadas = $aprobadas[0]->total ?? 0;
+
+        // 4. Obtener promedio general
+        $promedio = DB::select("
+            SELECT AVG(c.calificacion) as promedio
+            FROM inscripcion i
+            INNER JOIN calificacion c ON i.id_inscripcion = c.id_inscripcion
+            WHERE i.id_alumno = ?
+        ", [$alumno->id_alumno]);
+
+        $promedioGeneral = round($promedio[0]->promedio ?? 0, 2);
+
+        // 5. Obtener nombre completo
+        $nombreCompleto = 'N/A';
+        if ($alumno->persona) {
+            $nombreCompleto = trim(
+                ($alumno->persona->nombre ?? '') . ' ' .
+                ($alumno->persona->apellido_paterno ?? '') . ' ' .
+                ($alumno->persona->apellido_materno ?? '')
+            );
         }
 
-        $totalMaterias = $historial->count();
-        $materiasAprobadas = $historial->filter(function($item) {
-            return ($item->calificacion_final ?? 0) >= 6;
-        })->count();
-
-        $porcentajeAvance = $totalMaterias > 0
-            ? round(($materiasAprobadas / $totalMaterias) * 100, 2)
-            : 0;
-
+        // 6. Datos para la vista
         $data = [
-            'alumno' => $alumno,
-            'historial' => $historial,
-            'materias_por_semestre' => $materiasPorSemestre,
             'tipo_documento' => 'CERTIFICADO DE ESTUDIOS',
-            'subtitulo' => 'DOCUMENTO OFICIAL QUE ACREDITA LOS ESTUDIOS REALIZADOS',
             'numero_certificado' => 'CERT-' . date('Y') . '-' . $alumno->numero_control,
             'fecha_emision' => now(),
             'folio' => 'CERT-' . $alumno->numero_control . '-' . date('YmdHis'),
             'numero_control' => $alumno->numero_control,
-            'nombre_completo' => $alumno->nombre_completo,
-            'carrera' => $alumno->nombre_carrera,
-            'fecha_ingreso' => $alumno->fecha_ingreso ? $alumno->fecha_ingreso->format('d/m/Y') : 'N/A',
+            'nombre_completo' => $nombreCompleto,
+            'carrera' => $alumno->carrera ? $alumno->carrera->nombre : 'N/A',
+            'semestre' => $alumno->semestre_actual ?? 'N/A',
+            'fecha_ingreso' => $alumno->fecha_ingreso ? date('d/m/Y', strtotime($alumno->fecha_ingreso)) : 'N/A',
             'total_materias' => $totalMaterias,
-            'materias_aprobadas' => $materiasAprobadas,
-            'materias_reprobadas' => $totalMaterias - $materiasAprobadas,
-            'promedio_general' => $alumno->kardex->promedio_general ?? 0,
-            'creditos_acumulados' => $alumno->kardex->creditos_acumulados ?? 0,
-            'porcentaje_avance' => $porcentajeAvance
+            'materias_aprobadas' => $aprobadas,
+            'materias_reprobadas' => $totalMaterias - $aprobadas,
+            'promedio_general' => $promedioGeneral
         ];
 
+        // 7. Generar PDF
         $pdf = Pdf::loadView('pdf.certificado', $data);
         $pdf->setPaper('letter', 'portrait');
-
-        $pdf->setOptions([
-            'defaultFont' => 'sans-serif',
-            'isHtml5ParserEnabled' => true,
-            'isRemoteEnabled' => false
-        ]);
 
         $filename = sprintf('CERTIFICADO_%s_%s.pdf', $alumno->numero_control, date('Ymd'));
 
