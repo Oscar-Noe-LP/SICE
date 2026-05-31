@@ -33,6 +33,65 @@
         <p class="page-subtitle">{{ alumnosFiltrados.length }} registro(s) encontrado(s)</p>
       </div>
 
+      <!-- KPIs -->
+      <div class="kpis-grid">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ kpis.cargando ? '…' : kpis.total }}</span>
+            <span class="kpi-label">Total Alumnos</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-activos">
+          <div class="kpi-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ kpis.cargando ? '…' : kpis.activos }}</span>
+            <span class="kpi-label">Activos</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-baja-temp">
+          <div class="kpi-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ kpis.cargando ? '…' : kpis.baja_temporal }}</span>
+            <span class="kpi-label">Bajas Temporales</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-baja-def">
+          <div class="kpi-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ kpis.cargando ? '…' : kpis.baja_definitiva }}</span>
+            <span class="kpi-label">Bajas Definitivas</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-egresados">
+          <div class="kpi-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            </svg>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-num">{{ kpis.cargando ? '…' : kpis.egresados }}</span>
+            <span class="kpi-label">Egresados</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Barra de acciones: búsqueda + botón filtros -->
       <div class="barra-acciones">
         <div class="busqueda-grupo">
@@ -66,6 +125,18 @@
           <span v-if="filtrosActivos" class="filtros-badge">{{ contadorFiltros }}</span>
         </button>
 
+        <!-- Exportar -->
+        <div class="export-group">
+          <button class="btn-export" @click="exportarCsv" :disabled="exportando" title="Exportar CSV">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            CSV
+          </button>
+          <button class="btn-export btn-export-pdf" @click="exportarPdf" :disabled="exportando" title="Exportar PDF">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+            PDF
+          </button>
+        </div>
+
         <button class="btn-nuevo" @click="nuevoAlumno">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -97,6 +168,13 @@
               <select v-model="filtroEstatusId" class="filter-select" @change="currentPage = 1">
                 <option value="">Todos</option>
                 <option v-for="e in catalogos.estatus_alumno" :key="e.id_estatus_alumno" :value="e.id_estatus_alumno">{{ e.nombre }}</option>
+              </select>
+            </div>
+            <div class="filtro-item">
+              <label class="filtro-label">Especialidad</label>
+              <select v-model="filtroEspecialidad" class="filter-select" @change="currentPage = 1">
+                <option value="">Todas</option>
+                <option v-for="esp in catalogos.especialidades" :key="esp.id" :value="esp.id">{{ esp.nombre }}</option>
               </select>
             </div>
           </div>
@@ -444,6 +522,27 @@ const API_URL = import.meta.env.VITE_API_URL
 const alumnos          = ref([])
 const cargando         = ref(false)
 const guardando        = ref(false)
+const exportando       = ref(false)
+
+// ── KPIs ─────────────────────────────────────────────────────────────
+const kpis = ref({
+  cargando: false,
+  total: 0, activos: 0, baja_temporal: 0, baja_definitiva: 0, egresados: 0, titulados: 0
+})
+
+const cargarKpis = async () => {
+  kpis.value.cargando = true
+  try {
+    const res = await fetch(`${API_URL}/api/alumnos/kpis`)
+    if (!res.ok) throw new Error()
+    const data = await res.json()
+    Object.assign(kpis.value, data)
+  } catch {
+    // silencioso: los KPIs no son críticos
+  } finally {
+    kpis.value.cargando = false
+  }
+}
 const filaActiva       = ref(-1)
 const tablaRef         = ref(null)
 const inputBusqueda    = ref(null)
@@ -471,7 +570,7 @@ const tabs = [
 ]
 
 // ── Catálogos ────────────────────────────────────────────────────────
-const catalogos = ref({ carreras: [], estatus_alumno: [] })
+const catalogos = ref({ carreras: [], estatus_alumno: [], especialidades: [] })
 
 const cargarCatalogos = async () => {
   try {
@@ -480,6 +579,7 @@ const cargarCatalogos = async () => {
     const data = await res.json()
     catalogos.value.carreras       = data.carreras       || []
     catalogos.value.estatus_alumno = data.estatus_alumno || []
+    catalogos.value.especialidades = data.especialidades || []
   } catch {
     mostrarNotificacion('No se pudieron cargar los catálogos.', 'error')
   }
@@ -488,15 +588,16 @@ const cargarCatalogos = async () => {
 // ── Filtros y paginación ─────────────────────────────────────────────
 const busquedaAlumno  = ref('')
 const mostrarFiltros  = ref(false)
-const filtroCarreraId = ref('')
-const filtroSemestre  = ref('')
-const filtroEstatusId = ref('')
+const filtroCarreraId   = ref('')
+const filtroSemestre   = ref('')
+const filtroEstatusId  = ref('')
+const filtroEspecialidad = ref('')
 const filasPorPagina  = ref(10)
 const currentPage     = ref(1)
 
 // ── Computadas de Filtros ────────────────────────────────────────────
-const filtrosActivos  = computed(() => !!(filtroCarreraId.value || filtroSemestre.value || filtroEstatusId.value))
-const contadorFiltros = computed(() => [filtroCarreraId.value, filtroSemestre.value, filtroEstatusId.value].filter(Boolean).length)
+const filtrosActivos  = computed(() => !!(filtroCarreraId.value || filtroSemestre.value || filtroEstatusId.value || filtroEspecialidad.value))
+const contadorFiltros = computed(() => [filtroCarreraId.value, filtroSemestre.value, filtroEstatusId.value, filtroEspecialidad.value].filter(Boolean).length)
 
 // ── Notificación (Toast) ─────────────────────────────────────────────
 const notificacion = ref({ visible: false, mensaje: '', tipo: 'exito' })
@@ -576,7 +677,7 @@ const abrirPorQueryParam = async (noControl) => {
 }
 
 onMounted(async () => {
-  await Promise.all([cargarAlumnosDesdeBD(), cargarCatalogos()])
+  await Promise.all([cargarAlumnosDesdeBD(), cargarCatalogos(), cargarKpis()])
   // Abrir modal si se llegó desde el buscador global
   if (route.query.ver) {
     abrirPorQueryParam(route.query.ver)
@@ -766,6 +867,56 @@ const confirmarEliminar = async () => {
   }
 }
 
+// ── Exportar ────────────────────────────────────────────────────────
+const buildFiltrosQuery = () => {
+  const params = new URLSearchParams()
+  if (filtroCarreraId.value)   params.append('id_carrera', filtroCarreraId.value)
+  if (filtroSemestre.value)    params.append('semestre', filtroSemestre.value)
+  if (filtroEstatusId.value)   params.append('id_estatus_alumno', filtroEstatusId.value)
+  if (busquedaAlumno.value)    params.append('busqueda', busquedaAlumno.value)
+  return params.toString()
+}
+
+const exportarCsv = async () => {
+  exportando.value = true
+  try {
+    const qs  = buildFiltrosQuery()
+    const url = `${API_URL}/api/alumnos/exportar-csv${qs ? '?' + qs : ''}`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error()
+    const blob = await res.blob()
+    const a    = document.createElement('a')
+    a.href     = URL.createObjectURL(blob)
+    a.download = `alumnos_${new Date().toISOString().slice(0,10)}.csv`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  } catch {
+    mostrarNotificacion('Error al exportar CSV.', 'error')
+  } finally {
+    exportando.value = false
+  }
+}
+
+const exportarPdf = async () => {
+  exportando.value = true
+  try {
+    const qs  = buildFiltrosQuery()
+    const url = `${API_URL}/api/alumnos/exportar-pdf${qs ? '?' + qs : ''}`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error()
+    const blob = await res.blob()
+    const a    = document.createElement('a')
+    a.href     = URL.createObjectURL(blob)
+    a.download = `alumnos_${new Date().toISOString().slice(0,10)}.pdf`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  } catch {
+    mostrarNotificacion('Error al exportar PDF.', 'error')
+  } finally {
+    exportando.value = false
+  }
+}
+
 // ── Filtrado y Paginación ───────────────────────────────────────────
 const alumnosFiltrados = computed(() => {
   return alumnos.value.filter(alumno => {
@@ -779,8 +930,11 @@ const alumnosFiltrados = computed(() => {
       noControl.includes(busquedaAlumno.value)
     const filtCarrera  = !filtroCarreraId.value || Number(resolverIdCarrera(alumno)) === Number(filtroCarreraId.value)
     const filtSemestre = !filtroSemestre.value  || String(alumno.semestre_actual || alumno.semestre) === String(filtroSemestre.value)
-    const filtEstatus  = !filtroEstatusId.value || Number(alumno.id_estatus_alumno) === Number(filtroEstatusId.value)
-    return busqGlobal && busqLocal && filtCarrera && filtSemestre && filtEstatus
+    const filtEstatus     = !filtroEstatusId.value || Number(alumno.id_estatus_alumno) === Number(filtroEstatusId.value)
+    // Filtro especialidad: como especialidad mapea a carrera en la BD actual,
+    // se filtra igual que carrera cuando está seleccionado
+    const filtEspecialidad = !filtroEspecialidad.value || Number(resolverIdCarrera(alumno)) === Number(filtroEspecialidad.value)
+    return busqGlobal && busqLocal && filtCarrera && filtSemestre && filtEstatus && filtEspecialidad
   })
 })
 
@@ -802,7 +956,7 @@ const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.v
 
 const resetFilters = () => {
   busquedaAlumno.value = ''
-  filtroCarreraId.value = filtroSemestre.value = filtroEstatusId.value = ''
+  filtroCarreraId.value = filtroSemestre.value = filtroEstatusId.value = filtroEspecialidad.value = ''
   currentPage.value = 1; filaActiva.value = -1
 }
 
@@ -1314,6 +1468,77 @@ const navegarTeclado = (e) => {
     gap: 1rem;
   }
 }
+
+/* ── KPIs ──────────────────────────────────────────────────────────── */
+.kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+@media (max-width: 900px) { .kpis-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .kpis-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.kpi-card {
+  background: white;
+  border-radius: 10px;
+  border: 1px solid #E5E7EB;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: box-shadow 0.2s;
+}
+.kpi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.kpi-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.kpi-info { display: flex; flex-direction: column; gap: 2px; }
+.kpi-num  { font-size: 1.4rem; font-weight: 700; line-height: 1; font-family: 'Montserrat', sans-serif; }
+.kpi-label{ font-size: 0.75rem; font-weight: 500; color: #6B7280; }
+
+.kpi-total    .kpi-icon { background: #EFF6FF; }
+.kpi-total    .kpi-icon svg { stroke: #1B396A; }
+.kpi-total    .kpi-num  { color: #1B396A; }
+
+.kpi-activos  .kpi-icon { background: #DCFCE7; }
+.kpi-activos  .kpi-icon svg { stroke: #16A34A; }
+.kpi-activos  .kpi-num  { color: #16A34A; }
+
+.kpi-baja-temp .kpi-icon { background: #FEF3C7; }
+.kpi-baja-temp .kpi-icon svg { stroke: #B45309; }
+.kpi-baja-temp .kpi-num  { color: #B45309; }
+
+.kpi-baja-def .kpi-icon { background: #FEE2E2; }
+.kpi-baja-def .kpi-icon svg { stroke: #DC2626; }
+.kpi-baja-def .kpi-num  { color: #DC2626; }
+
+.kpi-egresados .kpi-icon { background: #EDE9FE; }
+.kpi-egresados .kpi-icon svg { stroke: #7C3AED; }
+.kpi-egresados .kpi-num  { color: #7C3AED; }
+
+/* ── Exportar buttons ────────────────────────────────────────────── */
+.export-group { display: flex; gap: 8px; align-items: center; }
+
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: #FFFFFF;
+  color: #374151;
+  border: 1.5px solid #D1D5DB;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-export:hover:not(:disabled) { background: #F3F4F6; border-color: #9CA3AF; }
+.btn-export:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-export-pdf { color: #DC2626; border-color: #FECACA; }
+.btn-export-pdf:hover:not(:disabled) { background: #FEF2F2; border-color: #DC2626; }
+
 </style>
 
 <style>

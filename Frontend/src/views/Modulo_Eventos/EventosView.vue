@@ -1,7 +1,7 @@
 <!-- ============================================= -->
 <!-- src/views/EventosView.vue                    -->
 <!-- Módulo: Eventos — Vista principal            -->
-<!-- Cambios: Modal de detalle, sin btn Nuevo     -->
+<!-- Rediseño visual SaaS moderno                 -->
 <!-- ============================================= -->
 <template>
   <MainLayout v-slot="{ busquedaGlobal }">
@@ -13,65 +13,77 @@
 
       <!-- Breadcrumb -->
       <div class="breadcrumb">
-        <router-link to="/dashboard" class="breadcrumb-link">Inicio</router-link>
+        <router-link to="/dashboard" class="breadcrumb-link">INICIO</router-link>
         <span class="sep">›</span>
-        <span class="activo">Eventos</span>
+        <span class="activo">EVENTOS</span>
       </div>
 
-      <!-- ─── ENCABEZADO: sin botón "Nuevo Evento" (existe en menú lateral) ─── -->
+      <!-- ─── ENCABEZADO ─── -->
       <div class="encabezado-seccion">
         <div>
-          <h1 class="titulo-pagina">Eventos</h1>
-          <p class="subtitulo">Gestión de eventos institucionales y control de participación</p>
+          <h1 class="titulo-pagina">EVENTOS</h1>
+          <p class="subtitulo">GESTIÓN DE EVENTOS INSTITUCIONALES Y CONTROL DE PARTICIPACIÓN</p>
         </div>
-        <!-- Botón "Nuevo Evento" eliminado según requerimiento:               -->
-        <!-- existe una ruta dedicada en el menú lateral para esta acción.     -->
       </div>
 
-      <!-- ─── KPIs DASHBOARD ─── -->
-      <div class="kpis-grid">
-        <!-- Activos -->
-        <div class="kpi-card">
-          <div class="kpi-icono-wrap kpi-activos">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2" width="22" height="22">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
-            </svg>
+      <!-- ─── KPIs ─── -->
+      <div class="kpis-row">
+        <div class="kpi-card kpi-azul">
+          <div class="kpi-icono-wrap kpi-icono-azul">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1D52B7" stroke-width="2" width="22" height="22"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           </div>
           <div class="kpi-datos">
-            <span class="kpi-numero">{{ kpiActivos }}</span>
-            <span class="kpi-label">Activos</span>
+            <span class="kpi-numero">{{ eventos.length }}</span>
+            <span class="kpi-label">TOTAL EVENTOS</span>
           </div>
         </div>
+        <div class="kpi-card kpi-verde">
+          <div class="kpi-icono-wrap kpi-icono-verde">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="kpi-datos">
+            <span class="kpi-numero">{{ eventosProximos.length }}</span>
+            <span class="kpi-label">PRÓXIMOS</span>
+          </div>
+        </div>
+        <div class="kpi-card kpi-gris">
+          <div class="kpi-icono-wrap kpi-icono-gris">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#828282" stroke-width="2" width="22" height="22"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="kpi-datos">
+            <span class="kpi-numero">{{ eventos.filter(e => e.fecha < hoy).length }}</span>
+            <span class="kpi-label">FINALIZADOS</span>
+          </div>
+        </div>
+      </div>
 
-        <!-- Próximos -->
-        <div class="kpi-card">
-          <div class="kpi-icono-wrap kpi-proximos">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#1D52B7" stroke-width="2" width="22" height="22">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
+      <!-- ─── FILTROS (movido aquí: después de KPIs, antes de Eventos Próximos) ─── -->
+      <div class="filtros-card">
+        <div class="busqueda-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-busqueda">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            v-model="busquedaNombre"
+            type="text"
+            placeholder="BUSCAR POR NOMBRE DE EVENTO..."
+            class="input-busqueda"
+            @input="reiniciarPagina()"
+          />
+          <button v-if="busquedaNombre" @click="busquedaNombre = ''; reiniciarPagina()" class="btn-limpiar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
-          </div>
-          <div class="kpi-datos">
-            <span class="kpi-numero">{{ kpiProximos }}</span>
-            <span class="kpi-label">Próximos (30 días)</span>
-          </div>
+          </button>
         </div>
-
-        <!-- Finalizados -->
-        <div class="kpi-card">
-          <div class="kpi-icono-wrap kpi-finalizados">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#828282" stroke-width="2" width="22" height="22">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
-          <div class="kpi-datos">
-            <span class="kpi-numero">{{ kpiFinalizados }}</span>
-            <span class="kpi-label">Finalizados</span>
-          </div>
-        </div>
+        <button @click="mostrarFiltrosAvanzados = true" class="btn-filtros-premium">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          FILTROS AVANZADOS
+        </button>
       </div>
 
       <!-- ─── EVENTOS PRÓXIMOS ─── -->
@@ -83,9 +95,9 @@
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          Eventos Próximos
+          EVENTOS PRÓXIMOS
         </h2>
-        <span class="seccion-contador">{{ eventosProximos.length }} evento(s)</span>
+        <span class="seccion-contador">{{ eventosProximos.length }} EVENTO(S)</span>
       </div>
 
       <div v-if="eventosProximos.length > 0" class="eventos-proximos-grid">
@@ -122,7 +134,7 @@
                 class="badge-tipo"
                 :style="estiloBadgeTipo(evento.tipo_evento?.nombre_tipo)"
               >
-                {{ evento.tipo_evento?.nombre_tipo || 'General' }}
+                {{ evento.tipo_evento?.nombre_tipo || 'GENERAL' }}
               </span>
             </div>
             <div class="evento-card-meta">
@@ -149,13 +161,12 @@
 
           <!-- Acciones de la card próxima -->
           <div class="evento-card-acciones">
-            <!-- Ver detalle → abre modal (NO navega) -->
             <button @click="abrirModalDetalle(evento)" class="btn-secundario btn-card-accion">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                 <circle cx="12" cy="12" r="3"/>
               </svg>
-              Ver detalle
+              VER DETALLE
             </button>
             <button
               @click="router.push(`/eventos/${evento.id_evento}/participantes`)"
@@ -166,21 +177,30 @@
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
-              Participantes
+              PARTICIPANTES
             </button>
           </div>
         </div>
       </div>
 
+      <!-- ─── EMPTY STATE REDISEÑADO ─── -->
       <div v-else class="estado-vacio">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#D6D6D6" stroke-width="1.5" width="56" height="56">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="3" y1="10" x2="21" y2="10"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8" y1="2" x2="8" y2="6"/>
-        </svg>
-        <p class="vacio-titulo">Sin eventos próximos</p>
-        <p class="vacio-subtitulo">Usa el menú lateral para crear un nuevo evento</p>
+        <div class="estado-vacio-decoracion">
+          <div class="estado-vacio-circulo-exterior"></div>
+          <div class="estado-vacio-circulo-interior"></div>
+          <div class="estado-vacio-icono-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1D52B7" stroke-width="1.5" width="36" height="36">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+            </svg>
+          </div>
+        </div>
+        <p class="vacio-titulo">SIN EVENTOS PRÓXIMOS</p>
+        <p class="vacio-subtitulo">AÚN NO TIENES EVENTOS PROGRAMADOS EN EL CALENDARIO.</p>
+        <div class="vacio-cta">
+        </div>
       </div>
 
       <!-- ─── HISTORIAL DE EVENTOS ─── -->
@@ -190,37 +210,8 @@
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
           </svg>
-          Historial de Eventos
+          HISTORIAL DE EVENTOS
         </h2>
-      </div>
-
-      <!-- Filtros: buscador + filtros avanzados -->
-      <div class="filtros-card">
-        <div class="busqueda-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-busqueda">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          <input
-            v-model="busquedaNombre"
-            type="text"
-            placeholder="Buscar por nombre..."
-            class="input-busqueda"
-            @input="reiniciarPagina()"
-          />
-          <button v-if="busquedaNombre" @click="busquedaNombre = ''; reiniciarPagina()" class="btn-limpiar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-        <button @click="mostrarFiltrosAvanzados = true" class="btn-secundario btn-filtros">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-          </svg>
-          Filtros
-        </button>
       </div>
 
       <!-- ─── MODAL: Filtros Avanzados ─── -->
@@ -235,8 +226,8 @@
         >
           <div class="modal-caja modal-filtros">
             <div class="modal-cabecera">
-              <h3 id="titulo-filtros">Filtros Avanzados</h3>
-              <button @click="mostrarFiltrosAvanzados = false" class="btn-cerrar-modal" aria-label="Cerrar filtros">
+              <h3 id="titulo-filtros">FILTROS</h3>
+              <button @click="mostrarFiltrosAvanzados = false" class="btn-cerrar-modal" aria-label="CERRAR FILTROS">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -245,35 +236,35 @@
             </div>
             <div class="modal-cuerpo filtros-grid">
               <div class="campo-form">
-                <label class="campo-label">Tipo de Evento</label>
+                <label class="campo-label">TIPO DE EVENTO</label>
                 <select v-model="filtrosAvanzados.tipo" class="campo-input" @change="reiniciarPagina()">
-                  <option value="">Todos los tipos</option>
+                  <option value="">TODOS LOS TIPOS</option>
                   <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">
                     {{ t.nombre_tipo }}
                   </option>
                 </select>
               </div>
               <div class="campo-form">
-                <label class="campo-label">Estatus</label>
+                <label class="campo-label">ESTATUS</label>
                 <select v-model="filtrosAvanzados.estatus" class="campo-input" @change="reiniciarPagina()">
-                  <option value="">Todos</option>
-                  <option value="Próximo">Próximo</option>
-                  <option value="Finalizado">Finalizado</option>
-                  <option value="Cancelado">Cancelado</option>
+                  <option value="">TODOS</option>
+                  <option value="Próximo">PRÓXIMO</option>
+                  <option value="Finalizado">FINALIZADO</option>
+                  <option value="Cancelado">CANCELADO</option>
                 </select>
               </div>
               <div class="campo-form">
-                <label class="campo-label">Fecha desde</label>
+                <label class="campo-label">FECHA DESDE</label>
                 <input v-model="filtrosAvanzados.fechaInicio" type="date" class="campo-input" @change="reiniciarPagina()" />
               </div>
               <div class="campo-form">
-                <label class="campo-label">Fecha hasta</label>
+                <label class="campo-label">FECHA HASTA</label>
                 <input v-model="filtrosAvanzados.fechaFin" type="date" class="campo-input" @change="reiniciarPagina()" />
               </div>
             </div>
             <div class="modal-pie">
-              <button @click="limpiarFiltros()" class="btn-cancelar">Limpiar Filtros</button>
-              <button @click="mostrarFiltrosAvanzados = false" class="btn-primario">Aplicar Filtros</button>
+              <button @click="limpiarFiltros()" class="btn-cancelar">LIMPIAR FILTROS</button>
+              <button @click="mostrarFiltrosAvanzados = false" class="btn-primario">APLICAR FILTROS</button>
             </div>
           </div>
         </div>
@@ -283,18 +274,18 @@
       <div class="tabla-card">
         <div class="tabla-encabezado">
           <span class="tabla-contador">
-            {{ eventosFiltrados.length }} registro(s) · Página {{ paginaActual }} de {{ totalPaginas }}
+            {{ eventosFiltrados.length }} REGISTRO(S) · PÁGINA {{ paginaActual }} DE {{ totalPaginas }}
           </span>
         </div>
         <div class="tabla-scroll">
           <table class="tabla-principal">
             <thead>
               <tr>
-                <th>Nombre del Evento</th>
-                <th>Tipo</th>
-                <th>Fecha</th>
-                <th>Descripción</th>
-                <th class="centrado">Acciones</th>
+                <th>NOMBRE DEL EVENTO</th>
+                <th>TIPO</th>
+                <th>FECHA</th>
+                <th>DESCRIPCIÓN</th>
+                <th class="centrado">ACCIONES</th>
               </tr>
             </thead>
             <tbody>
@@ -302,39 +293,36 @@
                 <td><span class="texto-principal">{{ evento.nombre_evento }}</span></td>
                 <td>
                   <span class="badge-estado" :style="estiloBadgeTipo(evento.tipo_evento?.nombre_tipo)">
-                    {{ evento.tipo_evento?.nombre_tipo || 'General' }}
+                    {{ evento.tipo_evento?.nombre_tipo || 'GENERAL' }}
                   </span>
                 </td>
                 <td class="texto-secundario">{{ formatearFecha(evento.fecha) }}</td>
                 <td class="texto-secundario texto-corto">{{ evento.descripcion || '—' }}</td>
                 <td class="centrado">
                   <div class="acciones-fila">
-                    <!-- "Ver" → abre modal de detalle (NO navega a otra página) -->
                     <button
                       @click="abrirModalDetalle(evento)"
                       class="btn-accion ver"
-                      title="Ver detalle del evento"
+                      title="VER DETALLE DEL EVENTO"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                       </svg>
                     </button>
-                    <!-- "Editar" → modal de edición existente -->
                     <button
                       @click="abrirModalEvento(evento)"
                       class="btn-accion editar"
-                      title="Editar evento"
+                      title="EDITAR EVENTO"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                       </svg>
                     </button>
-                    <!-- "Eliminar" -->
                     <button
                       @click="eliminarEvento(evento)"
                       class="btn-accion eliminar"
-                      title="Eliminar evento"
+                      title="ELIMINAR EVENTO"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <polyline points="3 6 5 6 21 6"/>
@@ -346,11 +334,11 @@
               </tr>
               <tr v-if="eventosPaginados.length === 0">
                 <td colspan="5" class="sin-resultados">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#E5E7EB" stroke-width="1.5" width="40" height="40">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#E0E0E0" stroke-width="1.5" width="40" height="40">
                     <circle cx="11" cy="11" r="8"/>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                   </svg>
-                  <p>No se encontraron eventos con los filtros aplicados</p>
+                  <p>NO SE ENCONTRARON EVENTOS CON LOS FILTROS APLICADOS</p>
                 </td>
               </tr>
             </tbody>
@@ -360,14 +348,14 @@
         <!-- Paginación -->
         <div v-if="totalPaginas > 1" class="paginacion-container">
           <div class="paginacion-info">
-            <span>Mostrando {{ mostrandoDesde }}-{{ mostrandoHasta }} de {{ eventosFiltrados.length }}</span>
+            <span>MOSTRANDO {{ mostrandoDesde }}-{{ mostrandoHasta }} DE {{ eventosFiltrados.length }}</span>
           </div>
           <div class="paginacion-controles">
             <button
               @click="cambiarPagina(paginaActual - 1)"
               :disabled="paginaActual === 1"
               class="btn-pag"
-              title="Anterior"
+              title="ANTERIOR"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                 <polyline points="15 18 9 12 15 6"/>
@@ -386,7 +374,7 @@
               @click="cambiarPagina(paginaActual + 1)"
               :disabled="paginaActual === totalPaginas"
               class="btn-pag"
-              title="Siguiente"
+              title="SIGUIENTE"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                 <polyline points="9 18 15 12 9 6"/>
@@ -398,7 +386,6 @@
 
       <!-- ═══════════════════════════════════════════════════════ -->
       <!-- MODAL: DETALLE DEL EVENTO                              -->
-      <!-- Se abre al pulsar "Ver" en tabla o "Ver detalle" en card -->
       <!-- ═══════════════════════════════════════════════════════ -->
       <transition name="modal-fade">
         <div
@@ -411,10 +398,8 @@
         >
           <div class="modal-caja modal-detalle">
 
-            <!-- Cabecera con color de tipo -->
             <div class="modal-cabecera modal-detalle-cabecera">
               <div class="detalle-cabecera-izq">
-                <!-- Ícono coloreado según tipo -->
                 <div
                   class="detalle-icono-grande"
                   :style="{ background: colorFondoTipo(eventoDetalle.tipo_evento?.nombre_tipo) }"
@@ -439,14 +424,14 @@
                     class="badge-tipo detalle-badge"
                     :style="estiloBadgeTipo(eventoDetalle.tipo_evento?.nombre_tipo)"
                   >
-                    {{ eventoDetalle.tipo_evento?.nombre_tipo || 'General' }}
+                    {{ eventoDetalle.tipo_evento?.nombre_tipo || 'GENERAL' }}
                   </span>
                 </div>
               </div>
               <button
                 @click="cerrarModalDetalle()"
                 class="btn-cerrar-modal"
-                aria-label="Cerrar detalle del evento"
+                aria-label="CERRAR DETALLE DEL EVENTO"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22">
                   <line x1="18" y1="6" x2="6" y2="18"/>
@@ -455,15 +440,12 @@
               </button>
             </div>
 
-            <!-- Cuerpo del modal con toda la info del evento -->
             <div class="modal-cuerpo detalle-cuerpo">
 
-              <!-- Bloque de meta-datos principales -->
               <div class="detalle-meta-grid">
-                <!-- Fecha -->
                 <div class="detalle-meta-item">
                   <div class="detalle-meta-icono">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#1B396A" stroke-width="2" width="18" height="18">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2" width="18" height="18">
                       <rect x="3" y="4" width="18" height="18" rx="2"/>
                       <line x1="3" y1="10" x2="21" y2="10"/>
                       <line x1="16" y1="2" x2="16" y2="6"/>
@@ -471,75 +453,69 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Fecha del Evento</p>
+                    <p class="detalle-meta-etiqueta">FECHA DEL EVENTO</p>
                     <p class="detalle-meta-valor">{{ formatearFecha(eventoDetalle.fecha) }}</p>
                   </div>
                 </div>
 
-                <!-- Estatus -->
                 <div class="detalle-meta-item">
                   <div class="detalle-meta-icono">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#1B396A" stroke-width="2" width="18" height="18">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2" width="18" height="18">
                       <circle cx="12" cy="12" r="10"/>
                       <polyline points="12 6 12 12 16 14"/>
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Estatus</p>
+                    <p class="detalle-meta-etiqueta">ESTATUS</p>
                     <span class="badge-estatus" :class="classBadgeEstatus(eventoDetalle.fecha)">
-                      {{ eventoDetalle.fecha >= hoy ? 'Próximo' : 'Finalizado' }}
+                      {{ eventoDetalle.fecha >= hoy ? 'PRÓXIMO' : 'FINALIZADO' }}
                     </span>
                   </div>
                 </div>
 
-                <!-- Hora (si existe) -->
                 <div v-if="eventoDetalle.hora" class="detalle-meta-item">
                   <div class="detalle-meta-icono">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#1B396A" stroke-width="2" width="18" height="18">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2" width="18" height="18">
                       <circle cx="12" cy="12" r="10"/>
                       <polyline points="12 6 12 12 16 14"/>
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Hora</p>
+                    <p class="detalle-meta-etiqueta">HORA</p>
                     <p class="detalle-meta-valor">{{ eventoDetalle.hora }}</p>
                   </div>
                 </div>
 
-                <!-- Lugar (si existe) -->
                 <div v-if="eventoDetalle.lugar" class="detalle-meta-item">
                   <div class="detalle-meta-icono">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#1B396A" stroke-width="2" width="18" height="18">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2" width="18" height="18">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                       <circle cx="12" cy="10" r="3"/>
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Lugar</p>
+                    <p class="detalle-meta-etiqueta">LUGAR</p>
                     <p class="detalle-meta-valor">{{ eventoDetalle.lugar }}</p>
                   </div>
                 </div>
 
-                <!-- Participantes registrados (si existe el conteo) -->
                 <div v-if="eventoDetalle.total_participantes !== undefined" class="detalle-meta-item">
                   <div class="detalle-meta-icono">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#1B396A" stroke-width="2" width="18" height="18">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2" width="18" height="18">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                       <circle cx="9" cy="7" r="4"/>
                       <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Participantes</p>
+                    <p class="detalle-meta-etiqueta">PARTICIPANTES</p>
                     <p class="detalle-meta-valor">{{ eventoDetalle.total_participantes }}</p>
                   </div>
                 </div>
               </div>
 
-              <!-- Separador -->
               <div class="detalle-separador"></div>
 
-              <!-- Descripción -->
               <div class="detalle-descripcion-bloque">
                 <p class="detalle-seccion-label">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
@@ -548,19 +524,17 @@
                     <line x1="16" y1="13" x2="8" y2="13"/>
                     <line x1="16" y1="17" x2="8" y2="17"/>
                   </svg>
-                  Descripción
+                  DESCRIPCIÓN
                 </p>
                 <p v-if="eventoDetalle.descripcion" class="detalle-descripcion-texto">
                   {{ eventoDetalle.descripcion }}
                 </p>
-                <p v-else class="detalle-descripcion-vacio">Sin descripción registrada.</p>
+                <p v-else class="detalle-descripcion-vacio">SIN DESCRIPCIÓN REGISTRADA.</p>
               </div>
 
-            </div><!-- /modal-cuerpo -->
+            </div>
 
-            <!-- Pie: botones de acción -->
             <div class="modal-pie detalle-pie">
-              <!-- Ir a participantes -->
               <button
                 @click="router.push(`/eventos/${eventoDetalle.id_evento}/participantes`); cerrarModalDetalle()"
                 class="btn-secundario"
@@ -570,11 +544,10 @@
                   <circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                Participantes
+                PARTICIPANTES
               </button>
 
               <div class="detalle-pie-derecha">
-                <!-- Editar -->
                 <button
                   @click="cerrarModalDetalle(); abrirModalEvento(eventoDetalle)"
                   class="btn-secundario"
@@ -582,9 +555,8 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                     <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                   </svg>
-                  Editar
+                  EDITAR
                 </button>
-                <!-- Eliminar -->
                 <button
                   @click="cerrarModalDetalle(); eliminarEvento(eventoDetalle)"
                   class="btn-eliminar"
@@ -593,7 +565,7 @@
                     <polyline points="3 6 5 6 21 6"/>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                   </svg>
-                  Eliminar
+                  ELIMINAR
                 </button>
               </div>
             </div>
@@ -615,9 +587,9 @@
           <div class="modal-caja modal-ancho">
             <div class="modal-cabecera">
               <h3 :id="modoEdicion ? 'titulo-editar-evento' : 'titulo-nuevo-evento'">
-                {{ modoEdicion ? 'Editar Evento' : 'Nuevo Evento' }}
+                {{ modoEdicion ? 'EDITAR EVENTO' : 'NUEVO EVENTO' }}
               </h3>
-              <button @click="cerrarModalEvento()" class="btn-cerrar-modal" aria-label="Cerrar formulario">
+              <button @click="cerrarModalEvento()" class="btn-cerrar-modal" aria-label="CERRAR FORMULARIO">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -627,11 +599,11 @@
             <form @submit.prevent="guardarEvento" novalidate>
               <div class="modal-cuerpo campos-grid-modal">
                 <div class="campo-form campo-ancho">
-                  <label class="campo-label">Nombre del Evento <span class="requerido">*</span></label>
+                  <label class="campo-label">NOMBRE DEL EVENTO <span class="requerido">*</span></label>
                   <input
                     v-model="form.nombre_evento"
                     type="text"
-                    placeholder="Ej: Semana de Ingeniería 2026"
+                    placeholder="EJ: SEMANA DE INGENIERÍA 2026"
                     class="campo-input"
                     :class="{ 'campo-error': errores.nombre_evento }"
                     @input="validarCampo('nombre_evento')"
@@ -639,14 +611,14 @@
                   <span v-if="errores.nombre_evento" class="mensaje-error">{{ errores.nombre_evento }}</span>
                 </div>
                 <div class="campo-form">
-                  <label class="campo-label">Tipo de Evento <span class="requerido">*</span></label>
+                  <label class="campo-label">TIPO DE EVENTO <span class="requerido">*</span></label>
                   <select
                     v-model="form.id_tipo_evento"
                     class="campo-input"
                     :class="{ 'campo-error': errores.id_tipo_evento }"
                     @change="validarCampo('id_tipo_evento')"
                   >
-                    <option value="">Selecciona un tipo</option>
+                    <option value="">SELECCIONA UN TIPO</option>
                     <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">
                       {{ t.nombre_tipo }}
                     </option>
@@ -654,7 +626,7 @@
                   <span v-if="errores.id_tipo_evento" class="mensaje-error">{{ errores.id_tipo_evento }}</span>
                 </div>
                 <div class="campo-form">
-                  <label class="campo-label">Fecha del Evento <span class="requerido">*</span></label>
+                  <label class="campo-label">FECHA DEL EVENTO <span class="requerido">*</span></label>
                   <input
                     v-model="form.fecha"
                     type="date"
@@ -666,20 +638,20 @@
                   <span v-if="errores.fecha" class="mensaje-error">{{ errores.fecha }}</span>
                 </div>
                 <div class="campo-form campo-ancho">
-                  <label class="campo-label">Descripción</label>
+                  <label class="campo-label">DESCRIPCIÓN</label>
                   <textarea
                     v-model="form.descripcion"
                     rows="3"
-                    placeholder="Describe brevemente el objetivo o contenido del evento..."
+                    placeholder="DESCRIBE BREVEMENTE EL OBJETIVO O CONTENIDO DEL EVENTO..."
                     class="campo-input campo-textarea"
                   ></textarea>
                 </div>
               </div>
               <div class="modal-pie">
-                <button type="button" @click="cerrarModalEvento()" class="btn-cancelar">Cancelar</button>
+                <button type="button" @click="cerrarModalEvento()" class="btn-cancelar">CANCELAR</button>
                 <button type="submit" class="btn-primario" :disabled="cargandoForm">
                   <span v-if="cargandoForm" class="spinner"></span>
-                  {{ cargandoForm ? 'Guardando...' : (modoEdicion ? 'Actualizar Evento' : 'Guardar Evento') }}
+                  {{ cargandoForm ? 'GUARDANDO...' : (modoEdicion ? 'ACTUALIZAR EVENTO' : 'GUARDAR EVENTO') }}
                 </button>
               </div>
             </form>
@@ -704,7 +676,7 @@
         </div>
       </transition>
 
-      <footer class="pie-pagina">© 2026 Tecnológico Nacional de México · Todos los derechos reservados</footer>
+      <footer class="pie-pagina">© 2026 TECNOLÓGICO NACIONAL DE MÉXICO · TODOS LOS DERECHOS RESERVADOS</footer>
     </div>
   </MainLayout>
 </template>
@@ -817,18 +789,6 @@ onMounted(() => { cargarTipos(); cargarEventos() })
 // ──────────────────────────────────────────────────
 const hoy = new Date().toISOString().split('T')[0]
 
-// ──────────────────────────────────────────────────
-// KPIs
-// ──────────────────────────────────────────────────
-const kpiActivos     = computed(() => eventos.value.filter(e => e.fecha >= hoy).length)
-const kpiFinalizados = computed(() => eventos.value.filter(e => e.fecha < hoy).length)
-const kpiProximos    = computed(() => {
-  const en30 = new Date()
-  en30.setDate(en30.getDate() + 30)
-  const limite = en30.toISOString().split('T')[0]
-  return eventos.value.filter(e => e.fecha >= hoy && e.fecha <= limite).length
-})
-
 const eventosFiltrados = computed(() => {
   return eventos.value.filter(e => {
     const matchNombre  = !busquedaNombre.value || e.nombre_evento?.toLowerCase().includes(busquedaNombre.value.toLowerCase())
@@ -939,8 +899,8 @@ const formatearFecha = (f) => {
   return `${parseInt(d)} de ${meses[parseInt(m) - 1]} de ${a}`
 }
 
-const colorTipo      = (t) => ({ 'Académico':'#1B396A','Cultural':'#F59E0B','Deportivo':'#16A34A','Institucional':'#2563EB' }[t] || '#6B7280')
-const colorFondoTipo = (t) => ({ 'Académico':'#DBEAFE','Cultural':'#FEF3C7','Deportivo':'#DCFCE7','Institucional':'#EDE9FE' }[t] || '#F3F4F6')
+const colorTipo      = (t) => ({ 'Académico':'#0B2545','Cultural':'#F59E0B','Deportivo':'#27AE60','Institucional':'#2563EB' }[t] || '#4F4F4F')
+const colorFondoTipo = (t) => ({ 'Académico':'rgba(29,82,183,0.10)','Cultural':'#FEF3C7','Deportivo':'#DCFCE7','Institucional':'#EDE9FE' }[t] || '#F3F4F6')
 const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTipo(t) })
 
 /**
@@ -951,156 +911,453 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
 /* ─────────────────────────────────────────────── */
-/* ESTILOS GLOBALES - PALETA OFICIAL SICE          */
+/* BASE                                            */
 /* ─────────────────────────────────────────────── */
-.eventos-page { width: 100%; font-family: 'Montserrat', sans-serif; padding-bottom: 2rem; }
+.eventos-page {
+  width: 100%;
+  font-family: 'Montserrat', sans-serif;
+  padding-bottom: 2rem;
+  background: #F4F6F9;
+  min-height: 100vh;
+}
 
 /* Barra de carga */
 .barra-carga { position: fixed; top: 74px; left: 0; right: 0; height: 3px; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
 .barra-carga.activa { opacity: 1; }
-.barra-progreso { height: 100%; background: linear-gradient(90deg, #1B396A, #1D4ED8, #1B396A); background-size: 200% 100%; animation: carga-anim 1.4s linear infinite; }
+.barra-progreso { height: 100%; background: linear-gradient(90deg, #0B2545, #1D52B7, #2F80ED, #1D52B7, #0B2545); background-size: 200% 100%; animation: carga-anim 1.4s linear infinite; }
 @keyframes carga-anim { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* Breadcrumb */
-.breadcrumb { color: #6B7280; font-size: 0.875rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
-.breadcrumb .sep { color: #E5E7EB; }
-.breadcrumb .activo { color: #1B396A; font-weight: 600; }
-.breadcrumb-link { color: #6B7280; text-decoration: none; transition: color 0.15s; }
-.breadcrumb-link:hover { color: #1B396A; }
+.breadcrumb { color: #4F4F4F; font-size: 0.875rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
+.breadcrumb .sep { color: #C8D0DC; }
+.breadcrumb .activo { color: #1D52B7; font-weight: 600; }
+.breadcrumb-link { color: #4F4F4F; text-decoration: none; transition: color 0.15s; }
+.breadcrumb-link:hover { color: #1D52B7; }
 
 /* Encabezado */
-.encabezado-seccion { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.titulo-pagina { color: #1A1A1A; font-size: 1.9rem; font-weight: 800; margin: 0 0 0.25rem; }
+.encabezado-seccion { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; }
+.titulo-pagina {
+  color: #0B2545;
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin: 0 0 0.3rem;
+  letter-spacing: -0.02em;
+}
 .subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; }
 
-/* Sección título */
-.seccion-titulo-wrapper { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.seccion-titulo { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 700; color: #1A1A1A; margin: 0; }
-.seccion-contador { font-size: 0.8rem; color: #6B7280; background: #F5F5F5; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 20px; }
-
-/* Cards de eventos próximos */
-.eventos-proximos-grid { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
-.evento-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 1.4rem 1.6rem; display: flex; align-items: center; gap: 1.4rem; transition: box-shadow 0.2s, transform 0.2s; }
-.evento-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.09); transform: translateY(-1px); }
-.evento-card-izq { flex-shrink: 0; }
-.stat-icono-wrapper { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-.evento-card-cuerpo { flex: 1; min-width: 0; }
-.evento-card-superior { display: flex; align-items: center; gap: 10px; margin-bottom: 0.6rem; flex-wrap: wrap; }
-.evento-nombre { font-size: 1rem; font-weight: 700; color: #1A1A1A; }
-.badge-tipo { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-.evento-card-meta { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
-.meta-item { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; color: #6B7280; }
-.descripcion-resumida { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* Acciones de la card próxima — dos botones en columna */
-.evento-card-acciones { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
-.btn-card-accion { width: 100%; justify-content: center; }
-
-/* Estado vacío */
-.estado-vacio { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; padding: 3rem; text-align: center; margin-bottom: 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
-.vacio-titulo { font-size: 0.95rem; font-weight: 700; color: #6B7280; margin: 0; }
-.vacio-subtitulo { font-size: 0.82rem; color: #9CA3AF; margin: 0; }
-
-/* Filtros */
-.filtros-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0.9rem 1.2rem; display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.busqueda-wrap { display: flex; align-items: center; gap: 8px; background: #F5F5F5; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0 12px; flex: 1; min-width: 280px; }
-.busqueda-wrap:focus-within { border-color: #1B396A; background: #DBEAFE; }
-.icono-busqueda { color: #6B7280; flex-shrink: 0; }
-.input-busqueda { border: none; background: transparent; padding: 10px 4px; font-size: 0.875rem; font-family: inherit; outline: none; flex: 1; color: #1A1A1A; }
-.input-busqueda::placeholder { color: #9CA3AF; }
-.btn-limpiar { background: none; border: none; color: #6B7280; cursor: pointer; padding: 4px; border-radius: 4px; }
-.btn-limpiar:hover { background: #E5E7EB; color: #374151; }
-.btn-filtros { white-space: nowrap; }
-
-/* Modal filtros */
-.modal-filtros { width: 520px; max-width: 92vw; }
-.filtros-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-
-/* Tabla Estándar */
-.tabla-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 1.5rem; }
-.tabla-encabezado { padding: 1rem 1.4rem; border-bottom: 1px solid #E5E7EB; display: flex; align-items: center; justify-content: flex-end; }
-.tabla-contador { font-size: 0.8rem; color: #6B7280; background: #F5F5F5; border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 20px; }
-.tabla-scroll { overflow-x: auto; }
-.tabla-principal { width: 100%; border-collapse: collapse; }
-.tabla-principal th { background: #F5F5F5; padding: 8px 6px; font-size: 0.8rem; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #E5E7EB; text-align: left; }
-.tabla-principal th.centrado { text-align: center; }
-.tabla-principal td { padding: 8px 6px; border-bottom: 1px solid #E5E7EB; vertical-align: middle; font-size: 0.8rem; color: #1A1A1A; }
-.tabla-principal td.centrado { text-align: center; }
-.tabla-principal tr:last-child td { border-bottom: none; }
-.tabla-principal tr:hover { background: #F5F5F5; }
-.texto-principal { font-weight: 600; color: #1A1A1A; font-size: 0.85rem; }
-.texto-secundario { color: #6B7280; font-size: 0.82rem; }
-.texto-corto { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.badge-estado { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
-
-/* Acciones iconizadas */
-.acciones-fila { display: flex; gap: 4px; justify-content: center; align-items: center; }
-.btn-accion { width: 30px; height: 30px; border-radius: 7px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s, opacity 0.2s; flex-shrink: 0; }
-.btn-accion:hover:not(:disabled) { transform: scale(1.1); }
-.btn-accion:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-.btn-accion.ver { background: #DBEAFE; color: #1B396A; }
-.btn-accion.editar { background: #F5F5F5; color: #6B7280; }
-.btn-accion.eliminar { background: #FEF2F2; color: #DC2626; }
-
-.sin-resultados { padding: 2.5rem; text-align: center; color: #9CA3AF; font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
-.sin-resultados p { margin: 0; }
-
-/* Paginación */
-.paginacion-container { padding: 0.9rem 1.4rem; border-top: 1px solid #E5E7EB; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; background: #FFFFFF; }
-.paginacion-info { font-size: 0.82rem; color: #6B7280; }
-.paginacion-controles { display: flex; align-items: center; gap: 4px; }
-.btn-pag { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #6B7280; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-.btn-pag:hover:not(:disabled) { background: #F5F5F5; border-color: #E5E7EB; color: #1B396A; }
-.btn-pag:disabled { opacity: 0.4; cursor: not-allowed; }
-.paginacion-numeros { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
-.btn-num { min-width: 32px; height: 32px; border-radius: 8px; border: 1px solid #E5E7EB; background: #FFFFFF; color: #6B7280; font-weight: 600; font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-.btn-num:hover { background: #F5F5F5; color: #1B396A; }
-.btn-num.activa { background: #1B396A; color: #FFFFFF; border-color: #1B396A; }
-
 /* ─────────────────────────────────────────────── */
-/* MODAL BASE                                      */
+/* KPI CARDS — Premium SaaS                        */
 /* ─────────────────────────────────────────────── */
-.modal-fondo { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(3px); padding: 1rem; }
-.modal-caja { background: #FFFFFF; width: 480px; max-width: 95vw; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.25); max-height: 90vh; display: flex; flex-direction: column; }
-.modal-caja.modal-ancho { width: 600px; max-width: 95vw; }
-.modal-cabecera { background: #1B396A; color: #FFFFFF; padding: 1.1rem 1.6rem; display: flex; justify-content: space-between; align-items: center; }
-.modal-cabecera h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
-.btn-cerrar-modal { background: none; border: none; color: rgba(255,255,255,0.8); cursor: pointer; display: flex; align-items: center; transition: color 0.2s; padding: 4px; border-radius: 6px; }
-.btn-cerrar-modal:hover { color: #FFFFFF; background: rgba(255,255,255,0.12); }
-.modal-cuerpo { padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; flex: 1; }
-.modal-pie { padding: 1rem 1.6rem; background: #F8F9FA; border-top: 1px solid #E5E7EB; display: flex; justify-content: flex-end; gap: 0.75rem; }
+.kpis-row { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 
-/* ─────────────────────────────────────────────── */
-/* MODAL: DETALLE DEL EVENTO                       */
-/* Diseño profesional y accesible                  */
-/* ─────────────────────────────────────────────── */
-.modal-detalle { width: 580px; max-width: 95vw; }
-
-/* Cabecera especial del modal detalle */
-.modal-detalle-cabecera {
-  padding: 1.4rem 1.6rem;
-  gap: 1rem;
-  align-items: flex-start;
-}
-.detalle-cabecera-izq {
+.kpi-card {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(29,82,183,.03) 100%);
+  border-radius: 14px;
+  border: 1px solid rgba(29,82,183,.1);
+  box-shadow: 0 10px 30px rgba(29,82,183,.08);
+  padding: 1.3rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.1rem;
   flex: 1;
-  min-width: 0;
+  min-width: 160px;
+  border-left: 4px solid transparent;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: default;
 }
-.detalle-icono-grande {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(29,82,183,.14);
+}
+.kpi-azul  { border-left-color: #1D52B7; }
+.kpi-verde { border-left-color: #27AE60; }
+.kpi-gris  { border-left-color: #9CA3AF; }
+
+.kpi-icono-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
+.kpi-icono-azul  { background: rgba(29,82,183,.10); }
+.kpi-icono-verde { background: rgba(39,174,96,.10); }
+.kpi-icono-gris  { background: rgba(130,130,130,.10); }
+
+.kpi-datos { display: flex; flex-direction: column; gap: 3px; }
+.kpi-numero {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #0B2545;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.kpi-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* ─────────────────────────────────────────────── */
+/* BARRA DE BÚSQUEDA — Protagonista                */
+/* ─────────────────────────────────────────────── */
+.filtros-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid rgba(29,82,183,.1);
+  box-shadow: 0 4px 16px rgba(29,82,183,.07);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.busqueda-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F4F6F9;
+  border: 1.5px solid #E4E9F0;
+  border-radius: 10px;
+  padding: 0 14px;
+  flex: 1;
+  min-width: 280px;
+  height: 46px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.busqueda-wrap:focus-within {
+  border-color: #2F80ED;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(47,128,237,.12);
+}
+.icono-busqueda { color: #9CA3AF; flex-shrink: 0; }
+.input-busqueda {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline: none;
+  flex: 1;
+  color: #0B2545;
+  font-weight: 500;
+}
+.input-busqueda::placeholder { color: #9CA3AF; font-weight: 400; }
+.btn-limpiar { background: none; border: none; color: #9CA3AF; cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; }
+.btn-limpiar:hover { background: #E4E9F0; color: #374151; }
+
+.btn-filtros-premium {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFFFF;
+  color: #0B2545;
+  border: 1.5px solid #C8D3E8;
+  padding: 0 18px;
+  height: 46px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(11,37,69,.06);
+}
+.btn-filtros-premium:hover {
+  background: #F4F6F9;
+  border-color: #1D52B7;
+  color: #1D52B7;
+  box-shadow: 0 4px 12px rgba(29,82,183,.12);
+}
+
+/* ─────────────────────────────────────────────── */
+/* SECCIÓN TÍTULOS                                 */
+/* ─────────────────────────────────────────────── */
+.seccion-titulo-wrapper { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0B2545;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.seccion-contador {
+  font-size: 0.78rem;
+  color: #6B7280;
+  background: #F4F6F9;
+  border: 1px solid #E4E9F0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────── */
+/* EVENTO CARDS PRÓXIMOS                           */
+/* ─────────────────────────────────────────────── */
+.eventos-proximos-grid { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem; }
+
+.evento-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid rgba(29,82,183,.08);
+  box-shadow: 0 4px 16px rgba(29,82,183,.07);
+  padding: 1.4rem 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  transition: all .25s ease;
+}
+.evento-card:hover {
+  box-shadow: 0 12px 32px rgba(29,82,183,.12);
+  transform: translateY(-4px);
+  border-color: rgba(29,82,183,.15);
+}
+
+.evento-card-izq { flex-shrink: 0; }
+.stat-icono-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.evento-card-cuerpo { flex: 1; min-width: 0; }
+.evento-card-superior { display: flex; align-items: center; gap: 10px; margin-bottom: 0.6rem; flex-wrap: wrap; }
+.evento-nombre { font-size: 1rem; font-weight: 700; color: #0B2545; }
+.badge-tipo { font-size: 0.73rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.evento-card-meta { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+.meta-item { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; color: #6B7280; }
+.descripcion-resumida { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.evento-card-acciones { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+.btn-card-accion { width: 100%; justify-content: center; }
+
+/* ─────────────────────────────────────────────── */
+/* EMPTY STATE — Rediseño moderno                  */
+/* ─────────────────────────────────────────────── */
+.estado-vacio {
+  background: linear-gradient(135deg, #ffffff 0%, rgba(47,128,237,.04) 100%);
+  border-radius: 20px;
+  border: 1.5px dashed rgba(29,82,183,.2);
+  padding: 4rem 2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  overflow: hidden;
+}
+.estado-vacio-decoracion {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.estado-vacio-circulo-exterior {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(29,82,183,.05);
+  border: 1.5px solid rgba(29,82,183,.12);
+}
+.estado-vacio-circulo-interior {
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  background: rgba(29,82,183,.07);
+  border: 1.5px solid rgba(29,82,183,.15);
+}
+.estado-vacio-icono-wrap {
+  position: relative;
+  z-index: 1;
+  width: 52px;
+  height: 52px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(29,82,183,.15);
+}
+
+.vacio-titulo {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1D52B7;
+  letter-spacing: 0.12em;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+.vacio-subtitulo {
+  font-size: 0.9rem;
+  color: #6B7280;
+  margin: 0 0 1.5rem;
+  font-weight: 500;
+  max-width: 320px;
+}
+.vacio-cta { display: flex; justify-content: center; }
+.vacio-cta-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1D52B7;
+  background: rgba(29,82,183,.07);
+  border: 1px solid rgba(29,82,183,.15);
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+/* ─────────────────────────────────────────────── */
+/* TABLA HISTORIAL                                 */
+/* ─────────────────────────────────────────────── */
+.tabla-card {
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid rgba(29,82,183,.08);
+  box-shadow: 0 4px 16px rgba(29,82,183,.07);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.tabla-encabezado {
+  padding: 1rem 1.4rem;
+  border-bottom: 1px solid #EEF1F6;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: linear-gradient(180deg, #F8FAFC 0%, #F2F5FA 100%);
+}
+.tabla-contador {
+  font-size: 0.78rem;
+  color: #6B7280;
+  background: #FFFFFF;
+  border: 1px solid #E4E9F0;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.tabla-scroll { overflow-x: auto; }
+.tabla-principal { width: 100%; border-collapse: collapse; }
+.tabla-principal th {
+  background: linear-gradient(180deg, #F4F6F9 0%, #EEF1F6 100%);
+  padding: 10px 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  border-bottom: 1px solid #E4E9F0;
+  text-align: left;
+}
+.tabla-principal th.centrado { text-align: center; }
+.tabla-principal td { padding: 12px 14px; border-bottom: 1px solid #F0F3F8; vertical-align: middle; font-size: 0.875rem; color: #374151; }
+.tabla-principal td.centrado { text-align: center; }
+.tabla-principal tr:last-child td { border-bottom: none; }
+.tabla-principal tr:hover td { background: rgba(29,82,183,.04); }
+.texto-principal { font-weight: 600; color: #0B2545; font-size: 0.875rem; }
+.texto-secundario { color: #6B7280; font-size: 0.82rem; }
+.texto-corto { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badge-estado { font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+
+/* Acciones iconizadas */
+.acciones-fila { display: flex; gap: 4px; justify-content: center; align-items: center; }
+.btn-accion { width: 32px; height: 32px; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s, opacity 0.2s, box-shadow 0.15s; flex-shrink: 0; }
+.btn-accion:hover:not(:disabled) { transform: scale(1.1); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+.btn-accion:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-accion.ver { background: rgba(29,82,183,.10); color: #1D52B7; }
+.btn-accion.editar { background: #F4F6F9; color: #4F4F4F; }
+.btn-accion.eliminar { background: rgba(235,87,87,.10); color: #EB5757; }
+
+.sin-resultados { padding: 2.5rem; text-align: center; color: #9CA3AF; font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.sin-resultados p { margin: 0; }
+
+/* ─────────────────────────────────────────────── */
+/* PAGINACIÓN                                      */
+/* ─────────────────────────────────────────────── */
+.paginacion-container { padding: 0.9rem 1.4rem; border-top: 1px solid #EEF1F6; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; background: #FAFBFC; }
+.paginacion-info { font-size: 0.82rem; color: #6B7280; font-weight: 500; }
+.paginacion-controles { display: flex; align-items: center; gap: 4px; }
+.btn-pag { width: 34px; height: 34px; border-radius: 9px; border: 1.5px solid #E4E9F0; background: #FFFFFF; color: #4F4F4F; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
+.btn-pag:hover:not(:disabled) { background: #F4F6F9; border-color: #C8D3E8; color: #0B2545; }
+.btn-pag:disabled { opacity: 0.35; cursor: not-allowed; }
+.paginacion-numeros { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.btn-num { min-width: 34px; height: 34px; border-radius: 10px; border: 1.5px solid #E4E9F0; background: #FFFFFF; color: #4F4F4F; font-weight: 600; font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.btn-num:hover { background: #F4F6F9; color: #0B2545; border-color: #C8D3E8; }
+.btn-num.activa {
+  background: linear-gradient(135deg, #0B2545, #1D52B7);
+  color: #FFFFFF;
+  border-color: transparent;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(29,82,183,.3);
+}
+
+/* ─────────────────────────────────────────────── */
+/* MODAL BASE                                      */
+/* ─────────────────────────────────────────────── */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(11,37,69,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+  padding: 1rem;
+}
+.modal-caja {
+  background: #FFFFFF;
+  width: 480px;
+  max-width: 95vw;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,.28);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal-caja.modal-ancho { width: 600px; max-width: 95vw; }
+.modal-cabecera {
+  background: linear-gradient(135deg, #0B2545, #1A4184);
+  color: #FFFFFF;
+  padding: 1.2rem 1.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-cabecera h3 { margin: 0; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.01em; }
+.btn-cerrar-modal { background: none; border: none; color: rgba(255,255,255,0.75); cursor: pointer; display: flex; align-items: center; transition: color 0.2s, background 0.2s; padding: 5px; border-radius: 7px; }
+.btn-cerrar-modal:hover { color: #FFFFFF; background: rgba(255,255,255,0.14); }
+.modal-cuerpo { padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; flex: 1; }
+.modal-pie { padding: 1rem 1.6rem; background: #F8F9FA; border-top: 1px solid #EEF1F6; display: flex; justify-content: flex-end; gap: 0.75rem; }
+
+/* ─────────────────────────────────────────────── */
+/* MODAL: DETALLE DEL EVENTO                       */
+/* ─────────────────────────────────────────────── */
+.modal-detalle { width: 580px; max-width: 95vw; }
+.modal-detalle-cabecera { padding: 1.4rem 1.6rem; gap: 1rem; align-items: flex-start; }
+.detalle-cabecera-izq { display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 0; }
+.detalle-icono-grande { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .detalle-titulo {
   margin: 0 0 6px;
   font-size: 1.15rem;
@@ -1110,83 +1367,27 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
   word-break: break-word;
 }
 .detalle-badge { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-
-/* Cuerpo del modal detalle */
 .detalle-cuerpo { gap: 1.2rem; }
-
-/* Grid de meta-datos */
-.detalle-meta-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-.detalle-meta-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: #F8FAFC;
-  border: 1px solid #E5E7EB;
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-}
-.detalle-meta-icono {
-  width: 32px;
-  height: 32px;
-  background: #DBEAFE;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.detalle-meta-etiqueta {
-  margin: 0 0 3px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #9CA3AF;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.detalle-meta-valor {
-  margin: 0;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: #1A1A1A;
-}
-
-/* Badge de estatus */
-.badge-estatus {
-  display: inline-block;
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-}
-.estatus-proximo    { background: #DCFCE7; color: #16A34A; }
-.estatus-finalizado { background: #F3F4F6; color: #6B7280; }
-
-/* Separador */
-.detalle-separador { height: 1px; background: #E5E7EB; margin: 0.25rem 0; }
-
-/* Bloque descripción */
+.detalle-meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.detalle-meta-item { display: flex; align-items: flex-start; gap: 10px; background: #F8FAFC; border: 1px solid #EEF1F6; border-radius: 10px; padding: 0.85rem 1rem; }
+.detalle-meta-icono { width: 32px; height: 32px; background: rgba(29,82,183,.10); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.detalle-meta-etiqueta { margin: 0 0 3px; font-size: 0.72rem; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.04em; }
+.detalle-meta-valor { margin: 0; font-size: 0.88rem; font-weight: 600; color: #0B2545; }
+.badge-estatus { display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.estatus-proximo    { background: #DCFCE7; color: #27AE60; }
+.estatus-finalizado { background: #F3F4F6; color: #4F4F4F; }
+.detalle-separador { height: 1px; background: #EEF1F6; margin: 0.25rem 0; }
 .detalle-descripcion-bloque { display: flex; flex-direction: column; gap: 6px; }
-.detalle-seccion-label { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; color: #1B396A; margin: 0; text-transform: uppercase; letter-spacing: 0.04em; }
-.detalle-descripcion-texto { margin: 0; font-size: 0.88rem; color: #374151; line-height: 1.6; background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 10px; padding: 1rem; }
+.detalle-seccion-label { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 700; color: #0B2545; margin: 0; text-transform: uppercase; letter-spacing: 0.04em; }
+.detalle-descripcion-texto { margin: 0; font-size: 0.88rem; color: #374151; line-height: 1.6; background: #F8FAFC; border: 1px solid #EEF1F6; border-radius: 10px; padding: 1rem; }
 .detalle-descripcion-vacio { margin: 0; font-size: 0.85rem; color: #9CA3AF; font-style: italic; }
-
-/* Pie del modal detalle */
-.detalle-pie {
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
+.detalle-pie { justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; }
 .detalle-pie-derecha { display: flex; gap: 0.5rem; align-items: center; }
 
-/* Botón eliminar en el pie del detalle */
+/* Botón eliminar */
 .btn-eliminar {
   background: #FEF2F2;
-  color: #DC2626;
+  color: #EB5757;
   border: 1px solid #FCA5A5;
   padding: 10px 16px;
   border-radius: 10px;
@@ -1203,32 +1404,80 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
 .btn-eliminar:hover { background: #FEE2E2; }
 
 /* ─────────────────────────────────────────────── */
+/* MODAL: FILTROS AVANZADOS                        */
+/* ─────────────────────────────────────────────── */
+.modal-filtros { width: 520px; max-width: 92vw; }
+.filtros-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+/* ─────────────────────────────────────────────── */
 /* CAMPOS DE FORMULARIO                            */
 /* ─────────────────────────────────────────────── */
 .campos-grid-modal { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
 .campo-form { display: flex; flex-direction: column; gap: 6px; }
 .campo-ancho { grid-column: 1 / -1; }
-.campo-label { font-size: 0.82rem; font-weight: 700; color: #1A1A1A; }
-.requerido { color: #DC2626; }
-.campo-input { padding: 10px 14px; border: 1.5px solid #E5E7EB; border-radius: 8px; font-size: 0.875rem; font-family: inherit; color: #1A1A1A; outline: none; background: #FFFFFF; transition: border-color 0.2s; }
-.campo-input:focus { border-color: #1B396A; background: #F5F5F5; }
-.campo-input.campo-error { border-color: #DC2626; }
+.campo-label { font-size: 0.82rem; font-weight: 700; color: #374151; }
+.requerido { color: #EB5757; }
+.campo-input { padding: 10px 14px; border: 1.5px solid #E4E9F0; border-radius: 9px; font-size: 0.875rem; font-family: inherit; color: #0B2545; outline: none; background: #FFFFFF; transition: border-color 0.2s, box-shadow 0.2s; }
+.campo-input:focus { border-color: #2F80ED; background: #FFFFFF; box-shadow: 0 0 0 4px rgba(47,128,237,.12); }
+.campo-input.campo-error { border-color: #EB5757; }
 .campo-textarea { resize: vertical; min-height: 80px; }
-.mensaje-error { font-size: 0.78rem; color: #DC2626; font-weight: 500; }
+.mensaje-error { font-size: 0.78rem; color: #EB5757; font-weight: 500; }
 
 /* ─────────────────────────────────────────────── */
-/* BOTONES ESTANDARIZADOS - PALETA OFICIAL         */
+/* BOTONES ESTANDARIZADOS                          */
 /* ─────────────────────────────────────────────── */
-.btn-primario { background: #1B396A; color: #FFFFFF; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 6px; cursor: pointer; font-family: inherit; transition: background 0.2s; white-space: nowrap; }
-.btn-primario:hover:not(:disabled) { background: #1D4ED8; }
-.btn-primario:disabled { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
+.btn-primario {
+  background: linear-gradient(135deg, #0B2545, #1D52B7);
+  color: #FFFFFF;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(29,82,183,.25);
+}
+.btn-primario:hover:not(:disabled) { opacity: 0.9; box-shadow: 0 6px 18px rgba(29,82,183,.35); }
+.btn-primario:disabled { background: #E0E0E0; color: #9CA3AF; cursor: not-allowed; box-shadow: none; }
 
-.btn-secundario { background: #DBEAFE; color: #1B396A; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 6px; cursor: pointer; font-family: inherit; transition: background 0.2s; white-space: nowrap; }
-.btn-secundario:hover:not(:disabled) { background: #BFDBFE; }
+.btn-secundario {
+  background: rgba(29,82,183,.08);
+  color: #0B2545;
+  border: 1px solid rgba(29,82,183,.15);
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.btn-secundario:hover:not(:disabled) { background: rgba(29,82,183,.14); border-color: rgba(29,82,183,.25); }
 .btn-secundario:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.btn-cancelar { background: #FFFFFF; color: #6B7280; border: 1px solid #E5E7EB; padding: 10px 1.4rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; font-family: inherit; transition: background 0.2s; }
-.btn-cancelar:hover { background: #F5F5F5; }
+.btn-cancelar {
+  background: #FFFFFF;
+  color: #4F4F4F;
+  border: 1.5px solid #E4E9F0;
+  padding: 10px 1.4rem;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-cancelar:hover { background: #F4F6F9; border-color: #C8D3E8; }
 
 .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); border-top-color: #FFFFFF; animation: spin 0.7s linear infinite; flex-shrink: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -1236,9 +1485,9 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
 /* ─────────────────────────────────────────────── */
 /* TOAST                                           */
 /* ─────────────────────────────────────────────── */
-.toast { position: fixed; bottom: 2rem; right: 2rem; padding: 0.9rem 1.4rem; border-radius: 10px; font-weight: 700; font-size: 0.9rem; font-family: 'Montserrat', sans-serif; display: flex; align-items: center; gap: 0.6rem; box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 3000; max-width: 380px; color: #FFFFFF; }
-.toast.exito { background: #1B396A; }
-.toast.error { background: #DC2626; }
+.toast { position: fixed; bottom: 2rem; right: 2rem; padding: 0.9rem 1.4rem; border-radius: 12px; font-weight: 700; font-size: 0.9rem; font-family: 'Montserrat', sans-serif; display: flex; align-items: center; gap: 0.6rem; box-shadow: 0 12px 30px rgba(0,0,0,.18); z-index: 3000; max-width: 380px; color: #FFFFFF; }
+.toast.exito { background: linear-gradient(135deg, #0B2545, #1A4184); }
+.toast.error { background: #EB5757; }
 .toast.info  { background: #2563EB; }
 .toast-slide-enter-active { transition: all 0.3s ease; }
 .toast-slide-leave-active { transition: all 0.25s ease; }
@@ -1253,82 +1502,20 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
 
 /* ─────────────────────────────────────────────── */
-/* KPIs DASHBOARD                                  */
-/* ─────────────────────────────────────────────── */
-.kpis-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-.kpi-card {
-  background: #FFFFFF;
-  border: 1px solid #E0E0E0;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(29, 82, 183, 0.05);
-  padding: 1.2rem 1.4rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.kpi-card:hover {
-  box-shadow: 0 6px 20px rgba(29, 82, 183, 0.1);
-  transform: translateY(-2px);
-}
-.kpi-icono-wrap {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.kpi-activos    { background: rgba(39, 174, 96, 0.10); }
-.kpi-proximos   { background: rgba(29, 82, 183, 0.15); }
-.kpi-finalizados { background: rgba(189, 189, 189, 0.20); }
-.kpi-datos {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.kpi-numero {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #333333;
-  line-height: 1;
-  font-family: 'Montserrat', sans-serif;
-}
-.kpi-label {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #828282;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-@media (max-width: 640px) {
-  .kpis-grid { grid-template-columns: 1fr; }
-}
-
-/* ─────────────────────────────────────────────── */
 /* RESPONSIVE                                      */
 /* ─────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .filtros-card { flex-direction: column; align-items: stretch; }
   .busqueda-wrap { min-width: auto; }
-  .filtros-card .btn-secundario { width: 100%; justify-content: center; }
+  .btn-filtros-premium { width: 100%; justify-content: center; }
 
-  /* Cards próximas en móvil */
   .evento-card { flex-direction: column; align-items: flex-start; }
   .evento-card-acciones { width: 100%; flex-direction: row; }
   .btn-card-accion { flex: 1; }
 
-  /* Modales en móvil */
   .modal-caja,
   .modal-caja.modal-ancho,
-  .modal-detalle { width: 100%; max-width: 100%; margin: 0; border-radius: 12px; }
+  .modal-detalle { width: 100%; max-width: 100%; margin: 0; border-radius: 16px; }
 
   .modal-cabecera,
   .modal-cuerpo,
@@ -1339,10 +1526,12 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
 
   .modal-filtros { width: 92vw; }
 
-  /* Detalle en móvil */
   .detalle-meta-grid { grid-template-columns: 1fr; }
   .modal-detalle-cabecera { flex-direction: column; gap: 0.75rem; }
   .detalle-pie { flex-direction: column; align-items: stretch; }
   .detalle-pie-derecha { justify-content: flex-end; }
+
+  .kpis-row { gap: 0.75rem; }
+  .kpi-card { min-width: 140px; }
 }
 </style>

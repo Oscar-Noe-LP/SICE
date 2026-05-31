@@ -10,51 +10,199 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
+// Para exportación PDF
+use Barryvdh\DomPDF\Facade\Pdf;
+
 class AlumnoController extends Controller
 {
-    public function index()
+    // =====================================================================
+    //  HELPERS
+    // =====================================================================
+
+    /**
+     * Query base que siempre retorna los campos necesarios para la vista.
+     * Se reutiliza en index(), kpis(), exportCsv() y exportPdf().
+     */
+    private function queryAlumnos(): \Illuminate\Database\Query\Builder
+    {
+        return DB::table('alumno as a')
+            ->join('persona as p',          'a.id_persona',        '=', 'p.id_persona')
+            ->join('carrera as c',          'a.id_carrera',        '=', 'c.id_carrera')
+            ->join('estatus_alumno as ea',  'a.id_estatus_alumno', '=', 'ea.id_estatus_alumno')
+            // especialidad viene de docente (si el alumno también es docente) o de otro lado;
+            // como en este sistema no hay campo especialidad en alumno, lo exponemos desde carrera
+            // si en el futuro se agrega a alumno, sólo se cambia aquí.
+            ->select(
+                'a.id_alumno',
+                'a.numero_control',
+                'a.id_carrera',
+                'a.id_persona',
+                'a.semestre_actual',
+                'a.fecha_ingreso',
+                'a.estatus',
+                'a.id_estatus_alumno',
+                'ea.nombre as estatus_nombre',
+                'c.nombre as nombre_carrera',
+                DB::raw("CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno,'')) as nombre_completo"),
+                'p.nombre as p_nombre',
+                'p.apellido_paterno',
+                'p.apellido_materno',
+                'p.curp',
+                'p.fecha_nacimiento',
+                'p.id_genero'
+            );
+    }
+
+    /**
+     * Aplica los filtros comunes de la vista (carrera, semestre, estatus, búsqueda).
+     */
+    private function aplicarFiltros(\Illuminate\Database\Query\Builder $q, Request $request): \Illuminate\Database\Query\Builder
+    {
+        if ($request->filled('id_carrera')) {
+            $q->where('a.id_carrera', $request->id_carrera);
+        }
+        if ($request->filled('semestre')) {
+            $q->where('a.semestre_actual', $request->semestre);
+        }
+        if ($request->filled('id_estatus_alumno')) {
+            $q->where('a.id_estatus_alumno', $request->id_estatus_alumno);
+        }
+        if ($request->filled('busqueda')) {
+            $b = '%' . $request->busqueda . '%';
+            $q->where(function ($sub) use ($b) {
+                $sub->where('a.numero_control', 'like', $b)
+                    ->orWhereRaw("CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno,'')) like ?", [$b]);
+            });
+        }
+        return $q;
+    }
+
+    // =====================================================================
+    //  LISTADO PRINCIPAL  GET /api/alumnos-crud
+    // =====================================================================
+
+    public function index(Request $request)
     {
         try {
-            // Se incluye estatusAlumno para el campo "estatus"
-            $alumnos = Alumno::with(['persona', 'carrera', 'estatusAlumno'])->get();
+            $q = $this->queryAlumnos();
+            $q = $this->aplicarFiltros($q, $request);
+            $alumnos = $q->orderBy('p.apellido_paterno')->get();
 
-            return $alumnos->map(function ($a) {
-                return [
-                    'id_alumno'         => $a->id_alumno,
-                    'numero_control'    => $a->numero_control,
-                    'id_carrera'        => $a->id_carrera,
-                    'semestre_actual'   => $a->semestre_actual,
-                    'fecha_ingreso'     => $a->fecha_ingreso,
-                    'id_estatus_alumno' => $a->id_estatus_alumno,
-                    // "estatus" siempre es el nombre legible; fallback a Activo/Inactivo
-                    'estatus'           => $a->estatusAlumno?->nombre
-                        ?? ($a->estatus ? 'Activo' : 'Inactivo'),
-                    'persona'           => $a->persona,
-                    // Se expone el objeto carrera con nombre_carrera para compatibilidad
-                    // con el template del Vue (alumno.carrera?.nombre_carrera)
-                    'carrera'           => $a->carrera ? [
-                        'id_carrera'    => $a->carrera->id_carrera,
-                        'nombre_carrera' => $a->carrera->nombre,
-                        'nombre'        => $a->carrera->nombre,
-                    ] : null,
-                    // nombre aplanado para facilitar búsqueda en el frontend
-                    'nombre'            => trim(
-                        ($a->persona->nombre          ?? '') . ' ' .
-                            ($a->persona->apellido_paterno ?? '') . ' ' .
-                            ($a->persona->apellido_materno ?? '')
-                    ),
-                ];
-            });
+            return response()->json($alumnos->map(fn($a) => $this->formatearAlumno($a)));
         } catch (\Exception $e) {
             Log::error("Error index alumnos: " . $e->getMessage());
             return response()->json(['error' => 'Error al cargar alumnos'], 500);
         }
     }
 
+    /**
+     * Convierte una fila plana (query builder) al formato que espera el frontend.
+     */
+    private function formatearAlumno(object $a): array
+    {
+        return [
+            'id_alumno'         => $a->id_alumno,
+            'numero_control'    => $a->numero_control,
+            'id_carrera'        => $a->id_carrera,
+            'id_persona'        => $a->id_persona,
+            'semestre_actual'   => $a->semestre_actual,
+            'fecha_ingreso'     => $a->fecha_ingreso,
+            'id_estatus_alumno' => $a->id_estatus_alumno,
+            'estatus'           => $a->estatus_nombre ?? $a->estatus ?? 'Activo',
+            // nombre aplanado para búsqueda / tabla
+            'nombre'            => trim($a->nombre_completo ?? ''),
+            // objeto carrera compatible con alumno.carrera?.nombre_carrera en el Vue
+            'carrera' => [
+                'id_carrera'     => $a->id_carrera,
+                'nombre_carrera' => $a->nombre_carrera ?? '',
+                'nombre'         => $a->nombre_carrera ?? '',
+            ],
+            // objeto persona para la ficha de detalle
+            'persona' => [
+                'id_persona'       => $a->id_persona,
+                'nombre'           => $a->p_nombre,
+                'apellido_paterno' => $a->apellido_paterno,
+                'apellido_materno' => $a->apellido_materno,
+                'curp'             => $a->curp,
+                'fecha_nacimiento' => $a->fecha_nacimiento,
+                'id_genero'        => $a->id_genero,
+            ],
+        ];
+    }
+
+    // =====================================================================
+    //  KPIs  GET /api/alumnos/kpis
+    // =====================================================================
+
+    public function kpis()
+    {
+        try {
+            $totales = DB::table('alumno as a')
+                ->join('estatus_alumno as ea', 'a.id_estatus_alumno', '=', 'ea.id_estatus_alumno')
+                ->select('ea.nombre as estatus', DB::raw('COUNT(*) as total'))
+                ->groupBy('ea.nombre')
+                ->get()
+                ->keyBy('estatus');
+
+            return response()->json([
+                'total'           => DB::table('alumno')->count(),
+                'activos'         => $totales['Activo']->total          ?? 0,
+                'baja_temporal'   => $totales['Baja Temporal']->total   ?? 0,
+                'baja_definitiva' => $totales['Baja Definitiva']->total ?? 0,
+                'egresados'       => $totales['Egresado']->total        ?? 0,
+                'titulados'       => $totales['Titulado']->total        ?? 0,
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error kpis alumnos: " . $e->getMessage());
+            return response()->json(['error' => 'Error al calcular KPIs'], 500);
+        }
+    }
+
+    // =====================================================================
+    //  CATÁLOGOS  GET /api/alumnos/catalogos
+    // =====================================================================
+
+    public function catalogos()
+    {
+        try {
+            return response()->json([
+                'generos' => DB::table('genero')
+                    ->select('id_genero', 'nombre_genero')
+                    ->get(),
+
+                'carreras' => DB::table('carrera')
+                    ->select('id_carrera', 'nombre')
+                    ->where('estatus', true)
+                    ->orderBy('nombre')
+                    ->get(),
+
+                'estatus_alumno' => DB::table('estatus_alumno')
+                    ->select('id_estatus_alumno', 'nombre')
+                    ->orderBy('id_estatus_alumno')
+                    ->get(),
+
+                // Especialidades: se obtienen de las carreras activas;
+                // si en el futuro hay tabla propia, sólo se cambia aquí.
+                'especialidades' => DB::table('carrera')
+                    ->select('id_carrera as id', 'nombre')
+                    ->where('estatus', true)
+                    ->orderBy('nombre')
+                    ->get(),
+
+                'niveles' => DB::table('nivel_carrera')->get(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    //  CREAR  POST /api/alumnos
+    // =====================================================================
+
     public function store(Request $request)
     {
         DB::beginTransaction();
-
         try {
             $request->validate([
                 'numero_control'    => 'required|string|unique:alumno,numero_control',
@@ -68,10 +216,9 @@ class AlumnoController extends Controller
             ]);
 
             $idGenero = DB::table('genero')
-                ->where('nombre_genero', $request->genero ?? '')
+                ->where('nombre_genero', $request->genero)
                 ->value('id_genero');
 
-            // Crear Persona
             $persona = Persona::create([
                 'nombre'           => $request->nombre,
                 'apellido_paterno' => $request->apellido_paterno,
@@ -81,12 +228,10 @@ class AlumnoController extends Controller
                 'fecha_nacimiento' => $request->fecha_nacimiento ?? null,
             ]);
 
-            // Resolver nombre legible del estatus desde el catálogo
             $estatusNombre = DB::table('estatus_alumno')
                 ->where('id_estatus_alumno', $request->id_estatus_alumno)
                 ->value('nombre') ?? 'Activo';
 
-            // Crear Alumno
             $alumno = Alumno::create([
                 'numero_control'    => $request->numero_control,
                 'id_persona'        => $persona->id_persona,
@@ -107,7 +252,7 @@ class AlumnoController extends Controller
 
             return response()->json([
                 'message' => 'Alumno registrado correctamente',
-                'data'    => $alumno->load(['persona', 'carrera'])
+                'data'    => $alumno->load(['persona', 'carrera', 'estatusAlumno'])
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -115,12 +260,13 @@ class AlumnoController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error al crear alumno: " . $e->getMessage());
-            return response()->json([
-                'error'   => 'Error interno del servidor',
-                'detalle' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => 'Error interno del servidor', 'detalle' => $e->getMessage()], 500);
         }
     }
+
+    // =====================================================================
+    //  ACTUALIZAR  PUT /api/alumnos/{id}
+    // =====================================================================
 
     public function update(Request $request, $id)
     {
@@ -128,42 +274,56 @@ class AlumnoController extends Controller
         try {
             Log::info("Actualizando alumno ID: {$id}", $request->all());
 
-            $alumno = Alumno::findOrFail($id);
+            $alumno = Alumno::with('persona')->findOrFail($id);
 
-            if ($alumno->persona) {
-                $nombreCompleto = explode(' ', trim($request->nombre));
-                $nombre           = $nombreCompleto[0] ?? '';
-                $apellido_paterno = $nombreCompleto[1] ?? '';
-                $apellido_materno = implode(' ', array_slice($nombreCompleto, 2));
+            // Actualizar datos de persona
+            if ($alumno->persona && $request->filled('nombre')) {
+                // Soporte para enviar nombre/apellido por separado O como nombre completo
+                if ($request->filled('apellido_paterno')) {
+                    $alumno->persona->update([
+                        'nombre'           => $request->nombre,
+                        'apellido_paterno' => $request->apellido_paterno,
+                        'apellido_materno' => $request->apellido_materno ?? $alumno->persona->apellido_materno,
+                    ]);
+                } else {
+                    // Compatibilidad: el Vue envía el nombre completo en un solo campo
+                    $partes            = explode(' ', trim($request->nombre));
+                    $nombre           = $partes[0] ?? '';
+                    $apellido_paterno = $partes[1] ?? '';
+                    $apellido_materno = implode(' ', array_slice($partes, 2));
+                    $alumno->persona->update([
+                        'nombre'           => $nombre,
+                        'apellido_paterno' => $apellido_paterno,
+                        'apellido_materno' => $apellido_materno ?: $alumno->persona->apellido_materno,
+                    ]);
+                }
+            }
 
-                $alumno->persona->update([
-                    'nombre'           => $nombre,
-                    'apellido_paterno' => $apellido_paterno,
-                    'apellido_materno' => $apellido_materno,
-                ]);
+            // Resolver nombre de estatus si se envía id_estatus_alumno
+            $estatusNombre = $alumno->estatus;
+            if ($request->filled('id_estatus_alumno')) {
+                $estatusNombre = DB::table('estatus_alumno')
+                    ->where('id_estatus_alumno', $request->id_estatus_alumno)
+                    ->value('nombre') ?? $alumno->estatus;
             }
 
             $alumno->update([
-                'id_carrera'        => $request->id_carrera      ?? $alumno->id_carrera,
-                'semestre_actual'   => $request->semestre_actual  ?? $alumno->semestre_actual,
-                'estatus'           => $request->estatus           ?? $alumno->estatus,
+                'id_carrera'        => $request->id_carrera        ?? $alumno->id_carrera,
+                'semestre_actual'   => $request->semestre_actual   ?? $alumno->semestre_actual,
+                'estatus'           => $estatusNombre,
                 'id_estatus_alumno' => $request->id_estatus_alumno ?? $alumno->id_estatus_alumno,
             ]);
 
             DB::commit();
 
             BitacoraService::registrar(
-                'UPDATE',
-                'alumno',
-                $id,
+                'UPDATE', 'alumno', $id,
                 ['id_carrera' => $alumno->getOriginal('id_carrera'), 'semestre_actual' => $alumno->getOriginal('semestre_actual'), 'estatus' => $alumno->getOriginal('estatus')],
-                ['id_carrera' => $request->id_carrera, 'semestre_actual' => $request->semestre_actual, 'estatus' => $request->estatus]
+                ['id_carrera' => $request->id_carrera, 'semestre_actual' => $request->semestre_actual, 'estatus' => $estatusNombre]
             );
 
-            // Recargar con la relación de estatus para que la respuesta incluya el nombre correcto
             $alumno->load(['persona', 'carrera', 'estatusAlumno']);
-            $alumno->estatus = $alumno->estatusAlumno?->nombre
-                ?? ($alumno->estatus ? 'Activo' : 'Inactivo');
+            $alumno->estatus = $alumno->estatusAlumno?->nombre ?? $estatusNombre;
 
             return response()->json([
                 'message' => 'Alumno actualizado con éxito',
@@ -172,102 +332,74 @@ class AlumnoController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Error al actualizar alumno ID {$id}: " . $e->getMessage());
-            return response()->json([
-                'error'   => 'No se pudo actualizar el alumno',
-                'detalle' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => 'No se pudo actualizar el alumno', 'detalle' => $e->getMessage()], 500);
         }
     }
+
+    // =====================================================================
+    //  ELIMINAR  DELETE /api/alumnos/{id}
+    // =====================================================================
 
     public function destroy($id)
     {
         DB::beginTransaction();
-
         try {
-            $alumno = Alumno::with('persona')->findOrFail($id);
+            $alumno    = Alumno::with('persona')->findOrFail($id);
             $idPersona = $alumno->id_persona;
 
-            // ==================== 1. KARDEX (agregado en correcion2.sql) ====================
-            // detalle_kardex referencia kardex, que referencia alumno → hay que borrar primero
-            $kardexIds = DB::table('kardex')
-                ->where('id_alumno', $id)
-                ->pluck('id_kardex');
-
+            // 1. Kardex
+            $kardexIds = DB::table('kardex')->where('id_alumno', $id)->pluck('id_kardex');
             if ($kardexIds->isNotEmpty()) {
                 DB::table('detalle_kardex')->whereIn('id_kardex', $kardexIds)->delete();
                 DB::table('kardex')->whereIn('id_kardex', $kardexIds)->delete();
             }
 
-            // ==================== 2. CALIFICACIONES E INSCRIPCIONES ====================
-            // calificacion referencia inscripcion → borrar calificacion primero
-            $inscripcionIds = DB::table('inscripcion')
-                ->where('id_alumno', $id)
-                ->pluck('id_inscripcion');
-
+            // 2. Calificaciones e inscripciones
+            $inscripcionIds = DB::table('inscripcion')->where('id_alumno', $id)->pluck('id_inscripcion');
             if ($inscripcionIds->isNotEmpty()) {
                 DB::table('calificacion')->whereIn('id_inscripcion', $inscripcionIds)->delete();
             }
             DB::table('inscripcion')->where('id_alumno', $id)->delete();
 
-            // ==================== 3. PARTICIPACIÓN EN EVENTOS ====================
+            // 3. Participación en eventos
             DB::table('participacion_evento')->where('id_alumno', $id)->delete();
 
-            // ==================== 4. REGISTRO DE ALUMNO ====================
+            // 4. Alumno
             DB::table('alumno')->where('id_alumno', $id)->delete();
 
-            // ==================== 5. DATOS DE CONTACTO DE PERSONA ====================
+            // 5. Contacto de persona
             DB::table('persona_correo')->where('id_persona', $idPersona)->delete();
             DB::table('persona_telefono')->where('id_persona', $idPersona)->delete();
             DB::table('persona_direccion')->where('id_persona', $idPersona)->delete();
 
-            // ==================== 6. COMITÉ ACADÉMICO ====================
-            // resolucion_comite referencia solicitud_comite → borrar resoluciones primero
-            $solicitudIds = DB::table('solicitud_comite')
-                ->where('id_persona', $idPersona)
-                ->pluck('id_solicitud');
-
+            // 6. Comité académico
+            $solicitudIds = DB::table('solicitud_comite')->where('id_persona', $idPersona)->pluck('id_solicitud');
             if ($solicitudIds->isNotEmpty()) {
                 DB::table('resolucion_comite')->whereIn('id_solicitud', $solicitudIds)->delete();
                 DB::table('solicitud_comite')->whereIn('id_solicitud', $solicitudIds)->delete();
             }
 
-            // ==================== 7. USUARIOS Y BITÁCORA ====================
-            $usuarioIds = DB::table('usuario')
-                ->where('id_persona', $idPersona)
-                ->pluck('id_usuario');
-
+            // 7. Usuarios y bitácora
+            $usuarioIds = DB::table('usuario')->where('id_persona', $idPersona)->pluck('id_usuario');
             if ($usuarioIds->isNotEmpty()) {
                 DB::table('bitacora')->whereIn('id_usuario', $usuarioIds)->delete();
                 DB::table('usuario_rol')->whereIn('id_usuario', $usuarioIds)->delete();
                 DB::table('usuario')->whereIn('id_usuario', $usuarioIds)->delete();
             }
 
-            // ==================== 8. EMPLEADO / DOCENTE ====================
-            // Si la persona también era empleado/docente, se limpia esa relación.
-            // Se borra en orden: adscripcion y docente (que referencian empleado) antes que empleado.
-            $empleadoIds = DB::table('empleado')
-                ->where('id_persona', $idPersona)
-                ->pluck('id_empleado');
-
+            // 8. Empleado / docente
+            $empleadoIds = DB::table('empleado')->where('id_persona', $idPersona)->pluck('id_empleado');
             if ($empleadoIds->isNotEmpty()) {
-                // Si era docente, sus grupos quedan sin docente asignado (id_docente = NULL)
-                // en lugar de borrar los grupos o las inscripciones de otros alumnos.
-                $docenteIds = DB::table('docente')
-                    ->whereIn('id_empleado', $empleadoIds)
-                    ->pluck('id_docente');
-
+                $docenteIds = DB::table('docente')->whereIn('id_empleado', $empleadoIds)->pluck('id_docente');
                 if ($docenteIds->isNotEmpty()) {
-                    DB::table('grupo')
-                        ->whereIn('id_docente', $docenteIds)
-                        ->update(['id_docente' => null]);
+                    DB::table('grupo')->whereIn('id_docente', $docenteIds)->update(['id_docente' => null]);
                 }
-
                 DB::table('adscripcion')->whereIn('id_empleado', $empleadoIds)->delete();
                 DB::table('docente')->whereIn('id_empleado', $empleadoIds)->delete();
                 DB::table('empleado')->whereIn('id_empleado', $empleadoIds)->delete();
             }
 
-            // ==================== 9. PERSONA ====================
+            // 9. Persona
             DB::table('persona')->where('id_persona', $idPersona)->delete();
 
             DB::commit();
@@ -281,60 +413,30 @@ class AlumnoController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("ERROR DELETE ALUMNO ID {$id}: " . $e->getMessage());
-
-            return response()->json([
-                'error'   => 'No se pudo eliminar al alumno.',
-                'detalle' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => 'No se pudo eliminar al alumno.', 'detalle' => $e->getMessage()], 500);
         }
     }
 
-    /**
-     * Retorna catálogos necesarios para el formulario de Alumnos
-     */
-    public function catalogos()
-    {
-        try {
-            return response()->json([
-                'generos' => DB::table('genero')->select('id_genero', 'nombre_genero')->get(),
-
-                'carreras' => DB::table('carrera')
-                    ->select('id_carrera', 'nombre')
-                    ->where('estatus', true)
-                    ->orderBy('nombre')
-                    ->get(),
-
-                'estatus_alumno' => DB::table('estatus_alumno')
-                    ->select('id_estatus_alumno', 'nombre')
-                    ->get(),
-
-                'niveles' => DB::table('nivel_carrera')->get(), // por si lo necesitas después
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
+    // =====================================================================
+    //  HORARIO  GET /api/horario/{numero_control}
+    // =====================================================================
 
     public function horario($numero_control)
     {
         try {
-            $alumno = Alumno::where('numero_control', $numero_control)
-                ->firstOrFail();
+            $alumno = Alumno::where('numero_control', $numero_control)->firstOrFail();
 
             $horario = DB::table('inscripcion as i')
-                ->join('grupo as g',       'i.id_grupo',    '=', 'g.id_grupo')
-                ->join('materia as m',     'g.id_materia',  '=', 'm.id_materia')
-                ->leftJoin('docente as d', 'g.id_docente',  '=', 'd.id_docente')
-                ->leftJoin('empleado as e','d.id_empleado', '=', 'e.id_empleado')
-                ->leftJoin('persona as p', 'e.id_persona',  '=', 'p.id_persona')
+                ->join('grupo as g',        'i.id_grupo',    '=', 'g.id_grupo')
+                ->join('materia as m',      'g.id_materia',  '=', 'm.id_materia')
+                ->leftJoin('docente as d',  'g.id_docente',  '=', 'd.id_docente')
+                ->leftJoin('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+                ->leftJoin('persona as p',  'e.id_persona',  '=', 'p.id_persona')
                 ->where('i.id_alumno', $alumno->id_alumno)
                 ->select(
                     'g.id_grupo as id',
-                    'm.nombre as nombre',              
-                    'g.dia',                           
+                    'm.nombre as nombre',
+                    'g.dia',
                     'g.hora_inicio',
                     'g.hora_fin',
                     'g.id_aula',
@@ -344,12 +446,109 @@ class AlumnoController extends Controller
                 ->get();
 
             return response()->json($horario);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['error' => 'Alumno no encontrado'], 404);
         } catch (\Exception $e) {
-            Log::error("Error al cargar horario del alumno {$numero_control}: " . $e->getMessage());
+            Log::error("Error horario alumno {$numero_control}: " . $e->getMessage());
             return response()->json(['error' => 'Error al cargar horario', 'detalle' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    //  EXPORTAR CSV  GET /api/alumnos/exportar-csv
+    // =====================================================================
+
+    public function exportarCsv(Request $request)
+    {
+        try {
+            $q       = $this->queryAlumnos();
+            $q       = $this->aplicarFiltros($q, $request);
+            $alumnos = $q->orderBy('p.apellido_paterno')->get();
+
+            $filename = 'alumnos_' . now()->format('Ymd_His') . '.csv';
+
+            $headers = [
+                'Content-Type'        => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            ];
+
+            $callback = function () use ($alumnos) {
+                $handle = fopen('php://output', 'w');
+                // BOM para Excel en español
+                fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+                // Encabezado
+                fputcsv($handle, [
+                    'No. Control', 'Nombre', 'Apellido Paterno', 'Apellido Materno',
+                    'Carrera', 'Semestre', 'Estatus', 'Fecha Ingreso', 'CURP'
+                ]);
+
+                foreach ($alumnos as $a) {
+                    fputcsv($handle, [
+                        $a->numero_control,
+                        $a->p_nombre,
+                        $a->apellido_paterno,
+                        $a->apellido_materno,
+                        $a->nombre_carrera,
+                        $a->semestre_actual,
+                        $a->estatus_nombre,
+                        $a->fecha_ingreso,
+                        $a->curp,
+                    ]);
+                }
+                fclose($handle);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        } catch (\Exception $e) {
+            Log::error("Error exportar CSV alumnos: " . $e->getMessage());
+            return response()->json(['error' => 'Error al generar CSV'], 500);
+        }
+    }
+
+    // =====================================================================
+    //  EXPORTAR PDF  GET /api/alumnos/exportar-pdf
+    //  Requiere: barryvdh/laravel-dompdf  (composer require barryvdh/laravel-dompdf)
+    // =====================================================================
+
+    public function exportarPdf(Request $request)
+    {
+        try {
+            $q       = $this->queryAlumnos();
+            $q       = $this->aplicarFiltros($q, $request);
+            $alumnos = $q->orderBy('p.apellido_paterno')->get()->map(fn($a) => $this->formatearAlumno($a));
+
+            // KPIs para el encabezado del PDF
+            $kpis = [
+                'total'    => $alumnos->count(),
+                'activos'  => $alumnos->where('estatus', 'Activo')->count(),
+                'bajas'    => $alumnos->whereIn('estatus', ['Baja Temporal', 'Baja Definitiva'])->count(),
+                'egresados'=> $alumnos->whereIn('estatus', ['Egresado', 'Titulado'])->count(),
+            ];
+
+            $filtrosAplicados = array_filter([
+                'Carrera'  => $request->filled('id_carrera')
+                    ? DB::table('carrera')->where('id_carrera', $request->id_carrera)->value('nombre')
+                    : null,
+                'Semestre' => $request->filled('semestre') ? $request->semestre . '°' : null,
+                'Estatus'  => $request->filled('id_estatus_alumno')
+                    ? DB::table('estatus_alumno')->where('id_estatus_alumno', $request->id_estatus_alumno)->value('nombre')
+                    : null,
+            ]);
+
+            $pdf = Pdf::loadView('pdf.alumnos', [
+                'alumnos'          => $alumnos,
+                'kpis'             => $kpis,
+                'filtrosAplicados' => $filtrosAplicados,
+                'fecha'            => now()->format('d/m/Y H:i'),
+            ])->setPaper('letter', 'landscape');
+
+            $filename = 'alumnos_' . now()->format('Ymd_His') . '.pdf';
+
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            Log::error("Error exportar PDF alumnos: " . $e->getMessage());
+            return response()->json(['error' => 'Error al generar PDF', 'detalle' => $e->getMessage()], 500);
         }
     }
 }
