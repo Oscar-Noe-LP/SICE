@@ -76,6 +76,40 @@ class AdeudoController extends Controller
     }
 
     /**
+     * PUT /api/adeudos/{id}
+     * Editar concepto, monto o fecha_limite de un adeudo
+     */
+    public function update(Request $request, int $id)
+    {
+        $adeudo = DB::table('adeudo')->where('id_adeudo', $id)->first();
+
+        if (!$adeudo) {
+            return response()->json(['error' => 'Adeudo no encontrado'], 404);
+        }
+
+        $request->validate([
+            'concepto'     => 'sometimes|string|max:150',
+            'monto'        => 'sometimes|numeric|min:0',
+            'fecha_limite' => 'sometimes|nullable|date',
+            'pagado'       => 'sometimes|boolean',
+        ]);
+
+        $campos = array_filter([
+            'concepto'     => $request->concepto,
+            'monto'        => $request->monto,
+            'fecha_limite' => $request->fecha_limite,
+            'pagado'       => $request->has('pagado') ? $request->pagado : null,
+            'updated_at'   => now(),
+        ], fn($v) => $v !== null);
+
+        DB::table('adeudo')->where('id_adeudo', $id)->update($campos);
+
+        BitacoraService::registrar('UPDATE', 'adeudo', $id, (array) $adeudo, $campos);
+
+        return response()->json(['mensaje' => 'Adeudo actualizado', 'id_adeudo' => $id]);
+    }
+
+    /**
      * PUT /api/adeudos/{id}/marcar-pagado
      * Marcar un adeudo como pagado
      */

@@ -366,6 +366,7 @@ use App\Http\Controllers\Api\AdeudoController;
 
 Route::get('/adeudos',                       [AdeudoController::class, 'index']);
 Route::post('/adeudos',                      [AdeudoController::class, 'store']);
+Route::put('/adeudos/{id}',                  [AdeudoController::class, 'update']);
 Route::put('/adeudos/{id}/marcar-pagado',    [AdeudoController::class, 'marcarPagado']);
 Route::delete('/adeudos/{id}',               [AdeudoController::class, 'destroy']);
 
