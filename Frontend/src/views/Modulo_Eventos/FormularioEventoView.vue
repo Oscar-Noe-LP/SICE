@@ -12,11 +12,11 @@
 
       <!-- Breadcrumb -->
       <div class="breadcrumb">
-        <router-link to="/dashboard" class="breadcrumb-link">Inicio</router-link>
+        <router-link to="/dashboard" class="breadcrumb-link">INICIO</router-link>
         <span class="sep">›</span>
-        <router-link to="/eventos" class="breadcrumb-link">Eventos</router-link>
+        <router-link to="/eventos" class="breadcrumb-link">EVENTOS</router-link>
         <span class="sep">›</span>
-        <span class="activo">{{ modoEdicion ? 'Editar Evento' : 'Nuevo Evento' }}</span>
+        <span class="activo">{{ modoEdicion ? 'EDITAR EVENTO' : 'NUEVO EVENTO' }}</span>
       </div>
 
       <!-- Encabezado -->
@@ -30,8 +30,8 @@
           </svg>
         </div>
         <div>
-          <h1 class="titulo-pagina">{{ modoEdicion ? 'Editar Evento' : 'Nuevo Evento' }}</h1>
-          <p class="subtitulo">{{ modoEdicion ? 'Modifica la información del evento' : 'Completa la información para registrar un nuevo evento' }}</p>
+          <h1 class="titulo-pagina">{{ modoEdicion ? 'EDITAR EVENTO' : 'NUEVO EVENTO' }}</h1>
+          <p class="subtitulo">{{ modoEdicion ? 'MODIFICA LA INFORMACIÓN DEL EVENTO' : 'COMPLETA LA INFORMACIÓN PARA REGISTRAR UN NUEVO EVENTO' }}</p>
         </div>
       </div>
 
@@ -48,8 +48,8 @@
               </svg>
             </div>
             <div>
-              <h2 class="seccion-nombre">Información del Evento</h2>
-              <p class="seccion-desc">Datos generales del evento institucional</p>
+              <h2 class="seccion-nombre">INFORMACIÓN DEL EVENTO</h2>
+              <p class="seccion-desc">DATOS GENERALES DEL EVENTO INSTITUCIONAL</p>
             </div>
           </div>
           <div class="divisor"></div>
@@ -57,8 +57,8 @@
           <div class="campos-grid">
             <!-- Nombre -->
             <div class="campo-form campo-ancho">
-              <label class="campo-label">Nombre del Evento <span class="requerido">*</span></label>
-              <input v-model="form.nombre_evento" type="text" placeholder="Ej: Semana de Ingeniería 2026" class="campo-input" :class="{ 'campo-error': errores.nombre_evento }" @input="validarCampo('nombre_evento')" />
+              <label class="campo-label">NOMBRE DEL EVENTO <span class="requerido">*</span></label>
+              <input v-model="form.nombre_evento" type="text" placeholder="EJ: SEMANA DE INGENIERÍA 2026" class="campo-input" :class="{ 'campo-error': errores.nombre_evento }" @input="validarCampo('nombre_evento')" />
               <span v-if="errores.nombre_evento" class="mensaje-error">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 {{ errores.nombre_evento }}
@@ -67,10 +67,10 @@
 
             <!-- Tipo -->
             <div class="campo-form">
-              <label class="campo-label">Tipo de Evento <span class="requerido">*</span></label>
+              <label class="campo-label">TIPO DE EVENTO <span class="requerido">*</span></label>
               <div class="select-wrap">
                 <select v-model="form.id_tipo_evento" class="campo-input campo-select" :class="{ 'campo-error': errores.id_tipo_evento }" @change="validarCampo('id_tipo_evento')">
-                  <option value="">Selecciona un tipo</option>
+                  <option value="">SELECCIONA UN TIPO</option>
                   <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">{{ t.nombre_tipo }}</option>
                 </select>
                 <svg class="select-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
@@ -83,7 +83,7 @@
 
             <!-- Fecha -->
             <div class="campo-form">
-              <label class="campo-label">Fecha del Evento <span class="requerido">*</span></label>
+              <label class="campo-label">FECHA DEL EVENTO <span class="requerido">*</span></label>
               <div class="campo-fecha-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -101,7 +101,7 @@
 
             <!-- Hora Inicio -->
             <div class="campo-form">
-              <label class="campo-label">Hora de Inicio <span class="requerido">*</span></label>
+              <label class="campo-label">HORA DE INICIO <span class="requerido">*</span></label>
               <div class="campo-hora-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -116,7 +116,7 @@
 
             <!-- Hora Fin -->
             <div class="campo-form">
-              <label class="campo-label">Hora de Fin <span class="requerido">*</span></label>
+              <label class="campo-label">HORA DE FIN <span class="requerido">*</span></label>
               <div class="campo-hora-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -131,13 +131,13 @@
 
             <!-- Lugar -->
             <div class="campo-form campo-ancho">
-              <label class="campo-label">Lugar <span class="requerido">*</span></label>
+              <label class="campo-label">LUGAR <span class="requerido">*</span></label>
               <div class="campo-icono-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                   <circle cx="12" cy="10" r="3"/>
                 </svg>
-                <input v-model="form.lugar" type="text" placeholder="Ej: Auditorio principal, Sala de usos múltiples..." class="campo-input campo-input-icon" :class="{ 'campo-error': errores.lugar }" @input="validarCampo('lugar')" />
+                <input v-model="form.lugar" type="text" placeholder="EJ: AUDITORIO PRINCIPAL, SALA DE USOS MÚLTIPLES..." class="campo-input campo-input-icon" :class="{ 'campo-error': errores.lugar }" @input="validarCampo('lugar')" />
               </div>
               <span v-if="errores.lugar" class="mensaje-error">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -147,14 +147,14 @@
 
             <!-- Cupo -->
             <div class="campo-form">
-              <label class="campo-label">Cupo Máximo <span class="requerido">*</span></label>
+              <label class="campo-label">CUPO MÁXIMO <span class="requerido">*</span></label>
               <div class="campo-icono-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                <input v-model.number="form.cupo" type="number" min="1" placeholder="Ej: 100" class="campo-input campo-input-icon" :class="{ 'campo-error': errores.cupo }" @input="validarCampo('cupo')" />
+                <input v-model.number="form.cupo" type="number" min="1" placeholder="EJ: 100" class="campo-input campo-input-icon" :class="{ 'campo-error': errores.cupo }" @input="validarCampo('cupo')" />
               </div>
               <span v-if="errores.cupo" class="mensaje-error">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -164,13 +164,13 @@
 
             <!-- Responsable -->
             <div class="campo-form">
-              <label class="campo-label">Responsable <span class="requerido">*</span></label>
+              <label class="campo-label">RESPONSABLE <span class="requerido">*</span></label>
               <div class="campo-icono-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
-                <input v-model="form.responsable" type="text" placeholder="Nombre del responsable del evento" class="campo-input campo-input-icon" :class="{ 'campo-error': errores.responsable }" @input="validarCampo('responsable')" />
+                <input v-model="form.responsable" type="text" placeholder="NOMBRE DEL RESPONSABLE DEL EVENTO" class="campo-input campo-input-icon" :class="{ 'campo-error': errores.responsable }" @input="validarCampo('responsable')" />
               </div>
               <span v-if="errores.responsable" class="mensaje-error">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -180,7 +180,7 @@
 
             <!-- Constancia -->
             <div class="campo-form campo-ancho">
-              <label class="campo-label">Genera Constancia</label>
+              <label class="campo-label">GENERA CONSTANCIA</label>
               <div class="campo-toggle-card" :class="{ 'toggle-activo': form.genera_constancia }">
                 <div class="toggle-card-left">
                   <div class="toggle-card-icono" :class="{ 'icono-activo': form.genera_constancia }">
@@ -193,8 +193,8 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="toggle-card-titulo">Constancia de participación</p>
-                    <p class="toggle-card-desc">{{ form.genera_constancia ? 'Se generará constancia para los participantes' : 'No se generará constancia de participación' }}</p>
+                    <p class="toggle-card-titulo">CONSTANCIA DE PARTICIPACIÓN</p>
+                    <p class="toggle-card-desc">{{ form.genera_constancia ? 'SE GENERARÁ CONSTANCIA PARA LOS PARTICIPANTES' : 'NO SE GENERARÁ CONSTANCIA DE PARTICIPACIÓN' }}</p>
                   </div>
                 </div>
                 <label class="toggle">
@@ -206,9 +206,9 @@
 
             <!-- Descripción -->
             <div class="campo-form campo-ancho">
-              <label class="campo-label">Descripción</label>
-              <textarea v-model="form.descripcion" rows="4" placeholder="Describe brevemente el objetivo o contenido del evento..." class="campo-input campo-textarea"></textarea>
-              <span class="campo-hint">Opcional · Máx. recomendado 300 caracteres</span>
+              <label class="campo-label">DESCRIPCIÓN</label>
+              <textarea v-model="form.descripcion" rows="4" placeholder="DESCRIBE BREVEMENTE EL OBJETIVO O CONTENIDO DEL EVENTO..." class="campo-input campo-textarea"></textarea>
+              <span class="campo-hint">OPCIONAL · MÁX. RECOMENDADO 300 CARACTERES</span>
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
-            Cancelar
+            CANCELAR
           </button>
           <button type="submit" class="btn-primario" :disabled="cargando">
             <span v-if="cargando" class="spinner"></span>
@@ -228,12 +228,12 @@
               <polyline points="17 21 17 13 7 13 7 21"/>
               <polyline points="7 3 7 8 15 8"/>
             </svg>
-            {{ cargando ? 'Guardando...' : (modoEdicion ? 'Actualizar Evento' : 'Guardar Evento') }}
+            {{ cargando ? 'GUARDANDO...' : (modoEdicion ? 'ACTUALIZAR EVENTO' : 'GUARDAR EVENTO') }}
           </button>
         </div>
       </form>
 
-      <footer class="pie-pagina">© 2026 Tecnológico Nacional de México · Todos los derechos reservados</footer>
+      <footer class="pie-pagina">© 2026 TECNOLÓGICO NACIONAL DE MÉXICO · TODOS LOS DERECHOS RESERVADOS</footer>
     </div>
   </MainLayout>
 

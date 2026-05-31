@@ -10,11 +10,11 @@
       </div>
       
       <div class="breadcrumb">
-        <router-link to="/dashboard" class="breadcrumb-link">Inicio</router-link>
+        <router-link to="/dashboard" class="breadcrumb-link">INICIO</router-link>
         <span class="sep">›</span>
-        <router-link to="/eventos" class="breadcrumb-link">Eventos</router-link>
+        <router-link to="/eventos" class="breadcrumb-link">EVENTOS</router-link>
         <span class="sep">›</span>
-        <span class="activo">Participantes</span>
+        <span class="activo">PARTICIPANTES</span>
       </div>
       
       <div class="evento-resumen-card">
@@ -47,15 +47,15 @@
         </div>
         <div v-if="evento.cupo" class="resumen-cupo">
           <div class="cupo-item">
-            <span class="cupo-label">Cupo máximo</span>
+            <span class="cupo-label">CUPO MÁXIMO</span>
             <span class="cupo-valor">{{ evento.cupo }}</span>
           </div>
           <div class="cupo-item">
-            <span class="cupo-label">Inscritos</span>
+            <span class="cupo-label">INSCRITOS</span>
             <span class="cupo-valor">{{ participantes.length }}</span>
           </div>
           <div class="cupo-item">
-            <span class="cupo-label">Disponibles</span>
+            <span class="cupo-label">DISPONIBLES</span>
             <span class="cupo-valor cupo-disponible">{{ Math.max(0, evento.cupo - participantes.length) }}</span>
           </div>
         </div>
@@ -63,18 +63,18 @@
 
       <div class="tabla-header-acciones">
         <div>
-          <h2 class="seccion-titulo">Listado de Participantes</h2>
-          <p class="subtitulo">Alumnos registrados en este evento</p>
+          <h2 class="seccion-titulo">LISTADO DE PARTICIPANTES</h2>
+          <p class="subtitulo">ALUMNOS REGISTRADOS EN ESTE EVENTO</p>
         </div>
         <button @click="exportarCSV" class="btn-secundario" style="margin-right:0.5rem">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Exportar CSV
+          EXPORTAR CSV
         </button>
         <button @click="mostrarModalRegistro = true" class="btn-primario">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Registrar Participante
+          REGISTRAR PARTICIPANTE
         </button>
       </div>
       
@@ -83,12 +83,12 @@
           <table class="tabla-principal">
             <thead>
               <tr>
-                <th>No. de Control</th>
-                <th>Nombre Completo</th>
-                <th>Carrera</th>
-                <th class="centrado">Semestre</th>
-                <th class="centrado">Constancia</th>
-                <th class="centrado">Acciones</th>
+                <th>NO. DE CONTROL</th>
+                <th>NOMBRE COMPLETO</th>
+                <th>CARRERA</th>
+                <th class="centrado">SEMESTRE</th>
+                <th class="centrado">CONSTANCIA</th>
+                <th class="centrado">ACCIONES</th>
               </tr>
             </thead>
             <tbody>
@@ -97,26 +97,26 @@
                 <td>
                   <div class="alumno-info">
                     <div class="alumno-avatar">{{ iniciales(p.alumno?.nombre) }}</div>
-                    <span class="texto-principal">{{ p.alumno?.nombre || 'Sin nombre' }}</span>
+                    <span class="texto-principal">{{ p.alumno?.nombre || 'SIN NOMBRE' }}</span>
                   </div>
                 </td>
                 <td class="texto-secundario">{{ p.alumno?.carrera || '—' }}</td>
                 <td class="centrado texto-secundario">{{ p.alumno?.semestre || '—' }}°</td>
                 <td class="centrado">
                   <span class="badge-estado" :class="p.constancia_emitida ? 'emitida' : 'pendiente'">
-                    {{ p.constancia_emitida ? 'Emitida' : 'Pendiente' }}
+                    {{ p.constancia_emitida ? 'EMITIDA' : 'PENDIENTE' }}
                   </span>
                 </td>
                 <td class="centrado">
                   <div class="acciones-fila">
-                    <button v-if="!p.constancia_emitida" @click="emitirConstancia(p)" class="btn-secundario" title="Emitir constancia" :disabled="cargando">
+                    <button v-if="!p.constancia_emitida" @click="emitirConstancia(p)" class="btn-secundario" title="EMITIR CONSTANCIA" :disabled="cargando">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                         <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
                       </svg>
-                      Emitir
+                      EMITIR
                     </button>
-                    <button @click="eliminarParticipante(p)" class="btn-accion eliminar" title="Eliminar participante">
+                    <button @click="eliminarParticipante(p)" class="btn-accion eliminar" title="ELIMINAR PARTICIPANTE">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                       </svg>
@@ -129,7 +129,7 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="#E0E0E0" stroke-width="1.5" width="40" height="40">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                   </svg>
-                  <p>Sin participantes registrados</p>
+                  <p>SIN PARTICIPANTES REGISTRADOS</p>
                 </td>
               </tr>
             </tbody>
@@ -137,7 +137,7 @@
         </div>
       </div>
       
-      <footer class="pie-pagina">© 2026 Tecnológico Nacional de México · Todos los derechos reservados</footer>
+      <footer class="pie-pagina">© 2026 TECNOLÓGICO NACIONAL DE MÉXICO · TODOS LOS DERECHOS RESERVADOS</footer>
     </div>
   </MainLayout>
   
@@ -146,7 +146,7 @@
     <div v-if="mostrarModalRegistro" class="modal-fondo" @click.self="mostrarModalRegistro = false">
       <div class="modal-caja">
         <div class="modal-cabecera">
-          <h3>Registrar Participante</h3>
+          <h3>REGISTRAR PARTICIPANTE</h3>
           <button @click="mostrarModalRegistro = false" class="btn-cerrar-modal">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -155,12 +155,12 @@
         </div>
         <div class="modal-cuerpo">
           <div class="campo-form">
-            <label class="campo-label">Buscar por Número de Control <span class="requerido">*</span></label>
+            <label class="campo-label">BUSCAR POR NÚMERO DE CONTROL <span class="requerido">*</span></label>
             <div class="busqueda-modal-wrap">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-busqueda">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
-              <input v-model="busquedaModal" type="text" placeholder="Ingresa el número de control..." class="campo-input" @input="buscarAlumnoModal" />
+              <input v-model="busquedaModal" type="text" placeholder="INGRESA EL NÚMERO DE CONTROL..." class="campo-input" @input="buscarAlumnoModal" />
             </div>
           </div>
           <div v-if="alumnoEncontrado" class="alumno-encontrado">
@@ -171,14 +171,14 @@
             </div>
           </div>
           <div v-else-if="busquedaModal.length > 2 && !alumnoEncontrado" class="alumno-no-encontrado">
-            No se encontró ningún alumno con ese número de control
+            NO SE ENCONTRÓ NINGÚN ALUMNO CON ESE NÚMERO DE CONTROL
           </div>
         </div>
         <div class="modal-pie">
-          <button @click="mostrarModalRegistro = false" class="btn-cancelar">Cancelar</button>
+          <button @click="mostrarModalRegistro = false" class="btn-cancelar">CANCELAR</button>
           <button @click="registrarParticipante" class="btn-primario" :disabled="!alumnoEncontrado || cargando">
             <span v-if="cargando" class="spinner"></span>
-            {{ cargando ? 'Registrando...' : 'Registrar' }}
+            {{ cargando ? 'REGISTRANDO...' : 'REGISTRAR' }}
           </button>
         </div>
       </div>

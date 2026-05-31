@@ -13,16 +13,16 @@
 
       <!-- Breadcrumb -->
       <div class="breadcrumb">
-        <router-link to="/dashboard" class="breadcrumb-link">Inicio</router-link>
+        <router-link to="/dashboard" class="breadcrumb-link">INICIO</router-link>
         <span class="sep">›</span>
-        <span class="activo">Eventos</span>
+        <span class="activo">EVENTOS</span>
       </div>
 
       <!-- ─── ENCABEZADO ─── -->
       <div class="encabezado-seccion">
         <div>
-          <h1 class="titulo-pagina">Eventos</h1>
-          <p class="subtitulo">Gestión de eventos institucionales y control de participación</p>
+          <h1 class="titulo-pagina">EVENTOS</h1>
+          <p class="subtitulo">GESTIÓN DE EVENTOS INSTITUCIONALES Y CONTROL DE PARTICIPACIÓN</p>
         </div>
       </div>
 
@@ -67,7 +67,7 @@
           <input
             v-model="busquedaNombre"
             type="text"
-            placeholder="Buscar por nombre de evento..."
+            placeholder="BUSCAR POR NOMBRE DE EVENTO..."
             class="input-busqueda"
             @input="reiniciarPagina()"
           />
@@ -82,7 +82,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
           </svg>
-          Filtros avanzados
+          FILTROS AVANZADOS
         </button>
       </div>
 
@@ -95,9 +95,9 @@
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          Eventos Próximos
+          EVENTOS PRÓXIMOS
         </h2>
-        <span class="seccion-contador">{{ eventosProximos.length }} evento(s)</span>
+        <span class="seccion-contador">{{ eventosProximos.length }} EVENTO(S)</span>
       </div>
 
       <div v-if="eventosProximos.length > 0" class="eventos-proximos-grid">
@@ -134,7 +134,7 @@
                 class="badge-tipo"
                 :style="estiloBadgeTipo(evento.tipo_evento?.nombre_tipo)"
               >
-                {{ evento.tipo_evento?.nombre_tipo || 'General' }}
+                {{ evento.tipo_evento?.nombre_tipo || 'GENERAL' }}
               </span>
             </div>
             <div class="evento-card-meta">
@@ -166,7 +166,7 @@
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                 <circle cx="12" cy="12" r="3"/>
               </svg>
-              Ver detalle
+              VER DETALLE
             </button>
             <button
               @click="router.push(`/eventos/${evento.id_evento}/participantes`)"
@@ -177,7 +177,7 @@
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
-              Participantes
+              PARTICIPANTES
             </button>
           </div>
         </div>
@@ -198,7 +198,7 @@
           </div>
         </div>
         <p class="vacio-titulo">SIN EVENTOS PRÓXIMOS</p>
-        <p class="vacio-subtitulo">Aún no tienes eventos programados en el calendario.</p>
+        <p class="vacio-subtitulo">AÚN NO TIENES EVENTOS PROGRAMADOS EN EL CALENDARIO.</p>
         <div class="vacio-cta">
         </div>
       </div>
@@ -210,7 +210,7 @@
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
           </svg>
-          Historial de Eventos
+          HISTORIAL DE EVENTOS
         </h2>
       </div>
 
@@ -226,8 +226,8 @@
         >
           <div class="modal-caja modal-filtros">
             <div class="modal-cabecera">
-              <h3 id="titulo-filtros">Filtros</h3>
-              <button @click="mostrarFiltrosAvanzados = false" class="btn-cerrar-modal" aria-label="Cerrar filtros">
+              <h3 id="titulo-filtros">FILTROS</h3>
+              <button @click="mostrarFiltrosAvanzados = false" class="btn-cerrar-modal" aria-label="CERRAR FILTROS">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -236,35 +236,35 @@
             </div>
             <div class="modal-cuerpo filtros-grid">
               <div class="campo-form">
-                <label class="campo-label">Tipo de Evento</label>
+                <label class="campo-label">TIPO DE EVENTO</label>
                 <select v-model="filtrosAvanzados.tipo" class="campo-input" @change="reiniciarPagina()">
-                  <option value="">Todos los tipos</option>
+                  <option value="">TODOS LOS TIPOS</option>
                   <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">
                     {{ t.nombre_tipo }}
                   </option>
                 </select>
               </div>
               <div class="campo-form">
-                <label class="campo-label">Estatus</label>
+                <label class="campo-label">ESTATUS</label>
                 <select v-model="filtrosAvanzados.estatus" class="campo-input" @change="reiniciarPagina()">
-                  <option value="">Todos</option>
-                  <option value="Próximo">Próximo</option>
-                  <option value="Finalizado">Finalizado</option>
-                  <option value="Cancelado">Cancelado</option>
+                  <option value="">TODOS</option>
+                  <option value="Próximo">PRÓXIMO</option>
+                  <option value="Finalizado">FINALIZADO</option>
+                  <option value="Cancelado">CANCELADO</option>
                 </select>
               </div>
               <div class="campo-form">
-                <label class="campo-label">Fecha desde</label>
+                <label class="campo-label">FECHA DESDE</label>
                 <input v-model="filtrosAvanzados.fechaInicio" type="date" class="campo-input" @change="reiniciarPagina()" />
               </div>
               <div class="campo-form">
-                <label class="campo-label">Fecha hasta</label>
+                <label class="campo-label">FECHA HASTA</label>
                 <input v-model="filtrosAvanzados.fechaFin" type="date" class="campo-input" @change="reiniciarPagina()" />
               </div>
             </div>
             <div class="modal-pie">
-              <button @click="limpiarFiltros()" class="btn-cancelar">Limpiar Filtros</button>
-              <button @click="mostrarFiltrosAvanzados = false" class="btn-primario">Aplicar Filtros</button>
+              <button @click="limpiarFiltros()" class="btn-cancelar">LIMPIAR FILTROS</button>
+              <button @click="mostrarFiltrosAvanzados = false" class="btn-primario">APLICAR FILTROS</button>
             </div>
           </div>
         </div>
@@ -274,18 +274,18 @@
       <div class="tabla-card">
         <div class="tabla-encabezado">
           <span class="tabla-contador">
-            {{ eventosFiltrados.length }} registro(s) · Página {{ paginaActual }} de {{ totalPaginas }}
+            {{ eventosFiltrados.length }} REGISTRO(S) · PÁGINA {{ paginaActual }} DE {{ totalPaginas }}
           </span>
         </div>
         <div class="tabla-scroll">
           <table class="tabla-principal">
             <thead>
               <tr>
-                <th>Nombre del Evento</th>
-                <th>Tipo</th>
-                <th>Fecha</th>
-                <th>Descripción</th>
-                <th class="centrado">Acciones</th>
+                <th>NOMBRE DEL EVENTO</th>
+                <th>TIPO</th>
+                <th>FECHA</th>
+                <th>DESCRIPCIÓN</th>
+                <th class="centrado">ACCIONES</th>
               </tr>
             </thead>
             <tbody>
@@ -293,7 +293,7 @@
                 <td><span class="texto-principal">{{ evento.nombre_evento }}</span></td>
                 <td>
                   <span class="badge-estado" :style="estiloBadgeTipo(evento.tipo_evento?.nombre_tipo)">
-                    {{ evento.tipo_evento?.nombre_tipo || 'General' }}
+                    {{ evento.tipo_evento?.nombre_tipo || 'GENERAL' }}
                   </span>
                 </td>
                 <td class="texto-secundario">{{ formatearFecha(evento.fecha) }}</td>
@@ -303,7 +303,7 @@
                     <button
                       @click="abrirModalDetalle(evento)"
                       class="btn-accion ver"
-                      title="Ver detalle del evento"
+                      title="VER DETALLE DEL EVENTO"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -313,7 +313,7 @@
                     <button
                       @click="abrirModalEvento(evento)"
                       class="btn-accion editar"
-                      title="Editar evento"
+                      title="EDITAR EVENTO"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -322,7 +322,7 @@
                     <button
                       @click="eliminarEvento(evento)"
                       class="btn-accion eliminar"
-                      title="Eliminar evento"
+                      title="ELIMINAR EVENTO"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
                         <polyline points="3 6 5 6 21 6"/>
@@ -338,7 +338,7 @@
                     <circle cx="11" cy="11" r="8"/>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                   </svg>
-                  <p>No se encontraron eventos con los filtros aplicados</p>
+                  <p>NO SE ENCONTRARON EVENTOS CON LOS FILTROS APLICADOS</p>
                 </td>
               </tr>
             </tbody>
@@ -348,14 +348,14 @@
         <!-- Paginación -->
         <div v-if="totalPaginas > 1" class="paginacion-container">
           <div class="paginacion-info">
-            <span>Mostrando {{ mostrandoDesde }}-{{ mostrandoHasta }} de {{ eventosFiltrados.length }}</span>
+            <span>MOSTRANDO {{ mostrandoDesde }}-{{ mostrandoHasta }} DE {{ eventosFiltrados.length }}</span>
           </div>
           <div class="paginacion-controles">
             <button
               @click="cambiarPagina(paginaActual - 1)"
               :disabled="paginaActual === 1"
               class="btn-pag"
-              title="Anterior"
+              title="ANTERIOR"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                 <polyline points="15 18 9 12 15 6"/>
@@ -374,7 +374,7 @@
               @click="cambiarPagina(paginaActual + 1)"
               :disabled="paginaActual === totalPaginas"
               class="btn-pag"
-              title="Siguiente"
+              title="SIGUIENTE"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                 <polyline points="9 18 15 12 9 6"/>
@@ -424,14 +424,14 @@
                     class="badge-tipo detalle-badge"
                     :style="estiloBadgeTipo(eventoDetalle.tipo_evento?.nombre_tipo)"
                   >
-                    {{ eventoDetalle.tipo_evento?.nombre_tipo || 'General' }}
+                    {{ eventoDetalle.tipo_evento?.nombre_tipo || 'GENERAL' }}
                   </span>
                 </div>
               </div>
               <button
                 @click="cerrarModalDetalle()"
                 class="btn-cerrar-modal"
-                aria-label="Cerrar detalle del evento"
+                aria-label="CERRAR DETALLE DEL EVENTO"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22">
                   <line x1="18" y1="6" x2="6" y2="18"/>
@@ -453,7 +453,7 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Fecha del Evento</p>
+                    <p class="detalle-meta-etiqueta">FECHA DEL EVENTO</p>
                     <p class="detalle-meta-valor">{{ formatearFecha(eventoDetalle.fecha) }}</p>
                   </div>
                 </div>
@@ -466,9 +466,9 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Estatus</p>
+                    <p class="detalle-meta-etiqueta">ESTATUS</p>
                     <span class="badge-estatus" :class="classBadgeEstatus(eventoDetalle.fecha)">
-                      {{ eventoDetalle.fecha >= hoy ? 'Próximo' : 'Finalizado' }}
+                      {{ eventoDetalle.fecha >= hoy ? 'PRÓXIMO' : 'FINALIZADO' }}
                     </span>
                   </div>
                 </div>
@@ -481,7 +481,7 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Hora</p>
+                    <p class="detalle-meta-etiqueta">HORA</p>
                     <p class="detalle-meta-valor">{{ eventoDetalle.hora }}</p>
                   </div>
                 </div>
@@ -494,7 +494,7 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Lugar</p>
+                    <p class="detalle-meta-etiqueta">LUGAR</p>
                     <p class="detalle-meta-valor">{{ eventoDetalle.lugar }}</p>
                   </div>
                 </div>
@@ -508,7 +508,7 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="detalle-meta-etiqueta">Participantes</p>
+                    <p class="detalle-meta-etiqueta">PARTICIPANTES</p>
                     <p class="detalle-meta-valor">{{ eventoDetalle.total_participantes }}</p>
                   </div>
                 </div>
@@ -524,12 +524,12 @@
                     <line x1="16" y1="13" x2="8" y2="13"/>
                     <line x1="16" y1="17" x2="8" y2="17"/>
                   </svg>
-                  Descripción
+                  DESCRIPCIÓN
                 </p>
                 <p v-if="eventoDetalle.descripcion" class="detalle-descripcion-texto">
                   {{ eventoDetalle.descripcion }}
                 </p>
-                <p v-else class="detalle-descripcion-vacio">Sin descripción registrada.</p>
+                <p v-else class="detalle-descripcion-vacio">SIN DESCRIPCIÓN REGISTRADA.</p>
               </div>
 
             </div>
@@ -544,7 +544,7 @@
                   <circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                Participantes
+                PARTICIPANTES
               </button>
 
               <div class="detalle-pie-derecha">
@@ -555,7 +555,7 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                     <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
                   </svg>
-                  Editar
+                  EDITAR
                 </button>
                 <button
                   @click="cerrarModalDetalle(); eliminarEvento(eventoDetalle)"
@@ -565,7 +565,7 @@
                     <polyline points="3 6 5 6 21 6"/>
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                   </svg>
-                  Eliminar
+                  ELIMINAR
                 </button>
               </div>
             </div>
@@ -587,9 +587,9 @@
           <div class="modal-caja modal-ancho">
             <div class="modal-cabecera">
               <h3 :id="modoEdicion ? 'titulo-editar-evento' : 'titulo-nuevo-evento'">
-                {{ modoEdicion ? 'Editar Evento' : 'Nuevo Evento' }}
+                {{ modoEdicion ? 'EDITAR EVENTO' : 'NUEVO EVENTO' }}
               </h3>
-              <button @click="cerrarModalEvento()" class="btn-cerrar-modal" aria-label="Cerrar formulario">
+              <button @click="cerrarModalEvento()" class="btn-cerrar-modal" aria-label="CERRAR FORMULARIO">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -599,11 +599,11 @@
             <form @submit.prevent="guardarEvento" novalidate>
               <div class="modal-cuerpo campos-grid-modal">
                 <div class="campo-form campo-ancho">
-                  <label class="campo-label">Nombre del Evento <span class="requerido">*</span></label>
+                  <label class="campo-label">NOMBRE DEL EVENTO <span class="requerido">*</span></label>
                   <input
                     v-model="form.nombre_evento"
                     type="text"
-                    placeholder="Ej: Semana de Ingeniería 2026"
+                    placeholder="EJ: SEMANA DE INGENIERÍA 2026"
                     class="campo-input"
                     :class="{ 'campo-error': errores.nombre_evento }"
                     @input="validarCampo('nombre_evento')"
@@ -611,14 +611,14 @@
                   <span v-if="errores.nombre_evento" class="mensaje-error">{{ errores.nombre_evento }}</span>
                 </div>
                 <div class="campo-form">
-                  <label class="campo-label">Tipo de Evento <span class="requerido">*</span></label>
+                  <label class="campo-label">TIPO DE EVENTO <span class="requerido">*</span></label>
                   <select
                     v-model="form.id_tipo_evento"
                     class="campo-input"
                     :class="{ 'campo-error': errores.id_tipo_evento }"
                     @change="validarCampo('id_tipo_evento')"
                   >
-                    <option value="">Selecciona un tipo</option>
+                    <option value="">SELECCIONA UN TIPO</option>
                     <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">
                       {{ t.nombre_tipo }}
                     </option>
@@ -626,7 +626,7 @@
                   <span v-if="errores.id_tipo_evento" class="mensaje-error">{{ errores.id_tipo_evento }}</span>
                 </div>
                 <div class="campo-form">
-                  <label class="campo-label">Fecha del Evento <span class="requerido">*</span></label>
+                  <label class="campo-label">FECHA DEL EVENTO <span class="requerido">*</span></label>
                   <input
                     v-model="form.fecha"
                     type="date"
@@ -638,20 +638,20 @@
                   <span v-if="errores.fecha" class="mensaje-error">{{ errores.fecha }}</span>
                 </div>
                 <div class="campo-form campo-ancho">
-                  <label class="campo-label">Descripción</label>
+                  <label class="campo-label">DESCRIPCIÓN</label>
                   <textarea
                     v-model="form.descripcion"
                     rows="3"
-                    placeholder="Describe brevemente el objetivo o contenido del evento..."
+                    placeholder="DESCRIBE BREVEMENTE EL OBJETIVO O CONTENIDO DEL EVENTO..."
                     class="campo-input campo-textarea"
                   ></textarea>
                 </div>
               </div>
               <div class="modal-pie">
-                <button type="button" @click="cerrarModalEvento()" class="btn-cancelar">Cancelar</button>
+                <button type="button" @click="cerrarModalEvento()" class="btn-cancelar">CANCELAR</button>
                 <button type="submit" class="btn-primario" :disabled="cargandoForm">
                   <span v-if="cargandoForm" class="spinner"></span>
-                  {{ cargandoForm ? 'Guardando...' : (modoEdicion ? 'Actualizar Evento' : 'Guardar Evento') }}
+                  {{ cargandoForm ? 'GUARDANDO...' : (modoEdicion ? 'ACTUALIZAR EVENTO' : 'GUARDAR EVENTO') }}
                 </button>
               </div>
             </form>
@@ -676,7 +676,7 @@
         </div>
       </transition>
 
-      <footer class="pie-pagina">© 2026 Tecnológico Nacional de México · Todos los derechos reservados</footer>
+      <footer class="pie-pagina">© 2026 TECNOLÓGICO NACIONAL DE MÉXICO · TODOS LOS DERECHOS RESERVADOS</footer>
     </div>
   </MainLayout>
 </template>
