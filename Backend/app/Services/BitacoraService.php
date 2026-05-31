@@ -31,14 +31,16 @@ class BitacoraService
                 ->whereRaw('LOWER(nombre_modulo) LIKE ?', ['%' . strtolower($tabla) . '%'])
                 ->value('id_modulo');
 
+            $detalle = '';
+            if (!empty($anterior)) $detalle .= ' | Antes: ' . json_encode($anterior, JSON_UNESCAPED_UNICODE);
+            if (!empty($nuevo))    $detalle .= ' | Despues: ' . json_encode($nuevo, JSON_UNESCAPED_UNICODE);
+
             DB::table('bitacora')->insert([
-                'accion'       => strtoupper($accion) . " en {$tabla} (ID: {$idRegistro})",
+                'accion'       => strtoupper($accion) . " en {$tabla} (ID: {$idRegistro})" . $detalle,
                 'id_usuario'   => $idUsuario,
                 'id_modulo'    => $idModulo,
                 'direccion_ip' => Request::ip(),
                 'fecha_hora'   => now(),
-                'datos_anteriores' => !empty($anterior) ? json_encode($anterior) : null,
-                'datos_nuevos'     => !empty($nuevo)    ? json_encode($nuevo)    : null,
             ]);
         } catch (\Exception $e) {
             // La bitácora nunca debe interrumpir el flujo principal

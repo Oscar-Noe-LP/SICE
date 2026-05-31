@@ -309,13 +309,18 @@ const state = reactive({
   error:    null,
   kpis: {
     totalAlumnos:           0,
+    nuevosAlumnos:          0,   // viene de /api/dashboard/kpis — usado en delta de kpiCards
     inscripciones:          0,
     inscripcionesCompletas: 0,
     inscripcionesPendientes:0,
     pctInscripciones:       0,
     gruposActivos:          0,
+    numCarreras:            0,   // viene de /api/dashboard/kpis — usado en delta de kpiCards
     bajasTemporales:        0,
     bajasDefinitivas:       0,
+    materiasActivas:        0,
+    egresados:              0,
+    titulados:              0,
     promedio_general:       null,
     eficiencia_terminal:    null,
     genero_masc:            0,
@@ -365,6 +370,9 @@ const kpis = computed(() => ({
                              ? `${state.kpis.eficiencia_terminal}%`
                              : '—',
   bajasTotal:              (state.kpis.bajasTemporales ?? 0) + (state.kpis.bajasDefinitivas ?? 0),
+  // ── Género: el template usa camelCase, el estado usa snake_case ──
+  generoMasc:              state.kpis.genero_masc,
+  generoFem:               state.kpis.genero_fem,
 }))
 
 // KPI cards para el strip
@@ -372,12 +380,12 @@ const PALETA       = ['#132B4F','#1A4184','#1D52B7','#2F80ED','#27AE60','#F2994A
 const paletaLineas = ['#1D52B7','#27AE60','#F2994A','#EB5757','#2F80ED','#9B51E0']
 
 const kpiCards = computed(() => [
-  { lbl:'Alumnos Activos',    val: fmt(kpis.value.alumnosActivos),    bg:'rgba(11,37,69,.08)',   color:'#0B2545', deltaPos:true,  icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>' },
-  { lbl:'Promedio General',   val: kpis.value.promedioGeneral,        bg:'rgba(29,82,183,.08)',  color:'#1D52B7', deltaPos:true,  icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>' },
-  { lbl:'Inscripciones',      val: fmt(kpis.value.inscripcionesPeriodo), bg:'rgba(39,174,96,.08)', color:'#27AE60', deltaPos:true,  icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>' },
-  { lbl:'Grupos Abiertos',    val: kpis.value.gruposAbiertos,         bg:'rgba(242,153,74,.08)', color:'#F2994A', deltaPos:true,  icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>' },
-  { lbl:'Ef. Terminal',       val: kpis.value.eficienciaTerminal,     bg:'rgba(47,128,237,.08)', color:'#2F80ED', deltaPos:true,  icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>' },
-  { lbl:'Bajas del Periodo',  val: kpis.value.bajasTotal,             bg:'rgba(235,87,87,.08)',  color:'#EB5757', deltaPos:false, icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>' },
+  { lbl:'Alumnos Activos',    val: fmt(kpis.value.alumnosActivos),       bg:'rgba(11,37,69,.08)',   color:'#0B2545', deltaPos:true,  delta: `${fmt(state.kpis.nuevosAlumnos ?? 0)} nuevos`, icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>' },
+  { lbl:'Promedio General',   val: kpis.value.promedioGeneral,           bg:'rgba(29,82,183,.08)',  color:'#1D52B7', deltaPos:true,  delta: 'periodo actual', icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>' },
+  { lbl:'Inscripciones',      val: fmt(kpis.value.inscripcionesPeriodo), bg:'rgba(39,174,96,.08)',  color:'#27AE60', deltaPos:true,  delta: `${state.kpis.pctInscripciones ?? 0}% completadas`, icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>' },
+  { lbl:'Grupos Abiertos',    val: kpis.value.gruposAbiertos,            bg:'rgba(242,153,74,.08)', color:'#F2994A', deltaPos:true,  delta: `${state.kpis.numCarreras ?? 0} carreras`, icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>' },
+  { lbl:'Ef. Terminal',       val: kpis.value.eficienciaTerminal,     bg:'rgba(47,128,237,.08)', color:'#2F80ED', deltaPos:true,  delta: `${fmt(state.kpis.egresados ?? 0)} egresados`, icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>' },
+  { lbl:'Bajas del Periodo',  val: kpis.value.bajasTotal,             bg:'rgba(235,87,87,.08)',  color:'#EB5757', deltaPos:false, delta: `${fmt(state.kpis.bajasDefinitivas ?? 0)} definitivas`, icon:'<path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/>' },
 ])
 
 // ── Helpers ───────────────────────────────────────────────────────────

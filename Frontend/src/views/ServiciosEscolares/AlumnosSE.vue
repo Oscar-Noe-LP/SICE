@@ -1,17 +1,10 @@
 <template>
   <MainLayout v-slot="{ busquedaGlobal }">
     <div class="alumnos-page">
-
-      <!-- ══════════════════════════════════════════════
-           BARRA DE CARGA GLOBAL (top progress bar)
-      ══════════════════════════════════════════════ -->
       <div class="barra-carga-global" :class="{ visible: cargando }">
         <div class="barra-progreso"></div>
       </div>
 
-      <!-- ══════════════════════════════════════════════
-           NOTIFICACIÓN TOAST (aria-live)
-      ══════════════════════════════════════════════ -->
       <transition name="notif-fade">
         <div
           v-if="notificacion.visible"
@@ -20,21 +13,16 @@
           role="status"
           aria-live="polite"
         >
-          <!-- Icono éxito: CheckCircle2 -->
           <svg v-if="notificacion.tipo === 'exito'" class="notif-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
+            <circle cx="12" cy="12" r="10"/> <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
           </svg>
-          <!-- Icono error: AlertCircle -->
           <svg v-else class="notif-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            <circle cx="12" cy="12" r="10"/> <line x1="12" y1="8" x2="12" y2="12"/> <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
           {{ notificacion.mensaje }}
         </div>
       </transition>
 
-      <!-- ══════════════════════════════════════════════
-           BREADCRUMB — dinámico: lista / expediente
-      ══════════════════════════════════════════════ -->
       <nav class="breadcrumb" aria-label="Ruta de navegación">
         <span class="breadcrumb-link" @click="$router.push('/gestion-academica')">GESTIÓN ACADÉMICA</span>
         <svg class="breadcrumb-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14" stroke-width="2">
@@ -55,9 +43,6 @@
         </template>
       </nav>
 
-      <!-- ══════════════════════════════════════════════
-           ENCABEZADO DE PÁGINA
-      ══════════════════════════════════════════════ -->
       <div class="page-header">
         <div class="page-header-left">
           <h1 class="page-title">GESTIÓN DE ALUMNOS</h1>
@@ -65,19 +50,17 @@
             {{ alumnosFiltrados.length }} REGISTRO{{ alumnosFiltrados.length !== 1 ? 'S' : '' }}
             ENCONTRADO{{ alumnosFiltrados.length !== 1 ? 'S' : '' }}
             <template v-if="selectedCount > 0">
-              · <span class="subtitle-sel">{{ selectedCount }} SELECCIONADO{{ selectedCount !== 1 ? 'S' : '' }}</span>
+              ·  <span class="subtitle-sel">{{ selectedCount }} SELECCIONADO{{ selectedCount !== 1 ? 'S' : '' }}</span>
             </template>
           </p>
         </div>
         <div class="page-header-btns">
-          <!-- Seleccionar todos / ninguno -->
           <button
             class="btn-select-all"
             :class="{ activo: selectedCount > 0 }"
             @click="toggleSelectAll"
             :title="selectedCount === paginatedAlumnos.length ? 'DESELECCIONAR TODOS' : 'SELECCIONAR PÁGINA'"
           >
-            <!-- Lucide: CheckSquare / Square -->
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" stroke-width="2">
               <template v-if="selectedCount === paginatedAlumnos.length && paginatedAlumnos.length > 0">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -89,27 +72,20 @@
             </svg>
             {{ selectedCount > 0 ? `${selectedCount} SEL.` : 'SELECCIONAR' }}
           </button>
-          <!-- Botón nueva inscripción -->
           <button class="btn-nuevo" @click="nuevoAlumno">
-            <!-- Lucide: UserPlus -->
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="17" height="17" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
               <circle cx="9" cy="7" r="4"/>
-              <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+              <line x1="19" y1="8" x2="19" y2="14"/> <line x1="22" y1="11" x2="16" y2="11"/>
             </svg>
             NUEVA INSCRIPCIÓN
           </button>
         </div>
       </div>
 
-      <!-- ══════════════════════════════════════════════
-           KPIs VISUALES — 5 TARJETAS
-      ══════════════════════════════════════════════ -->
       <div class="kpis-grid">
-
         <div class="kpi-card kpi-total">
           <div class="kpi-icon-wrap">
-            <!-- Lucide: Users -->
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
               <circle cx="9" cy="7" r="4"/>
@@ -122,10 +98,8 @@
             <span class="kpi-label">TOTAL ALUMNOS</span>
           </div>
         </div>
-
         <div class="kpi-card kpi-activo">
           <div class="kpi-icon-wrap">
-            <!-- Lucide: CheckCircle2 -->
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
@@ -136,10 +110,8 @@
             <span class="kpi-label">ACTIVOS</span>
           </div>
         </div>
-
         <div class="kpi-card kpi-temporal">
           <div class="kpi-icon-wrap">
-            <!-- Lucide: Clock -->
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <polyline stroke-linecap="round" stroke-linejoin="round" points="12 6 12 12 16 14"/>
@@ -150,13 +122,11 @@
             <span class="kpi-label">BAJAS TEMPORALES</span>
           </div>
         </div>
-
         <div class="kpi-card kpi-definitiva">
           <div class="kpi-icon-wrap">
-            <!-- Lucide: XCircle -->
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
-              <line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+              <line x1="15" y1="9" x2="9" y2="15"/> <line x1="9" y1="9" x2="15" y2="15"/>
             </svg>
           </div>
           <div class="kpi-data">
@@ -164,10 +134,8 @@
             <span class="kpi-label">BAJAS DEFINITIVAS</span>
           </div>
         </div>
-
         <div class="kpi-card kpi-egresado">
           <div class="kpi-icon-wrap">
-            <!-- Lucide: GraduationCap -->
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M22 10v6M2 10l10-5 10 5-10 5z"/>
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 12v5c3 3 9 3 12 0v-5"/>
@@ -178,18 +146,13 @@
             <span class="kpi-label">EGRESADOS</span>
           </div>
         </div>
-
       </div>
 
-      <!-- ══════════════════════════════════════════════
-           BARRA DE BÚSQUEDA Y FILTROS
-      ══════════════════════════════════════════════ -->
       <div class="barra-acciones">
         <div class="busqueda-grupo">
           <div class="input-con-icono">
-            <!-- Lucide: Search -->
             <svg class="icono-input" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              <circle cx="11" cy="11" r="8"/> <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
             <input
               type="text"
@@ -202,43 +165,35 @@
               spellcheck="false"
             />
             <button v-if="busquedaRaw" class="btn-limpiar-input" @click="limpiarBusqueda" title="LIMPIAR BÚSQUEDA">
-              <!-- Lucide: X -->
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14" stroke-width="2.5">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                <line x1="18" y1="6" x2="6" y2="18"/> <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
           </div>
         </div>
 
-        <!-- Botón filtros con badge -->
         <button
           class="btn-filtro"
           @click="mostrarFiltros = !mostrarFiltros"
           :class="{ activo: filtrosActivos, abierto: mostrarFiltros }"
           :aria-expanded="mostrarFiltros"
         >
-          <!-- Lucide: SlidersHorizontal -->
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" stroke-width="2">
-            <line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/>
-            <line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/>
-            <line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/>
-            <line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="22"/>
+            <line x1="21" y1="4" x2="14" y2="4"/> <line x1="10" y1="4" x2="3" y2="4"/>
+            <line x1="21" y1="12" x2="12" y2="12"/> <line x1="8" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="20" x2="16" y2="20"/> <line x1="12" y1="20" x2="3" y2="20"/>
+            <line x1="14" y1="2" x2="14" y2="6"/> <line x1="8" y1="10" x2="8" y2="14"/> <line x1="16" y1="18" x2="16" y2="22"/>
           </svg>
           FILTROS
           <span v-if="filtrosActivos" class="filtros-badge">{{ contadorFiltros }}</span>
         </button>
       </div>
 
-      <!-- ══════════════════════════════════════════════
-           PANEL DE FILTROS (COLAPSABLE)
-      ══════════════════════════════════════════════ -->
       <transition name="filtros-slide">
         <div v-if="mostrarFiltros" class="filtros-panel">
           <div class="filtros-grid">
-
             <div class="filtro-item">
               <label class="filtro-label">
-                <!-- Lucide: BookOpen -->
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="13" height="13" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
@@ -252,10 +207,8 @@
                 </option>
               </select>
             </div>
-
             <div class="filtro-item">
               <label class="filtro-label">
-                <!-- Lucide: Layers -->
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="13" height="13" stroke-width="2">
                   <polygon stroke-linecap="round" stroke-linejoin="round" points="12 2 2 7 12 12 22 7 12 2"/>
                   <polyline stroke-linecap="round" stroke-linejoin="round" points="2 17 12 22 22 17"/>
@@ -268,10 +221,8 @@
                 <option v-for="n in 8" :key="n" :value="String(n)">{{ n }}° SEMESTRE</option>
               </select>
             </div>
-
             <div class="filtro-item">
               <label class="filtro-label">
-                <!-- Lucide: Tag -->
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="13" height="13" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
                   <line x1="7" y1="7" x2="7.01" y2="7"/>
@@ -285,11 +236,9 @@
                 </option>
               </select>
             </div>
-
           </div>
           <div class="filtros-footer">
             <button class="btn-limpiar-filtros" @click="resetFilters">
-              <!-- Lucide: RotateCcw -->
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14" stroke-width="2">
                 <polyline stroke-linecap="round" stroke-linejoin="round" points="1 4 1 10 7 10"/>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.51 15a9 9 0 1 0 .49-3.5"/>
@@ -300,139 +249,125 @@
         </div>
       </transition>
 
-      <!-- ══════════════════════════════════════════════
-           ESTADO: CARGANDO
-      ══════════════════════════════════════════════ -->
       <div v-if="cargando && alumnos.length === 0" class="estado-cargando">
         <div class="spinner-cards"></div>
         <p>CARGANDO REGISTROS...</p>
       </div>
 
-      <!-- ══════════════════════════════════════════════
-           ESTADO: VACÍO
-      ══════════════════════════════════════════════ -->
       <div v-else-if="!cargando && alumnosFiltrados.length === 0" class="estado-vacio">
-        <!-- Lucide: UserX -->
         <svg class="icono-vacio" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.3">
           <path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
-          <line x1="17" y1="11" x2="23" y2="17"/><line x1="23" y1="11" x2="17" y2="17"/>
+          <line x1="17" y1="11" x2="23" y2="17"/> <line x1="23" y1="11" x2="17" y2="17"/>
         </svg>
         <h3>SIN RESULTADOS</h3>
         <p>NO SE ENCONTRARON ALUMNOS CON LOS CRITERIOS APLICADOS.</p>
         <button class="btn-limpiar-vacio" @click="resetFilters">LIMPIAR FILTROS</button>
       </div>
 
-      <!-- ══════════════════════════════════════════════
-           GRID DE CARDS DE ALUMNOS
-           v-memo en cada card: solo re-renderiza si cambia
-           la selección o el alumno
-      ══════════════════════════════════════════════ -->
       <div
         v-else
-        class="alumnos-grid"
+        class="tabla-wrapper"
         ref="gridRef"
         @keydown="selectedCount === 0 ? navegarTeclado($event) : null"
         tabindex="0"
         role="list"
         aria-label="Lista de alumnos"
       >
-        <div
-          v-for="(alumno, index) in paginatedAlumnos"
-          :key="alumno.id_alumno || alumno.id"
-          v-memo="[alumno.id_alumno || alumno.id, cardActiva === index, seleccionados.has(alumno.id_alumno || alumno.id)]"
-          class="alumno-card"
-          :class="{
-            'card-activa':     cardActiva === index && selectedCount === 0,
-            'card-seleccionada': seleccionados.has(alumno.id_alumno || alumno.id)
-          }"
-          role="listitem"
-          tabindex="-1"
-          @click="handleCardClick(alumno, index, $event)"
-          @keydown.enter.prevent="abrirModalVer(alumno)"
-        >
-          <!-- ── Checkbox de selección (esquina superior derecha) ── -->
-          <div
-            class="bulk-checkbox"
-            :class="{ checked: seleccionados.has(alumno.id_alumno || alumno.id) }"
-            @click.stop="toggleSeleccion(alumno)"
-            role="checkbox"
-            :aria-checked="seleccionados.has(alumno.id_alumno || alumno.id)"
-            :aria-label="`SELECCIONAR ${resolverNombre(alumno).toUpperCase()}`"
-          >
-            <!-- Lucide: Check (visible cuando checked) -->
-            <svg v-if="seleccionados.has(alumno.id_alumno || alumno.id)" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="12" height="12" stroke-width="3">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-            </svg>
-          </div>
-
-          <!-- Acento de color por estatus -->
-          <div class="card-acento" :class="`acento-${slugEstatus(alumno.estatus)}`"></div>
-
-          <!-- Parte superior: Avatar + Datos -->
-          <div class="card-top">
-            <div class="card-avatar-wrap">
-              <img v-if="alumno.foto" :src="alumno.foto" class="card-avatar-img" :alt="resolverNombre(alumno)"/>
-              <div v-else class="card-avatar-placeholder" :class="`avatar-${colorIndex(resolverNombre(alumno))}`">
-                <span>{{ iniciales(resolverNombre(alumno)) }}</span>
-              </div>
-              <span class="avatar-dot" :class="`dot-${slugEstatus(alumno.estatus)}`"></span>
-            </div>
-            <div class="card-info">
-              <span class="card-control">{{ alumno.numero_control || alumno.noControl }}</span>
-              <h3 class="card-nombre">{{ resolverNombre(alumno).toUpperCase() }}</h3>
-              <p class="card-carrera">{{ resolverCarrera(alumno).toUpperCase() }}</p>
-            </div>
-          </div>
-
-          <div class="card-divider"></div>
-
-          <!-- Parte inferior: Meta + Acciones -->
-          <div class="card-bottom">
-            <div class="card-meta">
-              <div class="card-meta-item">
-                <!-- Lucide: Layers mini -->
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="13" height="13" stroke-width="2">
-                  <polygon stroke-linecap="round" stroke-linejoin="round" points="12 2 2 7 12 12 22 7 12 2"/>
-                  <polyline stroke-linecap="round" stroke-linejoin="round" points="2 12 12 17 22 12"/>
-                </svg>
-                <span>{{ alumno.semestre_actual || alumno.semestre }}° SEM.</span>
-              </div>
-              <span class="estatus-badge" :class="`badge-${slugEstatus(alumno.estatus)}`">
-                {{ (alumno.estatus || 'N/D').toUpperCase() }}
-              </span>
-            </div>
-            <div class="card-acciones">
-              <button class="btn-card-accion btn-ver"    @click.stop="abrirModalVer(alumno)"    title="VER EXPEDIENTE">
-                <!-- Lucide: Eye -->
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-              </button>
-              <button class="btn-card-accion btn-editar" @click.stop="abrirModalEditar(alumno)" title="EDITAR">
-                <!-- Lucide: Pencil -->
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
-              <button class="btn-card-accion btn-kardex" @click.stop="verKardex(alumno)"        title="VER KARDEX">
-                <!-- Lucide: FileText -->
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline stroke-linecap="round" stroke-linejoin="round" points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+        <table class="tabla-alumnos">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <button
+                  class="btn-select-all-table"
+                  :class="{ activo: selectedCount > 0 }"
+                  @click.stop="toggleSelectAll"
+                  :title="selectedCount === paginatedAlumnos.length ? 'DESELECCIONAR TODOS' : 'SELECCIONAR PÁGINA'"
+                  aria-label="Seleccionar todos"
+                >
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" stroke-width="2">
+                    <template v-if="selectedCount === paginatedAlumnos.length && paginatedAlumnos.length > 0">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
+                    </template>
+                    <template v-else>
+                      <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    </template>
+                  </svg>
+                </button>
+              </th>
+              <th class="col-control">NO. CONTROL</th>
+              <th class="col-nombre">NOMBRE COMPLETO</th>
+              <th class="col-carrera">CARRERA</th>
+              <th class="col-semestre">SEM.</th>
+              <th class="col-estatus">ESTATUS</th>
+              <th class="col-acciones">ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(alumno, index) in paginatedAlumnos"
+              :key="alumno.id_alumno || alumno.id"
+              v-memo="[alumno.id_alumno || alumno.id, filaActiva === index, seleccionados.has(alumno.id_alumno || alumno.id)]"
+              class="fila-alumno"
+              :class="{
+                'fila-activa': filaActiva === index && selectedCount === 0,
+                'fila-seleccionada': seleccionados.has(alumno.id_alumno || alumno.id)
+              }"
+              role="listitem"
+              tabindex="-1"
+              @click="handleRowClick(alumno, index, $event)"
+              @keydown.enter.prevent="abrirModalVer(alumno)"
+            >
+              <td class="col-check">
+                <div
+                  class="bulk-checkbox"
+                  :class="{ checked: seleccionados.has(alumno.id_alumno || alumno.id) }"
+                  @click.stop="toggleSeleccion(alumno)"
+                  role="checkbox"
+                  :aria-checked="seleccionados.has(alumno.id_alumno || alumno.id)"
+                  :aria-label="`SELECCIONAR ${resolverNombre(alumno).toUpperCase()}`"
+                >
+                  <svg v-if="seleccionados.has(alumno.id_alumno || alumno.id)" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="12" height="12" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+              </td>
+              <td class="col-control">{{ alumno.numero_control || alumno.noControl }}</td>
+              <td class="col-nombre">{{ resolverNombre(alumno).toUpperCase() }}</td>
+              <td class="col-carrera">{{ resolverCarrera(alumno).toUpperCase() }}</td>
+              <td class="col-semestre">{{ alumno.semestre_actual || alumno.semestre }}°</td>
+              <td class="col-estatus">
+                <span class="estatus-badge" :class="`badge-${slugEstatus(alumno.estatus)}`">
+                  {{ (alumno.estatus || 'N/D').toUpperCase() }}
+                </span>
+              </td>
+              <td class="col-acciones">
+                <button class="btn-fila-accion btn-ver" @click.stop="abrirModalVer(alumno)" title="VER EXPEDIENTE">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+                <button class="btn-fila-accion btn-editar" @click.stop="abrirModalEditar(alumno)" title="EDITAR">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button class="btn-fila-accion btn-kardex" @click.stop="verKardex(alumno)" title="VER KARDEX">
+                  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline stroke-linecap="round" stroke-linejoin="round" points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/> <line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
-      <!-- ══════════════════════════════════════════════
-           PAGINACIÓN
-      ══════════════════════════════════════════════ -->
       <div class="paginacion" v-if="alumnosFiltrados.length > 0">
         <div class="paginacion-izquierda">
           <span class="pag-label">REGISTROS POR PÁGINA:</span>
@@ -468,10 +403,6 @@
       <footer class="pie-pagina">© 2026 TECNOLÓGICO NACIONAL DE MÉXICO | TODOS LOS DERECHOS RESERVADOS</footer>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════
-         BARRA DE ACCIONES MASIVAS (BULK — sticky bottom)
-         role="toolbar" + aria-live para anuncios
-    ══════════════════════════════════════════════════════════════ -->
     <Teleport to="body">
       <transition name="bulk-slide">
         <div
@@ -482,7 +413,6 @@
         >
           <div class="bulk-bar-inner">
             <div class="bulk-bar-left">
-              <!-- Lucide: CheckSquare -->
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="18" height="18" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
@@ -508,9 +438,8 @@
             </div>
             <div class="bulk-bar-right">
               <button class="bulk-btn-cancelar" @click="limpiarSeleccion">
-                <!-- Lucide: X -->
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18"/> <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
                 CANCELAR SELECCIÓN
               </button>
@@ -520,16 +449,10 @@
       </transition>
     </Teleport>
 
-    <!-- ══════════════════════════════════════════════════════════════
-         MODAL VER ALUMNO — Expediente Académico v2.2
-         (3 secciones en Datos Generales + Kardex + Horario)
-    ══════════════════════════════════════════════════════════════ -->
     <Teleport to="body">
       <transition name="modal-fade">
         <div v-if="showViewModal && alumnoSeleccionado" class="modal-overlay" @click.self="cerrarModalVer" role="dialog" aria-modal="true">
           <div class="modal-content modal-ver-alumno">
-
-            <!-- Header -->
             <div class="modal-header">
               <div class="modal-header-avatar-group">
                 <div class="detalle-avatar">
@@ -545,14 +468,11 @@
                 </div>
               </div>
               <button @click="cerrarModalVer" class="btn-cerrar-modal" title="CERRAR" aria-label="Cerrar expediente">
-                <!-- Lucide: X -->
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18"/> <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </div>
-
-            <!-- Pestañas -->
             <div class="modal-body-tabs">
               <div class="detalle-tabs" role="tablist">
                 <button v-for="tab in tabs" :key="tab.id"
@@ -566,16 +486,10 @@
                   {{ tab.label }}
                 </button>
               </div>
-
               <div class="tab-contenido-scroll">
-
-                <!-- ══ TAB: DATOS GENERALES (3 secciones) ══ -->
                 <div v-if="tabActivo === 'general'" class="tab-panel">
-
-                  <!-- Sección 1: Datos Personales -->
                   <div class="exp-seccion">
                     <div class="exp-seccion-titulo">
-                      <!-- Lucide: User -->
                       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                         <circle cx="12" cy="7" r="4"/>
@@ -589,7 +503,6 @@
                       </div>
                       <div class="detalle-campo">
                         <span class="detalle-label">CURP</span>
-                        <!-- ⚠️ Campo nuevo — requiere campo curp en API /api/alumnos-crud -->
                         <span class="detalle-valor mono-bold">{{ alumnoSeleccionado.curp || alumnoSeleccionado.persona?.curp || 'PENDIENTE DE REGISTRO' }}</span>
                       </div>
                       <div class="detalle-campo full-width">
@@ -598,12 +511,10 @@
                       </div>
                       <div class="detalle-campo">
                         <span class="detalle-label">FECHA DE NACIMIENTO</span>
-                        <!-- ⚠️ Campo nuevo — requiere fecha_nacimiento en API -->
                         <span class="detalle-valor">{{ formatearFecha(alumnoSeleccionado.fecha_nacimiento || alumnoSeleccionado.persona?.fecha_nacimiento) || '—' }}</span>
                       </div>
                       <div class="detalle-campo">
                         <span class="detalle-label">GÉNERO</span>
-                        <!-- ⚠️ Campo nuevo — requiere genero en API -->
                         <span class="detalle-valor">{{ (alumnoSeleccionado.genero || alumnoSeleccionado.persona?.genero || '—').toUpperCase() }}</span>
                       </div>
                       <div class="detalle-campo full-width">
@@ -612,11 +523,8 @@
                       </div>
                     </div>
                   </div>
-
-                  <!-- Sección 2: Información Académica -->
                   <div class="exp-seccion">
                     <div class="exp-seccion-titulo">
-                      <!-- Lucide: GraduationCap -->
                       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 12v5c3 3 9 3 12 0v-5"/>
@@ -630,7 +538,6 @@
                       </div>
                       <div class="detalle-campo">
                         <span class="detalle-label">ESPECIALIDAD</span>
-                        <!-- ⚠️ Campo nuevo — requiere especialidad en API -->
                         <span class="detalle-valor">{{ (alumnoSeleccionado.especialidad || '—').toUpperCase() }}</span>
                       </div>
                       <div class="detalle-campo">
@@ -649,18 +556,14 @@
                       </div>
                     </div>
                   </div>
-
-                  <!-- Sección 3: Beneficios y Contacto de Emergencia -->
                   <div class="exp-seccion">
                     <div class="exp-seccion-titulo">
-                      <!-- Lucide: Shield -->
                       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="14" height="14" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                       </svg>
                       BENEFICIOS Y CONTACTO DE EMERGENCIA
                     </div>
                     <div class="detalle-grid">
-                      <!-- ⚠️ Campos nuevos — requieren seguro, subes, beca en API -->
                       <div class="detalle-campo">
                         <span class="detalle-label">SEGURO MÉDICO</span>
                         <span class="detalle-valor">{{ (alumnoSeleccionado.seguro_medico || '—').toUpperCase() }}</span>
@@ -669,13 +572,11 @@
                         <span class="detalle-label">SUBES / BECA</span>
                         <span class="detalle-valor">{{ (alumnoSeleccionado.subes || alumnoSeleccionado.beca || '—').toUpperCase() }}</span>
                       </div>
-                      <!-- Contacto de emergencia -->
                       <div class="detalle-campo full-width exp-contacto-titulo">
                         <span class="detalle-label">CONTACTO DE EMERGENCIA</span>
                       </div>
                       <div class="detalle-campo">
                         <span class="detalle-label">NOMBRE</span>
-                        <!-- ⚠️ Campo nuevo — requiere contacto_emergencia.nombre en API -->
                         <span class="detalle-valor">{{ (alumnoSeleccionado.contacto_emergencia?.nombre || '—').toUpperCase() }}</span>
                       </div>
                       <div class="detalle-campo">
@@ -692,11 +593,7 @@
                       </div>
                     </div>
                   </div>
-
                 </div>
-                <!-- ── FIN TAB DATOS GENERALES ── -->
-
-                <!-- ══ TAB: KARDEX ══ -->
                 <div v-if="tabActivo === 'kardex'" class="tab-panel">
                   <div v-if="cargandoKardex" class="kardex-cargando">
                     <div class="skeleton-linea largo"></div>
@@ -704,9 +601,8 @@
                     <div v-for="i in 4" :key="i" class="skeleton-fila"></div>
                   </div>
                   <div v-else-if="kardexError" class="kardex-error">
-                    <!-- Lucide: AlertCircle -->
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                      <circle cx="12" cy="12" r="10"/> <line x1="12" y1="8" x2="12" y2="12"/> <line x1="12" y1="16" x2="12.01" y2="16"/>
                     </svg>
                     <span>NO SE PUDO CARGAR EL KARDEX.</span>
                     <button @click="cargarKardexAlumno(alumnoSeleccionado)">REINTENTAR</button>
@@ -738,7 +634,7 @@
                         <transition name="expand">
                           <div v-if="semestresAbiertos.includes(semestre.numero)" class="semestre-materias">
                             <table class="tabla-mini">
-                              <thead><tr><th>CLAVE</th><th>MATERIA</th><th>CAL.</th><th>ESTADO</th></tr></thead>
+                              <thead> <tr> <th>CLAVE</th> <th>MATERIA</th> <th>CAL.</th> <th>ESTADO</th> </tr> </thead>
                               <tbody>
                                 <tr v-for="m in semestre.materias" :key="m.clave" :class="{ 'fila-repr': m.estado === 'reprobada' }">
                                   <td class="clave-mono">{{ m.clave }}</td>
@@ -747,7 +643,7 @@
                                     <strong v-if="m.calificacion !== null" :class="{ 'text-verde': m.estado === 'acreditada', 'text-rojo': m.estado === 'reprobada' }">{{ m.calificacion }}</strong>
                                     <span v-else class="text-gris">—</span>
                                   </td>
-                                  <td><span class="badge-estado-mini" :style="estiloEstado(m.estado)">{{ etiquetaEstado(m.estado) }}</span></td>
+                                  <td> <span class="badge-estado-mini" :style="estiloEstado(m.estado)">{{ etiquetaEstado(m.estado) }}</span> </td>
                                 </tr>
                               </tbody>
                             </table>
@@ -755,12 +651,10 @@
                         </transition>
                       </div>
                     </div>
-                    <div v-else class="kardex-vacio"><p>NO HAY MATERIAS REGISTRADAS EN EL KARDEX.</p></div>
+                    <div v-else class="kardex-vacio"> <p>NO HAY MATERIAS REGISTRADAS EN EL KARDEX.</p> </div>
                   </div>
-                  <div v-else class="kardex-vacio"><p>KARDEX NO DISPONIBLE.</p></div>
+                  <div v-else class="kardex-vacio"> <p>KARDEX NO DISPONIBLE.</p> </div>
                 </div>
-
-                <!-- ══ TAB: HORARIO ══ -->
                 <div v-if="tabActivo === 'horario'" class="tab-panel">
                   <div v-if="cargandoHorario" class="kardex-cargando">
                     <div v-for="i in 5" :key="i" class="skeleton-fila"></div>
@@ -776,24 +670,18 @@
                     </div>
                   </div>
                   <div v-else class="kardex-vacio">
-                    <!-- Lucide: Calendar -->
                     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="32" height="32" style="stroke:#9CA3AF; margin-bottom:8px" stroke-width="1.5">
                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                      <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/> <line x1="8" y1="2" x2="8" y2="6"/>
                       <line x1="3" y1="10" x2="21" y2="10"/>
                     </svg>
                     <p>NO HAY HORARIO REGISTRADO PARA ESTE ALUMNO.</p>
                   </div>
                 </div>
-
               </div>
             </div>
-
-            <!-- Footer del modal -->
             <div class="modal-footer">
-              <!-- Botón ← VOLVER que preserva contexto -->
               <button class="btn-secundario" @click="cerrarModalVer">
-                <!-- Lucide: ArrowLeft -->
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
                   <line x1="19" y1="12" x2="5" y2="12"/>
                   <polyline stroke-linecap="round" stroke-linejoin="round" points="12 19 5 12 12 5"/>
@@ -801,16 +689,14 @@
                 VOLVER A LA LISTA
               </button>
               <button class="btn-accion-outline" @click="verKardex(alumnoSeleccionado); cerrarModalVer()">
-                <!-- Lucide: FileText -->
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline stroke-linecap="round" stroke-linejoin="round" points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/> <line x1="16" y1="17" x2="8" y2="17"/>
                 </svg>
                 KARDEX COMPLETO
               </button>
               <button class="btn-guardar" @click="abrirModalEditar(alumnoSeleccionado); cerrarModalVer()">
-                <!-- Lucide: Pencil -->
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="15" height="15" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                   <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -823,9 +709,6 @@
       </transition>
     </Teleport>
 
-    <!-- ══════════════════════════════════════════════════════════════
-         MODAL EDITAR / CREAR ALUMNO
-    ══════════════════════════════════════════════════════════════ -->
     <Teleport to="body">
       <transition name="modal-fade">
         <div v-if="showModal" class="modal-overlay" @click.self="cerrarModal" role="dialog" aria-modal="true">
@@ -837,7 +720,7 @@
               </div>
               <button @click="cerrarModal" class="btn-cerrar-modal" title="CERRAR">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18"/> <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </div>
@@ -886,9 +769,6 @@
       </transition>
     </Teleport>
 
-    <!-- ══════════════════════════════════════════════════════════════
-         MODAL CONFIRMACIÓN — ELIMINACIÓN INDIVIDUAL
-    ══════════════════════════════════════════════════════════════ -->
     <Teleport to="body">
       <transition name="modal-fade">
         <div v-if="showModalEliminar" class="modal-overlay" @click.self="showModalEliminar = false" role="alertdialog" aria-modal="true">
@@ -900,17 +780,16 @@
               </div>
               <button @click="showModalEliminar = false" class="btn-cerrar-modal">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18"/> <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </div>
             <div class="modal-body confirmar-body">
-              <!-- Lucide: AlertTriangle -->
               <svg class="confirmar-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                <line x1="12" y1="9" x2="12" y2="13"/> <line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
-              <p>¿ESTÁS SEGURO DE ELIMINAR A <strong>{{ alumnoEditar.nombre?.toUpperCase() }}</strong>?<br>ESTA ACCIÓN NO SE PUEDE DESHACER.</p>
+              <p>¿ESTÁS SEGURO DE ELIMINAR A <strong>{{ alumnoEditar.nombre?.toUpperCase() }}</strong>? <br>ESTA ACCIÓN NO SE PUEDE DESHACER.</p>
             </div>
             <div class="modal-footer">
               <button class="btn-secundario" @click="showModalEliminar = false">CANCELAR</button>
@@ -924,9 +803,6 @@
       </transition>
     </Teleport>
 
-    <!-- ══════════════════════════════════════════════════════════════
-         MODAL CONFIRMACIÓN — BULK (acciones masivas)
-    ══════════════════════════════════════════════════════════════ -->
     <Teleport to="body">
       <transition name="modal-fade">
         <div v-if="showBulkConfirm" class="modal-overlay" @click.self="showBulkConfirm = false" role="alertdialog" aria-modal="true">
@@ -938,30 +814,24 @@
               </div>
               <button @click="showBulkConfirm = false" class="btn-cerrar-modal">
                 <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18"/> <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </div>
             <div class="modal-body confirmar-body">
-              <!-- Icono según tipo -->
               <svg v-if="bulkAccion === 'eliminar'" class="confirmar-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                <line x1="12" y1="9" x2="12" y2="13"/> <line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
               <svg v-else class="confirmar-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="stroke:#1B396A">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/>
               </svg>
-
               <p>SE APLICARÁ LA ACCIÓN <strong>{{ labelBulkAccion }}</strong> A <strong>{{ selectedCount }}</strong> ALUMNO{{ selectedCount !== 1 ? 'S' : '' }}.</p>
-
-              <!-- Vista previa de IDs seleccionados -->
               <div class="bulk-preview">
                 <span v-for="id in [...seleccionados].slice(0, 8)" :key="id" class="bulk-id-chip">{{ id }}</span>
                 <span v-if="selectedCount > 8" class="bulk-id-chip bulk-id-mas">+{{ selectedCount - 8 }} MÁS</span>
               </div>
-
-              <!-- Sub-opciones según acción -->
               <div v-if="bulkAccion === 'estatus'" class="bulk-sub-opcion">
                 <label class="filtro-label">NUEVO ESTATUS</label>
                 <select v-model="bulkValor" class="filter-select">
@@ -992,90 +862,48 @@
         </div>
       </transition>
     </Teleport>
-
   </MainLayout>
 </template>
 
 <script setup>
 /**
- * AlumnosView.vue — Expediente Académico v2.2
- * Sprint 1 — Rediseño Front-End SICE
- *
- * Cambios v2.2 vs v1:
- *  - Datos Generales expandidos (3 secciones: personal / académico / beneficios+contacto)
- *  - Debounce (300ms) en búsqueda para evitar recomputación excesiva
- *  - Filtros sincronizados con URLSearchParams (?carrera=&semestre=&estatus=&q=)
- *  - Acciones masivas (bulk): checkbox por card, barra flotante, modal de confirmación
- *  - v-memo en cards para evitar re-renders innecesarios al seleccionar
- *  - Breadcrumb dinámico: ALUMNOS → EXPEDIENTE: [NO_CONTROL]
- *  - Botón "← VOLVER A LA LISTA" en el modal preserva scroll/filtros/página
- *
- * NOTA DE API: Los nuevos campos en la pestaña Datos Generales requieren
- * que GET /api/alumnos-crud retorne los siguientes campos adicionales
- * (si no existen, se muestra "PENDIENTE DE REGISTRO"):
- *   - curp (string)
- *   - fecha_nacimiento (date string)
- *   - genero (string)
- *   - especialidad (string)
- *   - seguro_medico (string: 'ISSSTE' | 'IMSS' | 'NINGUNO' | etc.)
- *   - subes (string) / beca (string)
- *   - contacto_emergencia: { nombre, relacion, telefono, email }
- *
- * Payload de ejemplo esperado:
- * {
- *   id_alumno: 123,
- *   numero_control: "23400001",
- *   nombre: "GARCÍA LÓPEZ JUAN PEDRO",
- *   carrera: { id_carrera: 1, nombre_carrera: "ISC" },
- *   semestre_actual: 4,
- *   estatus: "Activo",
- *   id_estatus_alumno: 1,
- *   fecha_ingreso: "2023-08-14",
- *   curp: "GALJ030101HMCRPD09",
- *   fecha_nacimiento: "2003-01-01",
- *   genero: "Masculino",
- *   especialidad: "Sistemas Distribuidos",
- *   seguro_medico: "ISSSTE",
- *   subes: "SÍ",
- *   contacto_emergencia: {
- *     nombre: "María López",
- *     relacion: "Madre",
- *     telefono: "4421234567",
- *     email: "maria@ejemplo.com"
- *   },
- *   persona: { email: "23400001@itq.edu.mx" }
- * }
- */
+* AlumnosView.vue — Expediente Académico v2.2
+* Sprint 1 — Rediseño Front-End SICE
+*
+* Cambios v2.2 vs v1:
+* - Datos Generales expandidos (3 secciones: personal / académico / beneficios+contacto)
+* - Debounce (300ms) en búsqueda para evitar recomputación excesiva
+* - Filtros sincronizados con URLSearchParams (?carrera=&semestre=&estatus=&q=)
+* - Acciones masivas (bulk): checkbox por fila, barra flotante, modal de confirmación
+* - v-memo en filas de tabla para evitar re-renders innecesarios al seleccionar
+* - Breadcrumb dinámico: ALUMNOS → EXPEDIENTE: [NO_CONTROL]
+* - Botón "← VOLVER A LA LISTA" en el modal preserva scroll/filtros/página
+*/
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute }                       from 'vue-router'
 import MainLayout                                    from '@/layouts/MainLayout.vue'
 
-// ── Router / Env ─────────────────────────────────────────────────────
 const router  = useRouter()
 const route   = useRoute()
 const API_URL = import.meta.env.VITE_API_URL
 
-// ── Props ────────────────────────────────────────────────────────────
 const props = defineProps({
   busquedaGlobal: { type: String, default: '' }
 })
 
-// ── Estado principal ─────────────────────────────────────────────────
 const alumnos   = ref([])
 const cargando  = ref(false)
 const guardando = ref(false)
 const gridRef   = ref(null)
 const inputBusqueda = ref(null)
-const cardActiva    = ref(-1)
+const filaActiva    = ref(-1)
 
-// ── Modales individuales ─────────────────────────────────────────────
 const showViewModal      = ref(false)
 const showModal          = ref(false)
 const showModalEliminar  = ref(false)
 const alumnoSeleccionado = ref(null)
 const alumnoEditar       = ref({})
 
-// ── Pestañas ─────────────────────────────────────────────────────────
 const tabActivo         = ref('general')
 const kardexData        = ref(null)
 const cargandoKardex    = ref(false)
@@ -1086,16 +914,14 @@ const semestresAbiertos = ref([])
 
 const tabs = [
   { id: 'general', label: 'DATOS',   icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-  { id: 'kardex',  label: 'KARDEX',  icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z' },
-  { id: 'horario', label: 'HORARIO', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
+  { id: 'kardex',  label: 'KARDEX',  icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.58 6a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9.414V19a2 2 0 01-2 2z' },
+  { id: 'horario', label: 'HORARIO', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2  2v12a2 2 0 002 2z' },
 ]
 
-// ── Catálogos ────────────────────────────────────────────────────────
 const catalogos = ref({ carreras: [], estatus_alumno: [] })
 
-// ── Búsqueda con DEBOUNCE 300ms ──────────────────────────────────────
-const busquedaRaw    = ref('')   // valor del input (sin debounce)
-const busquedaAlumno = ref('')   // valor debounced que usa el filtro
+const busquedaRaw    = ref('')
+const busquedaAlumno = ref('')
 let debounceTimer = null
 
 watch(busquedaRaw, (val) => {
@@ -1103,12 +929,10 @@ watch(busquedaRaw, (val) => {
   debounceTimer = setTimeout(() => {
     busquedaAlumno.value = val
     currentPage.value = 1
-    // Sincronizar con URL
     sincronizarURL()
   }, 300)
 })
 
-// ── Filtros ──────────────────────────────────────────────────────────
 const mostrarFiltros  = ref(false)
 const filtroCarreraId = ref('')
 const filtroSemestre  = ref('')
@@ -1116,23 +940,20 @@ const filtroEstatusId = ref('')
 const filasPorPagina  = ref(12)
 const currentPage     = ref(1)
 
-// Sincroniza filtros → URL (preserva estado para compartir/recargar)
 const sincronizarURL = () => {
   const params = new URLSearchParams()
   if (busquedaAlumno.value)  params.set('q',        busquedaAlumno.value)
-  if (filtroCarreraId.value) params.set('carrera',   String(filtroCarreraId.value))
-  if (filtroSemestre.value)  params.set('semestre',  filtroSemestre.value)
-  if (filtroEstatusId.value) params.set('estatus',   String(filtroEstatusId.value))
+  if (filtroCarreraId.value) params.set('carrera',  String(filtroCarreraId.value))
+  if (filtroSemestre.value)  params.set('semestre', filtroSemestre.value)
+  if (filtroEstatusId.value) params.set('estatus',  String(filtroEstatusId.value))
   router.replace({ query: Object.fromEntries(params) })
 }
 
-// Al cambiar filtros de dropdown: resetear página + sincronizar URL
 const onFiltroChange = () => {
   currentPage.value = 1
   sincronizarURL()
 }
 
-// Restaurar filtros desde URL al montar
 const restaurarFiltrosDesdeURL = () => {
   const q = route.query.q       || ''
   const c = route.query.carrera || ''
@@ -1145,7 +966,6 @@ const restaurarFiltrosDesdeURL = () => {
   filtroEstatusId.value = e ? Number(e) : ''
 }
 
-// Validación: si catálogo cambia y el valor seleccionado ya no existe → reset
 watch(() => catalogos.value.carreras, (carreras) => {
   if (filtroCarreraId.value && !carreras.find(c => c.id_carrera == filtroCarreraId.value)) {
     filtroCarreraId.value = ''
@@ -1157,11 +977,6 @@ watch(() => catalogos.value.estatus_alumno, (estatus) => {
   }
 })
 
-// ── ACCIONES MASIVAS (Bulk) ──────────────────────────────────────────
-/**
- * seleccionados: Set de ids (id_alumno || id) para O(1) lookup.
- * Se usa toRaw() al iterar para evitar proxies innecesarios.
- */
 const seleccionados     = ref(new Set())
 const bulkAccion        = ref('')
 const bulkValor         = ref('')
@@ -1182,7 +997,7 @@ const toggleSeleccion = (alumno) => {
   const s = new Set(seleccionados.value)
   if (s.has(id)) s.delete(id)
   else           s.add(id)
-  seleccionados.value = s   // reemplazo del Set para disparar reactividad
+  seleccionados.value = s
 }
 
 const toggleSelectAll = () => {
@@ -1206,7 +1021,6 @@ const limpiarSeleccion = () => {
 const aplicarBulkAccion = () => {
   if (!bulkAccion.value) return
   if (bulkAccion.value === 'exportar') {
-    // Exportar CSV inmediato sin modal
     exportarCSV()
     return
   }
@@ -1222,7 +1036,6 @@ const confirmarBulkAccion = async () => {
 
   try {
     if (bulkAccion.value === 'eliminar') {
-      // Eliminación por lotes con manejo de fallos parciales
       const resultados = await Promise.allSettled(
         ids.map(id => fetch(`${API_URL}/api/alumnos/${id}`, {
           method: 'DELETE',
@@ -1234,7 +1047,7 @@ const confirmarBulkAccion = async () => {
     } else if (bulkAccion.value === 'estatus') {
       if (!bulkValor.value) { mostrarNotificacion('SELECCIONA UN ESTATUS.', 'error'); return }
       const nombreEstatus = catalogos.value.estatus_alumno
-        .find(e => e.id_estatus_alumno == bulkValor.value)?.nombre || ''
+      .find(e => e.id_estatus_alumno == bulkValor.value)?.nombre || ''
       const resultados = await Promise.allSettled(
         ids.map(id => fetch(`${API_URL}/api/alumnos/${id}`, {
           method: 'PUT',
@@ -1256,7 +1069,6 @@ const confirmarBulkAccion = async () => {
       resultados.forEach(r => r.status === 'fulfilled' && r.value.ok ? exitosos++ : fallidos++)
     }
 
-    // Feedback detallado éxito / parcial / error
     if (fallidos === 0) {
       mostrarNotificacion(`${exitosos} REGISTRO${exitosos !== 1 ? 'S' : ''} ACTUALIZADO${exitosos !== 1 ? 'S' : ''} CORRECTAMENTE.`, 'exito')
     } else if (exitosos > 0) {
@@ -1298,9 +1110,8 @@ const exportarCSV = () => {
   limpiarSeleccion()
 }
 
-// ── Notificación (Toast) ─────────────────────────────────────────────
 const notificacion = ref({ visible: false, mensaje: '', tipo: 'exito' })
-let timerNotif = null
+let timerNotif     = null
 
 const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   if (timerNotif) clearTimeout(timerNotif)
@@ -1308,12 +1119,9 @@ const mostrarNotificacion = (mensaje, tipo = 'exito') => {
   timerNotif = setTimeout(() => { notificacion.value.visible = false }, 3500)
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────
-/** Normaliza texto para búsqueda: sin tildes, minúsculas */
 const normalize = (t) =>
   !t ? '' : t.toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
-/** Slug CSS por estatus */
 const slugEstatus = (estatus) => {
   if (!estatus) return 'desconocido'
   const e = estatus.toLowerCase()
@@ -1325,7 +1133,6 @@ const slugEstatus = (estatus) => {
   return 'desconocido'
 }
 
-/** Índice de color determinista para avatares (0-4) */
 const colorIndex = (nombre) => {
   if (!nombre) return 0
   let h = 0
@@ -1346,16 +1153,12 @@ const colorMateria      = (nombre) => {
 }
 const corregirNombreAlumno = (nombre) => !nombre ? nombre : nombre.replace(/\bWilfido\b/gi, 'Wilfredo')
 
-// ── KPIs (sobre el array completo, no el filtrado) ───────────────────
 const kpiTotal       = computed(() => alumnos.value.length)
 const kpiActivos     = computed(() => alumnos.value.filter(a => slugEstatus(a.estatus) === 'activo').length)
 const kpiTemporales  = computed(() => alumnos.value.filter(a => slugEstatus(a.estatus) === 'temporal').length)
 const kpiDefinitivas = computed(() => alumnos.value.filter(a => slugEstatus(a.estatus) === 'definitiva').length)
 const kpiEgresados   = computed(() => alumnos.value.filter(a => ['egresado','titulado'].includes(slugEstatus(a.estatus))).length)
 
-// ── Filtrado en 2 capas para mejor legibilidad/memoización ──────────
-
-/** Capa 1: filtrado solo por texto (debounced) */
 const filtradosPorTexto = computed(() => {
   const termGlobal = props.busquedaGlobal
   const termLocal  = busquedaAlumno.value.trim()
@@ -1373,7 +1176,6 @@ const filtradosPorTexto = computed(() => {
   })
 })
 
-/** Capa 2: filtrado por dropdowns sobre el resultado de texto */
 const alumnosFiltrados = computed(() => {
   return filtradosPorTexto.value.filter(alumno => {
     const filtCarrera  = !filtroCarreraId.value || Number(resolverIdCarrera(alumno)) === Number(filtroCarreraId.value)
@@ -1383,13 +1185,11 @@ const alumnosFiltrados = computed(() => {
   })
 })
 
-// ── Filtros — helpers ────────────────────────────────────────────────
 const filtrosActivos  = computed(() => !!(filtroCarreraId.value || filtroSemestre.value || filtroEstatusId.value))
 const contadorFiltros = computed(() =>
   [filtroCarreraId.value, filtroSemestre.value, filtroEstatusId.value].filter(Boolean).length
 )
 
-// ── Paginación ───────────────────────────────────────────────────────
 const totalPages = computed(() =>
   Math.ceil(alumnosFiltrados.value.length / filasPorPagina.value) || 1
 )
@@ -1405,8 +1205,8 @@ const visiblePages = computed(() => {
   return [...pages].sort((a, b) => a - b)
 })
 
-const goToPage = (p) => { currentPage.value = p; cardActiva.value = -1 }
-const prevPage = () => { if (currentPage.value > 1)              currentPage.value-- }
+const goToPage = (p) => { currentPage.value = p; filaActiva.value = -1 }
+const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
 const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
 
 const resetFilters = () => {
@@ -1416,7 +1216,7 @@ const resetFilters = () => {
   filtroSemestre.value  = ''
   filtroEstatusId.value = ''
   currentPage.value     = 1
-  cardActiva.value      = -1
+  filaActiva.value      = -1
   router.replace({ query: {} })
 }
 
@@ -1428,31 +1228,28 @@ const limpiarBusqueda = () => {
   nextTick(() => inputBusqueda.value?.focus())
 }
 
-// ── Navegación por teclado (deshabilitada si hay selección activa) ───
 const navegarTeclado = (e) => {
   const total = paginatedAlumnos.value.length
   if (total === 0) return
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-    e.preventDefault(); cardActiva.value = Math.min(cardActiva.value + 1, total - 1)
+    e.preventDefault(); filaActiva.value = Math.min(filaActiva.value + 1, total - 1)
   } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    e.preventDefault(); cardActiva.value = Math.max(cardActiva.value - 1, 0)
-  } else if (e.key === 'Enter' && cardActiva.value >= 0) {
-    e.preventDefault(); abrirModalVer(paginatedAlumnos.value[cardActiva.value])
+    e.preventDefault(); filaActiva.value = Math.max(filaActiva.value - 1, 0)
+  } else if (e.key === 'Enter' && filaActiva.value >= 0) {
+    e.preventDefault(); abrirModalVer(paginatedAlumnos.value[filaActiva.value])
   } else if (e.key === 'PageDown') { e.preventDefault(); nextPage() }
-    else if (e.key === 'PageUp')   { e.preventDefault(); prevPage() }
+  else if (e.key === 'PageUp')    { e.preventDefault(); prevPage() }
 }
 
-// Click en card: si hay selección activa el click principal selecciona/deselecciona
-const handleCardClick = (alumno, index, event) => {
+const handleRowClick = (alumno, index, event) => {
   if (selectedCount.value > 0) {
     toggleSeleccion(alumno)
   } else {
-    cardActiva.value = index
+    filaActiva.value = index
     abrirModalVer(alumno)
   }
 }
 
-// ── Carga de datos ───────────────────────────────────────────────────
 const cargarAlumnosDesdeBD = async () => {
   cargando.value = true
   try {
@@ -1471,7 +1268,6 @@ const cargarAlumnosDesdeBD = async () => {
       }
       return c
     })
-    // Apertura directa por ?ver=NOCTRL (preserva filtros)
     const verControl = route.query.ver
     if (verControl) {
       const encontrado = alumnos.value.find(a => String(a.numero_control) === String(verControl))
@@ -1489,7 +1285,7 @@ const cargarCatalogos = async () => {
     const res  = await fetch(`${API_URL}/api/alumnos/catalogos`)
     if (!res.ok) throw new Error()
     const data = await res.json()
-    catalogos.value.carreras       = data.carreras       || []
+    catalogos.value.carreras       = data.carreras        || []
     catalogos.value.estatus_alumno = data.estatus_alumno || []
   } catch {
     mostrarNotificacion('No se pudieron cargar los catálogos.', 'error')
@@ -1501,38 +1297,33 @@ onMounted(async () => {
   await Promise.all([cargarAlumnosDesdeBD(), cargarCatalogos()])
 })
 
-// ── Watcher ?ver= ────────────────────────────────────────────────────
 watch(() => route.query.ver, (verControl) => {
   if (!verControl) return
   const encontrado = alumnos.value.find(a => String(a.numero_control) === String(verControl))
   if (encontrado) abrirModalVer(encontrado)
 })
 
-// ── Modal VER ────────────────────────────────────────────────────────
 const abrirModalVer = (alumno) => {
   alumnoSeleccionado.value = alumno
   tabActivo.value   = 'general'
   kardexData.value  = null
   horarioData.value = null
   showViewModal.value = true
-  // Preservar ?ver= en URL para poder compartir enlace directo
   router.replace({ query: { ...route.query, ver: alumno.numero_control || alumno.noControl } })
 }
 
 const cerrarModalVer = () => {
   showViewModal.value = false
-  // Eliminar ?ver= de URL al cerrar
   const q = { ...route.query }
   delete q.ver
   router.replace({ query: q })
   setTimeout(() => { alumnoSeleccionado.value = null }, 300)
 }
 
-// Carga lazy al cambiar pestaña
 watch(tabActivo, async (tab) => {
   if (!alumnoSeleccionado.value) return
-  if (tab === 'kardex'  && !kardexData.value)  await cargarKardexAlumno(alumnoSeleccionado.value)
-  if (tab === 'horario' && !horarioData.value) await cargarHorarioAlumno(alumnoSeleccionado.value)
+  if (tab === 'kardex'   && !kardexData.value)  await cargarKardexAlumno(alumnoSeleccionado.value)
+  if (tab === 'horario'  && !horarioData.value) await cargarHorarioAlumno(alumnoSeleccionado.value)
 })
 
 const cargarKardexAlumno = async (alumno) => {
@@ -1600,7 +1391,6 @@ const verKardex = (alumno) => {
   if (nc) router.push(`/kardex/${nc}`)
 }
 
-// ── Modal EDITAR ─────────────────────────────────────────────────────
 const abrirModalEditar = (alumno) => {
   alumnoEditar.value = {
     id_alumno:         alumno.id_alumno || alumno.id,
@@ -1619,17 +1409,17 @@ const nuevoAlumno = () => router.push('/formulario-alumno')
 
 const guardarCambios = async () => {
   const id = alumnoEditar.value.id_alumno
-  if (!id)                                { mostrarNotificacion('No se encontró el identificador.', 'error'); return }
-  if (!alumnoEditar.value.id_carrera)     { mostrarNotificacion('Selecciona una carrera.', 'error');          return }
-  if (!alumnoEditar.value.id_estatus_alumno) { mostrarNotificacion('Selecciona un estatus.', 'error');        return }
+  if (!id)                                   { mostrarNotificacion('No se encontró el identificador.', 'error'); return }
+  if (!alumnoEditar.value.id_carrera)        { mostrarNotificacion('Selecciona una carrera.', 'error');          return }
+  if (!alumnoEditar.value.id_estatus_alumno) { mostrarNotificacion('Selecciona un estatus.', 'error');           return }
 
   const nombreEstatus = catalogos.value.estatus_alumno
-    .find(e => e.id_estatus_alumno === alumnoEditar.value.id_estatus_alumno)?.nombre || 'Activo'
+  .find(e => e.id_estatus_alumno === alumnoEditar.value.id_estatus_alumno)?.nombre || 'Activo'
 
   guardando.value = true
   try {
     const res = await fetch(`${API_URL}/api/alumnos/${id}`, {
-      method:  'PUT',
+      method:   'PUT',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
         nombre:            alumnoEditar.value.nombre,
@@ -1654,7 +1444,7 @@ const guardarCambios = async () => {
   }
 }
 
-const solicitarEliminar  = () => { showModal.value = false; showModalEliminar.value = true }
+const solicitarEliminar = () => { showModal.value = false; showModalEliminar.value = true }
 
 const confirmarEliminar = async () => {
   const id = alumnoEditar.value.id_alumno
@@ -1683,20 +1473,19 @@ const confirmarEliminar = async () => {
 
 <style scoped>
 /* ══════════════════════════════════════════════════════
-   BASE
+BASE & OPTIMIZACIÓN DE ESPACIO
 ══════════════════════════════════════════════════════ */
 .alumnos-page {
-  padding: 20px 24px 80px; /* 80px bottom para dejar espacio a bulk bar */
-  max-width: 1400px;
+  padding: 20px 12px 80px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   background: #F4F6FA;
   font-family: 'Montserrat', sans-serif;
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
-/* ══════════════════════════════════════════════════════
-   BARRA DE CARGA GLOBAL
-══════════════════════════════════════════════════════ */
 .barra-carga-global {
   position: fixed; top: 0; left: 0; right: 0;
   height: 3px; z-index: 9999;
@@ -1711,9 +1500,6 @@ const confirmarEliminar = async () => {
 }
 @keyframes barraAnim { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
 
-/* ══════════════════════════════════════════════════════
-   NOTIFICACIÓN TOAST
-══════════════════════════════════════════════════════ */
 .notificacion-ui {
   position: fixed; bottom: 80px; right: 24px;
   display: flex; align-items: center; gap: 10px;
@@ -1728,68 +1514,30 @@ const confirmarEliminar = async () => {
 .notif-fade-enter-active,.notif-fade-leave-active{transition:all .3s cubic-bezier(.4,0,.2,1)}
 .notif-fade-enter-from,.notif-fade-leave-to{opacity:0;transform:translateY(20px)}
 
-/* ══════════════════════════════════════════════════════
-   BREADCRUMB
-══════════════════════════════════════════════════════ */
 .breadcrumb {
   display: flex; align-items: center; gap: 6px;
   margin-bottom: 16px; font-size: 0.78rem;
   font-weight: 600; letter-spacing: 0.05em; color: #9CA3AF;
 }
-.breadcrumb-link {
-  cursor: pointer; color: #1B396A; transition: opacity 0.15s;
-}
+.breadcrumb-link { cursor: pointer; color: #1B396A; transition: opacity 0.15s; }
 .breadcrumb-link:hover { opacity: 0.75; text-decoration: underline; }
 .breadcrumb-chevron  { stroke: #D1D5DB; flex-shrink: 0; }
 .breadcrumb-actual   { color: #374151; cursor: default; }
 
-/* ENCABEZADO DE PÁGINA */
 .page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; margin-bottom: 20px; flex-wrap: wrap;
+  width: 100%;
 }
-
-.page-header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.page-header-btns {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-/* ✅ Fixed selector typo (.page-title instead of .p age-title) */
-.page-title {
-  font-size: 1.7rem;
-  font-weight: 800;
-  color: #0F172A;
-  /* ✅ Fixed property typo (letter-spacing instead of letter-spac ing) */
-  letter-spacing: -0.01em;
-  margin: 0;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.page-subtitle {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #6B7280;
-  letter-spacing: 0.04em;
-  margin: 0;
-}
+.page-header-left { display: flex; flex-direction: column; gap: 4px; }
+.page-header-btns  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.page-title { font-size: 1.6rem; font-weight: 800; color: #0F172A; letter-spacing: -0.01em; margin: 0; }
+.page-subtitle { font-size: 0.8rem; font-weight: 600; color: #6B7280; letter-spacing: 0.04em; margin: 0; }
 .subtitle-sel  { color: #1B396A; }
 
 .btn-nuevo {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 20px; background: #1B396A; color: #fff;
-  border: none; border-radius: 9px;
+  display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+  background: #1B396A; color: #fff; border: none; border-radius: 9px;
   font-family: 'Montserrat', sans-serif; font-weight: 700;
   font-size: 0.82rem; letter-spacing: 0.06em; cursor: pointer;
   transition: background 0.18s, transform 0.1s, box-shadow 0.18s;
@@ -1799,477 +1547,269 @@ const confirmarEliminar = async () => {
 .btn-nuevo:active { transform: scale(0.97); }
 
 .btn-select-all {
-  display: flex; align-items: center; gap: 7px;
-  padding: 10px 16px; border-radius: 9px;
+  display: flex; align-items: center; gap: 7px; padding: 10px 16px; border-radius: 9px;
   border: 1.5px solid #D1D5DB; background: #fff;
   font-family: 'Montserrat', sans-serif; font-weight: 700;
-  font-size: 0.8rem; letter-spacing: 0.05em;
-  color: #6B7280; cursor: pointer; transition: all 0.15s;
-  white-space: nowrap;
+  font-size: 0.8rem; letter-spacing: 0.05em; color: #6B7280;
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
 .btn-select-all:hover  { border-color: #1B396A; color: #1B396A; }
 .btn-select-all.activo { background: #EFF6FF; border-color: #1B396A; color: #1B396A; }
 
 /* ══════════════════════════════════════════════════════
-   KPIs
+KPIs COMPACTOS
 ══════════════════════════════════════════════════════ */
 .kpis-grid {
   display: grid; grid-template-columns: repeat(5,1fr);
-  gap: 14px; margin-bottom: 26px;
+  gap: 10px; margin-bottom: 20px;
 }
 .kpi-card {
-  display: flex; align-items: center; gap: 14px;
-  padding: 16px 18px; border-radius: 12px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 10px;
   background: #fff; border: 1px solid #E5E7EB;
   box-shadow: 0 1px 4px rgba(0,0,0,.06);
   transition: box-shadow 0.2s, transform 0.15s;
   position: relative; overflow: hidden;
 }
-.kpi-card::before {
-  content:''; position:absolute; top:0; left:0;
-  width:4px; height:100%; border-radius:12px 0 0 12px;
-}
+.kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; border-radius:12px 0 0 12px; }
 .kpi-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.1); transform: translateY(-1px); }
 .kpi-total::before     { background: #1B396A; }
 .kpi-activo::before    { background: #16A34A; }
 .kpi-temporal::before  { background: #D97706; }
 .kpi-definitiva::before{ background: #DC2626; }
 .kpi-egresado::before  { background: #7C3AED; }
-.kpi-icon-wrap {
-  display:flex; align-items:center; justify-content:center;
-  width:42px; height:42px; border-radius:10px; flex-shrink:0;
-}
+.kpi-icon-wrap { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; flex-shrink:0; }
 .kpi-total     .kpi-icon-wrap { background:#EFF6FF; color:#1B396A; }
 .kpi-activo    .kpi-icon-wrap { background:#F0FDF4; color:#16A34A; }
 .kpi-temporal  .kpi-icon-wrap { background:#FFFBEB; color:#D97706; }
 .kpi-definitiva .kpi-icon-wrap{ background:#FEF2F2; color:#DC2626; }
 .kpi-egresado  .kpi-icon-wrap { background:#F5F3FF; color:#7C3AED; }
 .kpi-data   { display:flex; flex-direction:column; gap:2px; min-width:0; }
-.kpi-numero { font-size:1.8rem; font-weight:800; color:#0F172A; line-height:1; letter-spacing:-0.02em; }
-.kpi-label  { font-size:0.68rem; font-weight:700; color:#6B7280; letter-spacing:0.06em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.kpi-numero { font-size:1.5rem; font-weight:800; color:#0F172A; line-height:1; letter-spacing:-0.02em; }
+.kpi-label  { font-size:0.65rem; font-weight:700; color:#6B7280; letter-spacing:0.06em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 /* ══════════════════════════════════════════════════════
-   BARRA DE ACCIONES
+BARRA DE ACCIONES
 ══════════════════════════════════════════════════════ */
 .barra-acciones {
   display:flex; align-items:center; gap:12px;
-  margin-bottom:16px; flex-wrap:wrap;
+  margin-bottom:14px; flex-wrap:wrap; width: 100%;
 }
 .busqueda-grupo { flex:1; min-width:260px; }
 .input-con-icono { position:relative; width:100%; }
-.icono-input {
-  position:absolute; left:13px; top:50%;
-  transform:translateY(-50%); color:#9CA3AF; pointer-events:none;
-}
+.icono-input { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#9CA3AF; pointer-events:none; }
 .input-busqueda {
   width:100%; padding:11px 40px 11px 42px;
-  border:1.5px solid #D1D5DB; border-radius:9px;
-  font-family:'Montserrat',sans-serif; font-size:0.88rem;
+  border: 1.5px solid #D1D5DB; border-radius:9px;
+  font-family:'Montserrat',sans-serif; font-size:0.85rem;
   font-weight:600; letter-spacing:0.04em; text-transform:uppercase;
-  transition:border-color .2s,box-shadow .2s;
-  box-sizing:border-box; background:#fff; color:#111827;
+  transition:border-color .2s,box-shadow .2s; box-sizing:border-box; background:#fff; color:#111827;
 }
 .input-busqueda::placeholder { color:#9CA3AF; font-weight:600; }
-.input-busqueda:focus { outline:none; border-color:#1B396A; box-shadow:0 0 0 3px rgba(27,57,106,.12); }
-.btn-limpiar-input {
-  position:absolute; right:11px; top:50%; transform:translateY(-50%);
-  background:none; border:none; color:#9CA3AF; cursor:pointer;
-  display:flex; align-items:center; padding:4px; border-radius:4px; transition:color .15s;
-}
+.input-busqueda:focus { outline: none; border-color:#1B396A; box-shadow:0 0 0 3px rgba(27,57,106,.12); }
+.btn-limpiar-input { position:absolute; right:11px; top:50%; transform:translateY(-50%); background:none; border:none; color:#9CA3AF; cursor:pointer; display:flex; align-items:center; padding:4px; border-radius:4px; transition:color .15s; }
 .btn-limpiar-input:hover { color:#374151; }
 
 .btn-filtro {
-  display:flex; align-items:center; gap:8px;
-  padding:11px 18px; border:1.5px solid #D1D5DB;
-  border-radius:9px; background:#fff;
-  font-family:'Montserrat',sans-serif; font-weight:700;
-  font-size:0.82rem; letter-spacing:0.06em;
-  color:#374151; cursor:pointer; transition:all .18s;
-  position:relative; white-space:nowrap;
+  display:flex; align-items:center; gap:8px; padding:11px 18px; border:1.5px solid #D1D5DB; border-radius:9px; background:#fff;
+  font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.82rem; letter-spacing:0.06em; color:#374151;
+  cursor:pointer; transition:all .18s; position:relative; white-space:nowrap;
 }
 .btn-filtro:hover   { border-color:#1B396A; color:#1B396A; }
 .btn-filtro.activo  { border-color:#1B396A; color:#1B396A; background:#EFF6FF; }
 .btn-filtro.abierto { background:#1B396A; color:#fff; border-color:#1B396A; }
 .filtros-badge {
-  display:inline-flex; align-items:center; justify-content:center;
-  width:18px; height:18px; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%;
   background:#DC2626; color:#fff; font-size:0.68rem; font-weight:800;
 }
 
-/* ══════════════════════════════════════════════════════
-   PANEL DE FILTROS
-══════════════════════════════════════════════════════ */
 .filtros-panel {
-  background:#fff; border:1.5px solid #E5E7EB; border-radius:12px;
-  padding:18px 20px 14px; margin-bottom:18px;
-  box-shadow:0 2px 8px rgba(0,0,0,.06);
+  background:#fff; border:1.5px solid #E5E7EB; border-radius:12px; padding:16px 20px 14px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,.06);
 }
-.filtros-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+.filtros-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
 .filtro-item  { display:flex; flex-direction:column; gap:6px; }
-.filtro-label {
-  display:flex; align-items:center; gap:5px;
-  font-size:0.73rem; font-weight:700; color:#6B7280; letter-spacing:0.06em;
-}
+.filtro-label { display:flex; align-items:center; gap:5px; font-size:0.72rem; font-weight:700; color:#6B7280; letter-spacing:0.06em; }
 .filter-select {
   padding:9px 12px; border:1.5px solid #D1D5DB; border-radius:8px;
-  font-family:'Montserrat',sans-serif; font-size:0.83rem; font-weight:600;
-  color:#111827; background:#F9FAFB; outline:none; cursor:pointer;
-  transition:border-color .18s,box-shadow .18s;
+  font-family:'Montserrat',sans-serif; font-size:0.82rem; font-weight:600; color:#111827; background:#F9FAFB; outline:none; cursor:pointer; transition:border-color .18s,box-shadow .18s;
 }
 .filter-select:focus { border-color:#1B396A; box-shadow:0 0 0 3px rgba(27,57,106,.1); background:#fff; }
-.filtros-footer { display:flex; justify-content:flex-end; margin-top:14px; padding-top:12px; border-top:1px solid #F3F4F6; }
+.filtros-footer { display:flex; justify-content:flex-end; margin-top:12px; padding-top:10px; border-top:1px solid #F3F4F6; }
 .btn-limpiar-filtros {
-  display:flex; align-items:center; gap:7px;
-  padding:7px 14px; background:none; border:1.5px solid #D1D5DB;
-  border-radius:7px; font-family:'Montserrat',sans-serif;
-  font-size:0.78rem; font-weight:700; letter-spacing:0.04em;
-  color:#6B7280; cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; gap:7px; padding:7px 14px; background:none; border:1.5px solid #D1D5DB; border-radius:7px;
+  font-family:'Montserrat',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.04em; color:#6B7280; cursor:pointer; transition:all .15s;
 }
 .btn-limpiar-filtros:hover { border-color:#DC2626; color:#DC2626; }
-
 .filtros-slide-enter-active,.filtros-slide-leave-active{transition:all .25s cubic-bezier(.4,0,.2,1)}
 .filtros-slide-enter-from,.filtros-slide-leave-to{opacity:0;transform:translateY(-10px)}
 
 /* ══════════════════════════════════════════════════════
-   ESTADOS CARGANDO / VACÍO
+ESTADOS CARGANDO / VACÍO
 ══════════════════════════════════════════════════════ */
-.estado-cargando {
-  display:flex; flex-direction:column; align-items:center;
-  justify-content:center; padding:80px 20px; gap:16px;
-  color:#6B7280; font-weight:600; font-size:0.85rem; letter-spacing:0.05em;
-}
-.spinner-cards {
-  width:36px; height:36px;
-  border:3px solid #E5E7EB; border-top-color:#1B396A;
-  border-radius:50%; animation:spin .8s linear infinite;
-}
+.estado-cargando { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:16px; color:#6B7280; font-weight:600; font-size:0.85rem; letter-spacing:0.05em; }
+.spinner-cards { width:32px; height:32px; border:3px solid #E5E7EB; border-top-color:#1B396A; border-radius:50%; animation:spin .8s linear infinite; }
 @keyframes spin { to{transform:rotate(360deg)} }
-
-.estado-vacio {
-  display:flex; flex-direction:column; align-items:center;
-  justify-content:center; padding:80px 20px; gap:12px; text-align:center;
-}
-.icono-vacio { width:52px; height:52px; stroke:#D1D5DB; }
-.estado-vacio h3 { font-size:1.05rem; font-weight:800; color:#374151; letter-spacing:0.05em; margin:0; }
-.estado-vacio p  { font-size:0.85rem; color:#9CA3AF; font-weight:600; margin:0; letter-spacing:0.03em; }
-.btn-limpiar-vacio {
-  margin-top:8px; padding:9px 22px; border-radius:8px;
-  border:1.5px solid #1B396A; background:none;
-  color:#1B396A; font-family:'Montserrat',sans-serif;
-  font-weight:700; font-size:0.82rem; letter-spacing:0.05em; cursor:pointer;
-  transition:background .15s;
-}
+.estado-vacio { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:12px; text-align:center; }
+.icono-vacio { width:48px; height:48px; stroke:#D1D5DB; }
+.estado-vacio h3 { font-size:1rem; font-weight:800; color:#374151; letter-spacing:0.05em; margin:0; }
+.estado-vacio p  { font-size:0.82rem; color:#9CA3AF; font-weight:600; margin:0; letter-spacing:0.03em; }
+.btn-limpiar-vacio { margin-top:8px; padding:9px 22px; border-radius:8px; border:1.5px solid #1B396A; background:none; color:#1B396A; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.82rem; letter-spacing:0.05em; cursor:pointer; transition:background .15s; }
 .btn-limpiar-vacio:hover { background:#EFF6FF; }
 
 /* ══════════════════════════════════════════════════════
-   GRID DE CARDS
+TABLA DE ALUMNOS
 ══════════════════════════════════════════════════════ */
-.alumnos-grid {
-  display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-  gap:16px; margin-bottom:26px; outline:none;
+.tabla-wrapper {
+  overflow-x: auto; border-radius: 12px; background: #fff;
+  border: 1px solid #E5E7EB; box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  margin-bottom: 24px; outline: none;
 }
-
-.alumno-card {
-  position:relative; background:#fff; border-radius:14px;
-  border:1.5px solid #E5E7EB; overflow:hidden; cursor:pointer;
-  transition:box-shadow .2s, transform .18s, border-color .18s;
-  display:flex; flex-direction:column;
+.tabla-alumnos {
+  width: 100%; border-collapse: collapse; font-family: 'Montserrat', sans-serif;
+  font-size: 0.85rem; min-width: 650px;
 }
-.alumno-card:hover         { box-shadow:0 8px 28px rgba(0,0,0,.12); transform:translateY(-3px); border-color:#C7D2E6; }
-.alumno-card.card-activa   { outline:2px solid #1B396A; outline-offset:2px; box-shadow:0 8px 28px rgba(27,57,106,.18); }
-.alumno-card.card-seleccionada { border-color:#1B396A; background:#F0F5FF; box-shadow:0 0 0 3px rgba(27,57,106,.15); }
+.tabla-alumnos th,
+.tabla-alumnos td {
+  padding: 10px 12px; text-align: left; border-bottom: 1px solid #F3F4F6;
+  vertical-align: middle; white-space: nowrap;
+}
+.tabla-alumnos th {
+  background: #F8FAFC; color: #374151; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.75rem;
+  position: sticky; top: 0; z-index: 2;
+}
+.fila-alumno { transition: background 0.15s; cursor: pointer; }
+.fila-alumno:hover { background: #F9FAFB; }
+.fila-activa { outline: 2px solid #1B396A; outline-offset: -2px; background: #EFF6FF; }
+.fila-seleccionada { background: #EFF6FF; }
 
-/* ── Checkbox bulk (esquina superior derecha) ── */
+.col-check { width: 50px; text-align: center; padding: 10px 8px !important; }
+.btn-select-all-table {
+  background: none; border: none; cursor: pointer; color: #6B7280;
+  display: inline-flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: color 0.15s;
+}
+.btn-select-all-table:hover, .btn-select-all-table.activo { color: #1B396A; }
+.col-control { font-family: 'Courier New', monospace; font-weight: 700; color: #1B396A; }
+.col-nombre { font-weight: 700; color: #0F172A; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+.col-carrera { color: #6B7280; }
+.col-semestre { text-align: center; font-weight: 700; }
+.col-estatus { text-align: center; }
+.col-acciones { width: 140px; text-align: right; }
+
+/* Checkbox en tabla */
 .bulk-checkbox {
-  position:absolute; top:10px; right:10px; z-index:10;
-  width:20px; height:20px; border-radius:5px;
-  border:2px solid #D1D5DB; background:#fff;
-  display:flex; align-items:center; justify-content:center;
-  cursor:pointer; transition:all .15s;
-  box-shadow:0 1px 3px rgba(0,0,0,.12);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 5px; border: 2px solid #D1D5DB; background: #fff;
+  cursor: pointer; transition: all .15s;
 }
-.bulk-checkbox:hover         { border-color:#1B396A; }
-.bulk-checkbox.checked       { background:#1B396A; border-color:#1B396A; }
-.bulk-checkbox.checked svg   { stroke:#fff; }
-
-/* ── Acento por estatus ── */
-.card-acento { height:4px; width:100%; flex-shrink:0; }
-.acento-activo     { background:#16A34A; }
-.acento-temporal   { background:#D97706; }
-.acento-definitiva { background:#DC2626; }
-.acento-titulado   { background:#7C3AED; }
-.acento-egresado   { background:#0891B2; }
-.acento-desconocido{ background:#9CA3AF; }
-
-/* ── Parte superior ── */
-.card-top { display:flex; align-items:flex-start; gap:13px; padding:16px 16px 12px; }
-.card-avatar-wrap { position:relative; flex-shrink:0; }
-.card-avatar-img  { width:52px; height:52px; border-radius:12px; object-fit:cover; border:2px solid #E5E7EB; }
-.card-avatar-placeholder {
-  width:52px; height:52px; border-radius:12px;
-  display:flex; align-items:center; justify-content:center; border:2px solid transparent;
-}
-.card-avatar-placeholder span { font-size:1.1rem; font-weight:800; color:#fff; }
-.avatar-0 { background:linear-gradient(135deg,#1B396A,#2563EB); border-color:#BFDBFE; }
-.avatar-1 { background:linear-gradient(135deg,#7C3AED,#A78BFA); border-color:#EDE9FE; }
-.avatar-2 { background:linear-gradient(135deg,#0891B2,#38BDF8); border-color:#E0F2FE; }
-.avatar-3 { background:linear-gradient(135deg,#059669,#34D399); border-color:#D1FAE5; }
-.avatar-4 { background:linear-gradient(135deg,#DC2626,#F87171); border-color:#FEE2E2; }
-.avatar-dot {
-  position:absolute; bottom:2px; right:2px;
-  width:11px; height:11px; border-radius:50%; border:2px solid #fff;
-}
-.dot-activo     { background:#16A34A; }
-.dot-temporal   { background:#D97706; }
-.dot-definitiva { background:#DC2626; }
-.dot-titulado   { background:#7C3AED; }
-.dot-egresado   { background:#0891B2; }
-.dot-desconocido{ background:#9CA3AF; }
-
-.card-info      { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
-.card-control   { font-size:0.73rem; font-weight:700; font-family:'Courier New',monospace; color:#1B396A; letter-spacing:0.04em; }
-.card-nombre { 
-  font-size:0.92rem; font-weight:800; color:#0F172A; margin:0; 
-  line-height:1.2; letter-spacing:-0.01em; overflow:hidden; 
-  display:-webkit-box; 
-  -webkit-line-clamp:2; 
-  line-clamp:2; /* ✅ Propiedad estándar añadida */
-  -webkit-box-orient:vertical; 
-}
-.card-carrera   { font-size:0.73rem; font-weight:600; color:#6B7280; margin:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.card-divider   { height:1px; background:#F3F4F6; margin:0 16px; }
-
-/* ── Parte inferior ── */
-.card-bottom {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:10px 16px 14px; gap:8px;
-}
-.card-meta      { display:flex; flex-direction:column; gap:5px; }
-.card-meta-item { display:flex; align-items:center; gap:4px; font-size:0.72rem; font-weight:700; color:#6B7280; letter-spacing:0.04em; }
-.card-meta-item svg { stroke:#9CA3AF; flex-shrink:0; }
+.bulk-checkbox:hover { border-color: #1B396A; }
+.bulk-checkbox.checked { background: #1B396A; border-color: #1B396A; }
+.bulk-checkbox.checked svg { stroke: #fff; }
 
 /* Badges */
-.estatus-badge  { display:inline-flex; align-items:center; padding:3px 9px; border-radius:20px; font-size:0.67rem; font-weight:800; letter-spacing:0.05em; width:fit-content; }
-.badge-activo     { background:#DCFCE7; color:#15803D; }
-.badge-temporal   { background:#FEF3C7; color:#B45309; }
-.badge-definitiva { background:#FEE2E2; color:#B91C1C; }
-.badge-titulado   { background:#EDE9FE; color:#6D28D9; }
-.badge-egresado   { background:#E0F2FE; color:#0369A1; }
-.badge-desconocido{ background:#F3F4F6; color:#6B7280; }
+.estatus-badge { display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; width: fit-content; }
+.badge-activo     { background: #DCFCE7; color: #15803D; }
+.badge-temporal   { background: #FEF3C7; color: #B45309; }
+.badge-definitiva { background: #FEE2E2; color: #B91C1C; }
+.badge-titulado   { background: #EDE9FE; color: #6D28D9; }
+.badge-egresado   { background: #E0F2FE; color: #0369A1; }
+.badge-desconocido{ background: #F3F4F6; color: #6B7280; }
 
-/* Acciones */
-.card-acciones  { display:flex; align-items:center; gap:5px; flex-shrink:0; }
-.btn-card-accion {
-  display:flex; align-items:center; justify-content:center;
-  width:32px; height:32px; border-radius:8px;
-  border:1.5px solid transparent; cursor:pointer; transition:all .15s; background:#F8FAFC;
-}
-.btn-ver:hover    { background:#EFF6FF; border-color:#BFDBFE; color:#1B396A; }
-.btn-editar:hover { background:#FFFBEB; border-color:#FDE68A; color:#D97706; }
-.btn-kardex:hover { background:#F5F3FF; border-color:#DDD6FE; color:#7C3AED; }
-.btn-ver    { color:#1B396A; }
-.btn-editar { color:#D97706; }
-.btn-kardex { color:#7C3AED; }
+.btn-fila-accion { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid transparent; cursor: pointer; transition: all .15s; background: #F8FAFC; display: inline-flex; margin-left: 4px; }
+.btn-ver:hover    { background: #EFF6FF; border-color: #BFDBFE; color: #1B396A; }
+.btn-editar:hover { background: #FFFBEB; border-color: #FDE68A; color: #D97706; }
+.btn-kardex:hover { background: #F5F3FF; border-color: #DDD6FE; color: #7C3AED; }
+.btn-ver    { color: #1B396A; }
+.btn-editar { color: #D97706; }
+.btn-kardex { color: #7C3AED; }
 
 /* ══════════════════════════════════════════════════════
-   BARRA BULK (sticky bottom)
+BARRA BULK (sticky bottom)
 ══════════════════════════════════════════════════════ */
-.bulk-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
-  background: #1B396A; box-shadow: 0 -4px 24px rgba(27,57,106,.35);
-  border-top: 2px solid #152D57;
-}
-.bulk-bar-inner {
-  max-width: 1400px; margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 24px; gap: 16px; flex-wrap: wrap;
-}
-.bulk-bar-left {
-  display: flex; align-items: center; gap: 10px;
-  color: #fff; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.04em;
-}
+.bulk-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 500; background: #1B396A; box-shadow: 0 -4px 24px rgba(27,57,106,.35); border-top: 2px solid #152D57; }
+.bulk-bar-inner { max-width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; gap: 12px; flex-wrap: wrap; }
+.bulk-bar-left { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.04em; }
 .bulk-count { font-weight: 800; }
 .bulk-bar-center { display: flex; align-items: center; gap: 8px; }
-.bulk-select {
-  padding: 8px 14px; border-radius: 8px; border: none;
-  font-family: 'Montserrat', sans-serif; font-weight: 700;
-  font-size: 0.82rem; letter-spacing: 0.04em;
-  background: rgba(255,255,255,.15); color: #fff;
-  outline: none; cursor: pointer;
-}
+.bulk-select { padding: 8px 14px; border-radius: 8px; border: none; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.04em; background: rgba(255,255,255,.15); color: #fff; outline: none; cursor: pointer; }
 .bulk-select option { background: #1B396A; color: #fff; }
-.bulk-btn-aplicar {
-  display: flex; align-items: center; gap: 7px;
-  padding: 8px 20px; border-radius: 8px; border: none;
-  background: #fff; color: #1B396A;
-  font-family: 'Montserrat', sans-serif; font-weight: 800;
-  font-size: 0.82rem; letter-spacing: 0.05em; cursor: pointer;
-  transition: opacity .15s;
-}
+.bulk-btn-aplicar { display: flex; align-items: center; gap: 7px; padding: 8px 20px; border-radius: 8px; border: none; background: #fff; color: #1B396A; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 0.82rem; letter-spacing: 0.05em; cursor: pointer; transition: opacity .15s; }
 .bulk-btn-aplicar:disabled { opacity: 0.5; cursor: not-allowed; }
 .bulk-btn-aplicar:not(:disabled):hover { opacity: 0.9; }
 .bulk-bar-right { display: flex; align-items: center; }
-.bulk-btn-cancelar {
-  display: flex; align-items: center; gap: 7px;
-  padding: 8px 16px; border-radius: 8px;
-  border: 1.5px solid rgba(255,255,255,.4);
-  background: transparent; color: rgba(255,255,255,.9);
-  font-family: 'Montserrat', sans-serif; font-weight: 700;
-  font-size: 0.8rem; letter-spacing: 0.04em; cursor: pointer;
-  transition: border-color .15s, background .15s;
-}
+.bulk-btn-cancelar { display: flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,.4); background: transparent; color: rgba(255,255,255,.9); font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; cursor: pointer; transition: border-color .15s, background .15s; }
 .bulk-btn-cancelar:hover { border-color: #fff; background: rgba(255,255,255,.1); }
 .bulk-slide-enter-active,.bulk-slide-leave-active{transition:transform .3s cubic-bezier(.4,0,.2,1)}
 .bulk-slide-enter-from,.bulk-slide-leave-to{transform:translateY(100%)}
 
 /* ══════════════════════════════════════════════════════
-   PAGINACIÓN
+PAGINACIÓN
 ══════════════════════════════════════════════════════ */
-.paginacion {
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  flex-wrap:wrap; padding:14px 18px; background:#fff;
-  border:1.5px solid #E5E7EB; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.05);
-}
+.paginacion { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:14px 16px; background:#fff; border:1.5px solid #E5E7EB; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.05); width: 100%; box-sizing: border-box; }
 .paginacion-izquierda { display:flex; align-items:center; gap:8px; }
 .pag-label  { font-size:0.75rem; font-weight:700; color:#6B7280; letter-spacing:0.04em; }
-.select-filas {
-  padding:5px 10px; border:1.5px solid #E5E7EB; border-radius:7px;
-  font-family:'Montserrat',sans-serif; font-size:0.8rem; font-weight:700; color:#374151; cursor:pointer;
-}
+.select-filas { padding:5px 10px; border:1.5px solid #E5E7EB; border-radius:7px; font-family:'Montserrat',sans-serif; font-size:0.8rem; font-weight:700; color:#374151; cursor:pointer; }
 .paginacion-centro { font-size:0.78rem; font-weight:600; color:#6B7280; letter-spacing:0.04em; }
 .paginacion-derecha { display:flex; gap:4px; }
-.btn-pag {
-  display:flex; align-items:center; justify-content:center;
-  min-width:34px; height:34px; padding:0 4px;
-  border:1.5px solid #E5E7EB; border-radius:8px; background:#fff;
-  font-family:'Montserrat',sans-serif; font-size:0.82rem; font-weight:700;
-  color:#374151; cursor:pointer; transition:all .15s;
-}
+.btn-pag { display:flex; align-items:center; justify-content:center; min-width:34px; height:34px; padding:0 4px; border:1.5px solid #E5E7EB; border-radius:8px; background:#fff; font-family:'Montserrat',sans-serif; font-size:0.82rem; font-weight:700; color:#374151; cursor:pointer; transition:all .15s; }
 .btn-pag:hover:not(:disabled) { border-color:#1B396A; color:#1B396A; background:#EFF6FF; }
 .btn-pag.activo { background:#1B396A; color:#fff; border-color:#1B396A; }
 .btn-pag:disabled { opacity:0.35; cursor:not-allowed; }
-
-.pie-pagina {
-  text-align:center; margin-top:28px;
-  font-size:0.72rem; font-weight:600; letter-spacing:0.06em; color:#9CA3AF;
-}
+.pie-pagina { text-align:center; margin-top:24px; font-size:0.72rem; font-weight:600; letter-spacing:0.06em; color:#9CA3AF; }
 
 /* ══════════════════════════════════════════════════════
-   MODALES — BASE
+MODALES — BASE
 ══════════════════════════════════════════════════════ */
-.modal-overlay {
-  position:fixed; inset:0; background:rgba(15,23,42,.55);
-  backdrop-filter:blur(3px);
-  display:flex; align-items:center; justify-content:center;
-  z-index:1000; padding:16px;
-}
-.modal-content {
-  background:#fff; border-radius:16px; width:100%; max-width:560px;
-  max-height:90vh; display:flex; flex-direction:column;
-  box-shadow:0 20px 60px rgba(0,0,0,.2); overflow:hidden;
-}
+.modal-overlay { position:fixed; inset:0; background:rgba(15,23,42,.55); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:1000; padding:16px; }
+.modal-content { background:#fff; border-radius:16px; width:100%; max-width:560px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.2); overflow:hidden; }
 .modal-ver-alumno { max-width:660px; }
 .modal-confirmar  { max-width:460px; }
-
-/* ── Modal Header ── */
-.modal-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:20px 22px 18px;
-  background:linear-gradient(135deg,#1B396A 0%,#1D4ED8 100%); flex-shrink:0;
-}
+.modal-header { display:flex; align-items:center; justify-content:space-between; padding:20px 22px 18px; background:linear-gradient(135deg,#1B396A 0%,#1D4ED8 100%); flex-shrink:0; }
 .modal-header-avatar-group { display:flex; gap:14px; align-items:center; }
 .detalle-avatar { flex-shrink:0; }
 .avatar-img     { width:50px; height:50px; border-radius:12px; object-fit:cover; border:2px solid rgba(255,255,255,.35); }
-.avatar-placeholder {
-  width:50px; height:50px; border-radius:12px;
-  display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,.3);
-}
+.avatar-placeholder { width:50px; height:50px; border-radius:12px; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,.3); }
 .avatar-placeholder span { color:#fff; font-weight:800; font-size:1.1rem; }
 .modal-header-info { display:flex; flex-direction:column; gap:3px; }
 .modal-header-tag  { font-size:0.68rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,.7); }
 .modal-header h3   { margin:0; font-size:1.05rem; font-weight:800; color:#fff; letter-spacing:-0.01em; }
 .sub-header-control{ font-size:0.82rem; font-weight:700; font-family:monospace; color:rgba(255,255,255,.8); }
-.btn-cerrar-modal {
-  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
-  color:#fff; cursor:pointer; border-radius:8px;
-  display:flex; align-items:center; justify-content:center;
-  width:36px; height:36px; flex-shrink:0; transition:background .15s;
-}
+.btn-cerrar-modal { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; cursor:pointer; border-radius:8px; display:flex; align-items:center; justify-content:center; width:36px; height:36px; flex-shrink:0; transition:background .15s; }
 .btn-cerrar-modal:hover { background:rgba(255,255,255,.2); }
-
-/* ── Pestañas ── */
 .modal-body-tabs { display:flex; flex-direction:column; flex:1; overflow:hidden; }
-.detalle-tabs    { display:flex; background:#F8FAFC; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
-.tab-btn {
-  flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
-  padding:12px 8px; background:none; border:none;
-  border-bottom:2px solid transparent; cursor:pointer;
-  font-size:0.78rem; font-weight:700; letter-spacing:0.05em; color:#9CA3AF;
-  font-family:'Montserrat',sans-serif; transition:all .15s;
-}
+.detalle-tabs     { display:flex; background:#F8FAFC; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+.tab-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:12px 8px; background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; font-size:0.78rem; font-weight:700; letter-spacing:0.05em; color:#9CA3AF; font-family:'Montserrat',sans-serif; transition:all .15s; }
 .tab-btn:hover  { color:#1B396A; }
 .tab-btn.activo { color:#1B396A; border-bottom-color:#1B396A; background:#fff; }
 .tab-contenido-scroll { overflow-y:auto; padding:1.4rem 1.6rem; flex:1; }
 .tab-panel { display:flex; flex-direction:column; gap:1rem; }
 
 /* ══════════════════════════════════════════════════════
-   EXPEDIENTE v2.2 — 3 SECCIONES (prefijo exp-)
+EXPEDIENTE v2.2
 ══════════════════════════════════════════════════════ */
-.exp-seccion {
-  border:1.5px solid #E5E7EB; border-radius:12px;
-  overflow:hidden; background:#fff;
-}
-.exp-seccion-titulo {
-  display:flex; align-items:center; gap:7px;
-  background:#F0F5FF; padding:10px 14px;
-  font-size:0.72rem; font-weight:800; letter-spacing:0.08em;
-  color:#1B396A; border-bottom:1px solid #DBEAFE;
-}
+.exp-seccion { border:1.5px solid #E5E7EB; border-radius:12px; overflow:hidden; background:#fff; }
+.exp-seccion-titulo { display:flex; align-items:center; gap:7px; background:#F0F5FF; padding:10px 14px; font-size:0.72rem; font-weight:800; letter-spacing:0.08em; color:#1B396A; border-bottom:1px solid #DBEAFE; }
 .exp-seccion-titulo svg { stroke:#1B396A; flex-shrink:0; }
 .exp-seccion .detalle-grid { padding:14px; }
-.exp-contacto-titulo       { margin-top:4px; }
-
-/* ── Detalle grid (dentro de exp-seccion) ── */
-.detalle-grid {
-  display:grid; grid-template-columns:1fr 1fr; gap:0.9rem;
-}
-.detalle-campo {
-  display:flex; flex-direction:column; gap:4px;
-  padding:0.8rem 1rem; background:#F8FAFC;
-  border-radius:9px; border:1px solid #E5E7EB;
-}
+.exp-contacto-titulo        { margin-top:4px; }
+.detalle-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; }
+.detalle-campo { display:flex; flex-direction:column; gap:4px; padding:0.8rem 1rem; background:#F8FAFC; border-radius:9px; border:1px solid #E5E7EB; }
 .detalle-campo.full-width { grid-column:1 / -1; }
 .detalle-label { font-size:0.68rem; font-weight:700; color:#9CA3AF; letter-spacing:0.08em; }
 .detalle-valor { font-size:0.92rem; font-weight:600; color:#1A1A1A; }
 .detalle-numero{ font-size:1.1rem; font-weight:800; color:#1B396A; }
 .mono-bold { font-family:'Courier New',monospace; font-weight:800; font-size:1rem; color:#1B396A; }
-
-/* Badges en modal */
-.estatus-badge-modal {
-  display:inline-flex; align-items:center;
-  padding:5px 14px; border-radius:20px;
-  font-size:0.78rem; font-weight:800; letter-spacing:0.06em; width:fit-content;
-}
-
-/* ── Créditos / Kardex ── */
-.creditos-bloque {
-  background:#F8FAFC; border-radius:10px; padding:12px 14px;
-  border:1px solid #E5E7EB; margin-bottom:12px;
-}
+.estatus-badge-modal { display:inline-flex; align-items:center; padding:5px 14px; border-radius:20px; font-size:0.78rem; font-weight:800; letter-spacing:0.06em; width:fit-content; }
+.creditos-bloque { background:#F8FAFC; border-radius:10px; padding:12px 14px; border:1px solid #E5E7EB; margin-bottom:12px; }
 .creditos-row   { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
 .creditos-label { font-weight:700; color:#1A1A1A; letter-spacing:0.04em; font-size:0.8rem; }
-.creditos-pct   { font-weight:700; color:#6B7280; font-size:0.8rem; }
+.creditos-pct    { font-weight:700; color:#6B7280; font-size:0.8rem; }
 .creditos-pct.verde { color:#16A34A; }
 .creditos-barra-track { height:8px; background:#E5E7EB; border-radius:4px; overflow:hidden; }
 .creditos-barra-fill  { height:100%; border-radius:4px; transition:width .8s ease; }
-
 .kardex-semestres { display:flex; flex-direction:column; gap:.5rem; }
-.semestre-bloque  { border:1px solid #E5E7EB; border-radius:10px; overflow:hidden; background:#fff; }
-.semestre-btn {
-  width:100%; display:flex; align-items:center; justify-content:space-between;
-  padding:10px 14px; background:none; border:none; cursor:pointer;
-  font-family:'Montserrat',sans-serif; transition:background .15s;
-}
+.semestre-bloque   { border:1px solid #E5E7EB; border-radius:10px; overflow:hidden; background:#fff; }
+.semestre-btn { width:100%; display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:none; border:none; cursor:pointer; font-family:'Montserrat',sans-serif; transition:background .15s; }
 .semestre-btn:hover  { background:#F8FAFC; }
 .semestre-btn.abierto{ background:#EFF6FF; }
 .semestre-titulo { font-size:0.85rem; font-weight:800; color:#1A1A1A; letter-spacing:0.04em; }
@@ -2279,22 +1819,15 @@ const confirmarEliminar = async () => {
 .badge-mini.reprobadas { background:#FEE2E2; color:#DC2626; }
 .flecha-semestre { stroke:#6B7280; transition:transform .2s; flex-shrink:0; }
 .flecha-semestre.girado { transform:rotate(180deg); }
-
 .semestre-materias { border-top:1px solid #E5E7EB; }
 .tabla-mini { width:100%; border-collapse:collapse; font-size:0.8rem; }
-.tabla-mini th {
-  background:#F8FAFC; padding:7px 12px; text-align:left;
-  font-size:0.68rem; font-weight:800; color:#9CA3AF;
-  text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid #E5E7EB;
-}
+.tabla-mini th { background:#F8FAFC; padding:7px 12px; text-align:left; font-size:0.68rem; font-weight:800; color:#9CA3AF; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid #E5E7EB; }
 .tabla-mini td       { padding:7px 12px; border-bottom:.5px solid #F9FAFB; vertical-align:middle; color:#1A1A1A; font-weight:500; }
 .tabla-mini tr.fila-repr { background:#FEF2F2; }
 .tabla-mini td.centrado  { text-align:center; }
 .clave-mono { font-family:monospace; font-size:0.78rem; font-weight:800; color:#1B396A; }
 .badge-estado-mini { font-size:0.68rem; font-weight:800; padding:2px 8px; border-radius:10px; display:inline-block; letter-spacing:0.03em; }
-.text-verde { color:#16A34A; } .text-rojo { color:#DC2626; } .text-gris { color:#9CA3AF; }
-
-/* ── Horario ── */
+.text-verde { color:#16A34A; } .text-rojo { color:#DC2626; } .text-gris { color: #9CA3AF; }
 .horario-lista  { display:flex; flex-direction:column; gap:.6rem; }
 .horario-item   { display:flex; align-items:stretch; border:1px solid #E5E7EB; border-radius:9px; overflow:hidden; background:#fff; }
 .horario-color  { width:5px; flex-shrink:0; }
@@ -2302,131 +1835,42 @@ const confirmarEliminar = async () => {
 .horario-nombre { font-weight:800; font-size:0.86rem; color:#1A1A1A; }
 .horario-meta   { font-size:0.75rem; color:#6B7280; font-weight:600; }
 .horario-aula   { font-size:0.72rem; color:#9CA3AF; font-weight:600; letter-spacing:0.03em; }
-
-/* ── Skeleton loaders ── */
 .kardex-cargando { display:flex; flex-direction:column; gap:8px; }
-.skeleton-linea  {
-  height:14px; border-radius:6px;
-  background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%);
-  background-size:200% 100%; animation:shimmer 1.4s infinite;
-}
+.skeleton-linea  { height:14px; border-radius:6px; background:linear-gradient(90deg,#E5E7EB 25%,#F3F4F6 50%,#E5E7EB 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
 .skeleton-linea.largo{ width:70%; } .skeleton-linea.medio{ width:45%; }
-.skeleton-fila {
-  height:40px; border-radius:8px;
-  background:linear-gradient(90deg,#F3F4F6 25%,#FFF 50%,#F3F4F6 75%);
-  background-size:200% 100%; animation:shimmer 1.4s infinite;
-}
+.skeleton-fila { height:40px; border-radius:8px; background:linear-gradient(90deg,#F3F4F6 25%,#FFF 50%,#F3F4F6 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; }
 @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-.kardex-error {
-  display:flex; align-items:center; gap:8px; padding:14px;
-  background:#FEF2F2; border-radius:8px; font-size:0.85rem; font-weight:600; color:#DC2626;
-}
-.kardex-error button {
-  margin-left:auto; padding:5px 12px; border-radius:6px;
-  border:1.5px solid #DC2626; background:none; color:#DC2626;
-  font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.78rem;
-  letter-spacing:0.04em; cursor:pointer;
-}
-.kardex-vacio {
-  display:flex; flex-direction:column; align-items:center;
-  padding:30px; text-align:center; color:#9CA3AF;
-  font-size:0.85rem; font-weight:600; letter-spacing:0.04em; gap:8px;
-}
-
-/* ══════════════════════════════════════════════════════
-   BULK — modal preview
-══════════════════════════════════════════════════════ */
-.bulk-preview {
-  display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
-  max-height:80px; overflow-y:auto; margin-top:8px;
-}
-.bulk-id-chip {
-  background:#EFF6FF; color:#1B396A; border:1px solid #BFDBFE;
-  padding:2px 10px; border-radius:20px;
-  font-size:0.72rem; font-weight:800; font-family:monospace;
-  letter-spacing:0.04em;
-}
+.kardex-error { display:flex; align-items:center; gap:8px; padding:14px; background:#FEF2F2; border-radius:8px; font-size:0.85rem; font-weight:600; color:#DC2626; }
+.kardex-error button { margin-left:auto; padding:5px 12px; border-radius:6px; border:1.5px solid #DC2626; background:none; color:#DC2626; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.78rem; letter-spacing:0.04em; cursor:pointer; }
+.kardex-vacio { display:flex; flex-direction:column; align-items:center; padding:30px; text-align:center; color:#9CA3AF; font-size:0.85rem; font-weight:600; letter-spacing:0.04em; gap:8px; }
+.bulk-preview { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; max-height:80px; overflow-y:auto; margin-top:8px; }
+.bulk-id-chip { background:#EFF6FF; color:#1B396A; border:1px solid #BFDBFE; padding:2px 10px; border-radius:20px; font-size:0.72rem; font-weight:800; font-family:monospace; letter-spacing:0.04em; }
 .bulk-id-mas { background:#F3F4F6; color:#6B7280; border-color:#E5E7EB; }
 .bulk-sub-opcion { margin-top:14px; display:flex; flex-direction:column; gap:6px; width:100%; }
-
-/* ══════════════════════════════════════════════════════
-   FORMULARIO MODAL
-══════════════════════════════════════════════════════ */
 .form-body       { padding:1.4rem 1.6rem; overflow-y:auto; }
 .form-grupo      { margin-bottom:1.1rem; }
 .form-grupo-doble{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
 .form-grupo label{ display:block; margin-bottom:6px; font-weight:700; font-size:0.78rem; letter-spacing:0.06em; color:#374151; }
 .obligatorio     { color:#DC2626; }
-.modal-input, .modal-select {
-  width:100%; padding:10px 14px; border:1.5px solid #E5E7EB;
-  border-radius:9px; font-size:0.9rem; font-weight:600;
-  background:#fff; color:#1A1A1A; font-family:'Montserrat',sans-serif;
-  outline:none; transition:border-color .2s,box-shadow .2s; box-sizing:border-box;
-}
+.modal-input, .modal-select { width:100%; padding:10px 14px; border:1.5px solid #E5E7EB; border-radius:9px; font-size:0.9rem; font-weight:600; background:#fff; color:#1A1A1A; font-family:'Montserrat',sans-serif; outline:none; transition:border-color .2s,box-shadow .2s; box-sizing:border-box; }
 .modal-input:focus,.modal-select:focus { border-color:#1B396A; box-shadow:0 0 0 3px rgba(27,57,106,.12); }
 .modal-input.deshabilitado { background:#F5F7FA; cursor:not-allowed; color:#9CA3AF; }
-
-/* ── Footer modal ── */
-.modal-footer {
-  padding:14px 20px; background:#F8FAFC;
-  display:flex; gap:8px; justify-content:flex-end;
-  border-top:1px solid #E5E7EB; flex-shrink:0; flex-wrap:wrap;
-}
-.btn-secundario {
-  display:flex; align-items:center; gap:6px;
-  padding:9px 18px; border-radius:9px; font-weight:700; cursor:pointer;
-  font-family:'Montserrat',sans-serif; background:#fff; color:#374151;
-  border:1.5px solid #D1D5DB; transition:background .15s;
-  font-size:0.82rem; letter-spacing:0.04em;
-}
+.modal-footer { padding:14px 20px; background:#F8FAFC; display:flex; gap:8px; justify-content:flex-end; border-top:1px solid #E5E7EB; flex-shrink:0; flex-wrap:wrap; }
+.btn-secundario { display:flex; align-items:center; gap:6px; padding:9px 18px; border-radius:9px; font-weight:700; cursor:pointer; font-family:'Montserrat',sans-serif; background:#fff; color:#374151; border:1.5px solid #D1D5DB; transition:background .15s; font-size:0.82rem; letter-spacing:0.04em; }
 .btn-secundario:hover:not(:disabled) { background:#F3F4F6; }
 .btn-secundario:disabled { opacity:0.5; cursor:not-allowed; }
-
-.btn-eliminar {
-  display:flex; align-items:center; gap:6px;
-  padding:9px 18px; border-radius:9px; font-weight:700; cursor:pointer;
-  font-family:'Montserrat',sans-serif; background:#DC2626; color:#fff;
-  border:1.5px solid #DC2626; transition:background .15s;
-  font-size:0.82rem; letter-spacing:0.04em;
-}
+.btn-eliminar { display:flex; align-items:center; gap:6px; padding:9px 18px; border-radius:9px; font-weight:700; cursor:pointer; font-family:'Montserrat',sans-serif; background:#DC2626; color:#fff; border:1.5px solid #DC2626; transition:background .15s; font-size:0.82rem; letter-spacing:0.04em; }
 .btn-eliminar:hover:not(:disabled) { background:#B91C1C; }
 .btn-eliminar:disabled { opacity:0.5; cursor:not-allowed; }
-
-.btn-guardar {
-  display:flex; align-items:center; gap:8px;
-  padding:9px 20px; border-radius:9px; font-weight:700; cursor:pointer;
-  font-family:'Montserrat',sans-serif; background:#1B396A; color:#fff;
-  border:1.5px solid #1B396A; transition:background .15s;
-  font-size:0.82rem; letter-spacing:0.04em;
-}
+.btn-guardar { display:flex; align-items:center; gap:8px; padding:9px 20px; border-radius:9px; font-weight:700; cursor:pointer; font-family:'Montserrat',sans-serif; background:#1B396A; color:#fff; border:1.5px solid #1B396A; transition:background .15s; font-size:0.82rem; letter-spacing:0.04em; }
 .btn-guardar:hover:not(:disabled) { background:#152D57; }
 .btn-guardar:disabled { opacity:0.55; cursor:not-allowed; }
-
-.btn-accion-outline {
-  display:flex; align-items:center; gap:7px;
-  padding:9px 16px; border-radius:9px; font-weight:700; cursor:pointer;
-  font-family:'Montserrat',sans-serif; background:#fff; color:#1B396A;
-  border:1.5px solid #1B396A; transition:background .15s;
-  font-size:0.82rem; letter-spacing:0.04em;
-}
+.btn-accion-outline { display:flex; align-items:center; gap:7px; padding:9px 16px; border-radius:9px; font-weight:700; cursor:pointer; font-family:'Montserrat',sans-serif; background:#fff; color:#1B396A; border:1.5px solid #1B396A; transition:background .15s; font-size:0.82rem; letter-spacing:0.04em; }
 .btn-accion-outline:hover { background:#EFF6FF; }
-
-.spinner-btn {
-  display:inline-block; width:13px; height:13px;
-  border:2px solid rgba(255,255,255,.4); border-top-color:#fff;
-  border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0;
-}
-
-/* ── Confirmación ── */
-.confirmar-body {
-  display:flex; flex-direction:column; align-items:center;
-  gap:12px; text-align:center; padding:2rem 1.6rem;
-}
+.spinner-btn { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
+.confirmar-body { display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center; padding:2rem 1.6rem; }
 .confirmar-icono { width:52px; height:52px; stroke:#F59E0B; }
 .confirmar-body p { color:#374151; font-size:0.9rem; font-weight:600; margin:0; line-height:1.5; letter-spacing:0.02em; }
-
-/* ── Transitions ── */
 .expand-enter-active,.expand-leave-active{transition:all .25s ease;overflow:hidden}
 .expand-enter-from,.expand-leave-to{max-height:0;opacity:0}
 .expand-enter-to,.expand-leave-from{max-height:500px;opacity:1}
@@ -2435,18 +1879,17 @@ const confirmarEliminar = async () => {
 .modal-fade-enter-from .modal-content,.modal-fade-leave-to .modal-content{transform:scale(0.95) translateY(10px)}
 
 /* ══════════════════════════════════════════════════════
-   RESPONSIVE
+RESPONSIVE
 ══════════════════════════════════════════════════════ */
 @media (max-width:1200px) { .kpis-grid{grid-template-columns:repeat(3,1fr)} }
 @media (max-width:900px) {
   .kpis-grid{grid-template-columns:repeat(2,1fr)}
-  .alumnos-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
   .filtros-grid{grid-template-columns:1fr 1fr}
+  .col-nombre{max-width:180px}
 }
-@media (max-width:600px) {
-  .alumnos-page{padding:14px 14px 90px}
+@media (max-width:768px) {
+  .alumnos-page{padding:14px 8px 90px}
   .kpis-grid{grid-template-columns:1fr 1fr}
-  .alumnos-grid{grid-template-columns:1fr}
   .filtros-grid{grid-template-columns:1fr}
   .detalle-grid{grid-template-columns:1fr}
   .form-grupo-doble{grid-template-columns:1fr}
@@ -2458,5 +1901,7 @@ const confirmarEliminar = async () => {
   .btn-nuevo,.btn-select-all{width:100%;justify-content:center}
   .bulk-bar-inner{flex-direction:column;align-items:flex-start;gap:10px}
   .bulk-bar-center{width:100%;flex-wrap:wrap}
+  .tabla-wrapper{overflow-x:auto; margin-bottom: 20px;}
+  .tabla-alumnos{min-width: 620px;}
 }
 </style>

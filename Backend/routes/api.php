@@ -327,6 +327,7 @@ Route::get('/turnos',        [CatalogosController::class, 'turnos']);
 use App\Http\Controllers\Api\KardexController;
 
 Route::get('/kardex/buscar-por-nombre', [KardexController::class, 'buscarPorNombre']);
+Route::get('/kardex/{numero_control}/pdf', [KardexController::class, 'exportarPDF']);
 Route::get('/kardex/{numero_control}', [KardexController::class, 'show']);
 
 // ====================== SEGUIMIENTO ACADÉMICO ======================
@@ -366,6 +367,7 @@ use App\Http\Controllers\Api\AdeudoController;
 
 Route::get('/adeudos',                       [AdeudoController::class, 'index']);
 Route::post('/adeudos',                      [AdeudoController::class, 'store']);
+Route::put('/adeudos/{id}',                  [AdeudoController::class, 'update']);
 Route::put('/adeudos/{id}/marcar-pagado',    [AdeudoController::class, 'marcarPagado']);
 Route::delete('/adeudos/{id}',               [AdeudoController::class, 'destroy']);
 
