@@ -67,22 +67,9 @@ async function buscar(q: string) {
     // ── Número de control: usa el endpoint de búsqueda por control ──
     if (esNumero) {
       const res  = await fetch(`${API_BASE}/alumnos/buscar-control?no_control=${encodeURIComponent(q)}`, { signal, headers })
-
       if (res.status === 404) { resultados.value = []; return }
-
       const json = await res.json()
-
-      // Devuelve un objeto único — lo normalizamos al mismo formato
-      if (json?.numero_control) {
-        resultados.value = [{
-          numero_control:  json.numero_control,
-          nombre_completo: `${json.nombre ?? ''} ${json.apellido_paterno ?? ''} ${json.apellido_materno ?? ''}`.trim(),
-          carrera:         json.carrera ?? '',
-          estatus:         json.estatus ?? 'Activo',
-        }]
-      } else {
-        resultados.value = []
-      }
+      resultados.value = (json.resultados ?? []).slice(0, 8)  // ← mismo formato ahora
       return
     }
 

@@ -495,18 +495,22 @@ class EventoController extends Controller
                     'c.nombre as carrera',
                     'a.semestre_actual'
                 )
-                ->where('a.numero_control', $noControl)
-                ->first();
+                ->where('a.numero_control', 'LIKE', $noControl . '%')
+                ->limit(8)
+                ->get();
 
-            if (!$alumno) {
-                return response()->json(null, 404);
+            if ($alumno->isEmpty()) {
+                return response()->json(['resultados' => []], 404);
             }
 
-            $nombreCompleto = trim(
-                ($alumno->nombre ?? '') . ' ' .
-                ($alumno->apellido_paterno ?? '') . ' ' .
-                ($alumno->apellido_materno ?? '')
-            );
+            return response()->json([
+                'resultados' => $alumno->map(fn($a) => [
+                    'numero_control'  => $a->numero_control,
+                    'nombre_completo' => trim("{$a->nombre} {$a->apellido_paterno} " . ($a->apellido_materno ?? '')),
+                    'carrera'         => $a->carrera,
+                    'estatus'         => $a->estatus ?? 'Activo',
+                ])
+            ]);
 
             return response()->json([
                 'control'  => $alumno->numero_control,
