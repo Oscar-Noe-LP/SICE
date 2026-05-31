@@ -436,6 +436,169 @@ class ServiciosEscolaresController extends Controller
         return response()->json(['mensaje' => 'Evaluación eliminada'], 200);
     }
 
+    // 🔹 ACTAS
+
+    public function getActasPorCarrera($id_carrera)
+    {
+        try {
+            $periodo = DB::table('periodo')->where('estatus', 1)->orderByDesc('id_periodo')->first();
+
+            $actas = DB::table('grupo as g')
+                ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
+                ->join('inscripcion as i', 'g.id_grupo', '=', 'i.id_grupo')
+                ->join('alumno as a', 'i.id_alumno', '=', 'a.id_alumno')
+                ->leftJoin('persona as p', function ($join) {
+                    $join->on('p.id_persona', '=',
+                        DB::raw('(SELECT id_persona FROM usuario WHERE id_usuario = g.id_docente LIMIT 1)')
+                    );
+                })
+                ->leftJoin('calificacion as c', 'c.id_inscripcion', '=', 'i.id_inscripcion')
+                ->where('a.id_carrera', $id_carrera)
+                ->when($periodo, fn($q) => $q->where('g.id_periodo', $periodo->id_periodo))
+                ->select(
+                    'g.id_grupo',
+                    'g.clave_grupo',
+                    'm.nombre as materia',
+                    'm.clave as clave_materia',
+                    'g.estatus',
+                    DB::raw('COUNT(DISTINCT i.id_alumno) as inscritos'),
+                    DB::raw('COUNT(DISTINCT c.id_calificacion) as calificaciones_registradas')
+                )
+                ->groupBy('g.id_grupo', 'g.clave_grupo', 'm.nombre', 'm.clave', 'g.estatus')
+                ->get()
+                ->map(fn($g) => [
+                    'id_acta'                  => $g->id_grupo,
+                    'id_grupo'                 => $g->id_grupo,
+                    'clave_grupo'              => $g->clave_grupo,
+                    'materia'                  => $g->materia,
+                    'clave_materia'            => $g->clave_materia,
+                    'inscritos'                => (int) $g->inscritos,
+                    'calificaciones_registradas' => (int) $g->calificaciones_registradas,
+                    'cerrada'                  => $g->estatus == 0,
+                    'estatus'                  => $g->estatus,
+                ]);
+
+            return response()->json($actas);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function generarActa($id_grupo)
+    {
+        try {
+            $grupo = DB::table('grupo')->where('id_grupo', $id_grupo)->first();
+
+            if (!$grupo) {
+                return response()->json(['error' => 'Grupo no encontrado'], 404);
+            }
+
+            $calificaciones = DB::table('inscripcion as i')
+                ->join('alumno as a', 'i.id_alumno', '=', 'a.id_alumno')
+                ->join('persona as p', 'a.id_persona', '=', 'p.id_persona')
+                ->leftJoin('calificacion as c', 'c.id_inscripcion', '=', 'i.id_inscripcion')
+                ->leftJoin('evaluacion as e', 'e.id_evaluacion', '=', 'c.id_evaluacion')
+                ->where('i.id_grupo', $id_grupo)
+                ->select(
+                    'a.numero_control',
+                    DB::raw("CONCAT(p.nombre,' ',p.apellido_paterno,' ',p.apellido_materno) as nombre"),
+                    'e.nombre as evaluacion',
+                    'c.calificacion'
+                )
+                ->get();
+
+            DB::table('grupo')->where('id_grupo', $id_grupo)->update(['estatus' => 0]);
+
+            BitacoraService::registrar('UPDATE', 'grupo', $id_grupo, ['estatus' => 1], ['estatus' => 0]);
+
+            return response()->json([
+                'mensaje'        => 'Acta generada correctamente',
+                'id_grupo'       => (int) $id_grupo,
+                'calificaciones' => $calificaciones,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // 🔹 HISTORIAL ALUMNO
+
+    public function historialPorControl($numero_control)
+    {
+        try {
+            $alumno = DB::table('alumno as a')
+                ->join('persona as p', 'a.id_persona', '=', 'p.id_persona')
+                ->where('a.numero_control', $numero_control)
+                ->select('a.id_alumno', 'a.numero_control', 'a.semestre_actual',
+                    DB::raw("CONCAT(p.nombre,' ',p.apellido_paterno,' ',p.apellido_materno) as nombre"),
+                    'a.id_carrera')
+                ->first();
+
+            if (!$alumno) {
+                return response()->json(['error' => 'Alumno no encontrado'], 404);
+            }
+
+            $datos = DB::table('inscripcion as i')
+                ->join('grupo as g', 'i.id_grupo', '=', 'g.id_grupo')
+                ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
+                ->join('periodo as per', 'g.id_periodo', '=', 'per.id_periodo')
+                ->join('evaluacion as e', 'e.id_grupo', '=', 'g.id_grupo')
+                ->leftJoin('calificacion as c', function ($join) {
+                    $join->on('c.id_inscripcion', '=', 'i.id_inscripcion')
+                         ->on('c.id_evaluacion',  '=', 'e.id_evaluacion');
+                })
+                ->where('i.id_alumno', $alumno->id_alumno)
+                ->select(
+                    'per.id_periodo',
+                    'per.nombre_periodo as periodo',
+                    'm.id_materia',
+                    'm.nombre as materia',
+                    'm.clave as clave_materia',
+                    'g.clave_grupo',
+                    'e.nombre as evaluacion',
+                    'c.calificacion'
+                )
+                ->orderBy('per.id_periodo')
+                ->get();
+
+            $historial = [];
+            foreach ($datos as $d) {
+                $pKey = $d->id_periodo;
+                $mKey = $d->id_materia;
+
+                if (!isset($historial[$pKey])) {
+                    $historial[$pKey] = ['periodo' => $d->periodo, 'materias' => []];
+                }
+                if (!isset($historial[$pKey]['materias'][$mKey])) {
+                    $historial[$pKey]['materias'][$mKey] = [
+                        'materia'      => $d->materia,
+                        'clave'        => $d->clave_materia,
+                        'grupo'        => $d->clave_grupo,
+                        'calificaciones' => [],
+                    ];
+                }
+                if ($d->evaluacion) {
+                    $historial[$pKey]['materias'][$mKey]['calificaciones'][] = [
+                        'evaluacion'   => $d->evaluacion,
+                        'calificacion' => $d->calificacion,
+                    ];
+                }
+            }
+
+            $resultado = array_values(array_map(function ($p) {
+                $p['materias'] = array_values($p['materias']);
+                return $p;
+            }, $historial));
+
+            return response()->json([
+                'alumno'   => $alumno,
+                'historial' => $resultado,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
     // 🔹 RESUMEN ESCOLAR
     public function getResumen()
     {

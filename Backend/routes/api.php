@@ -18,6 +18,9 @@ use App\Http\Controllers\Docentes\AsignacionDocenteController;
 use App\Http\Controllers\Docentes\CargaDocenteController;
 use App\Http\Controllers\Api\DocumentoController;
 use App\Http\Controllers\Api\ResidenciaController;
+use App\Http\Controllers\CarreraController;
+use App\Http\Controllers\DepartamentoController;
+use App\Http\Controllers\NivelCarreraController;
 
 
 // ====================== AUTENTICACIÓN ======================
@@ -34,8 +37,11 @@ Route::get('/dashboard/carreras',  [DashboardController::class, 'carreras']);
 Route::get('/dashboard/semestres', [DashboardController::class, 'semestres']);
 
 // 🔹 CALIFICACIONES
-Route::get('/calificaciones',       [ServiciosEscolaresController::class, 'getCalificaciones']);
-Route::get('/calificaciones-grupo', [ServiciosEscolaresController::class, 'getCalificacionesGrupo']);
+Route::get('/calificaciones',               [ServiciosEscolaresController::class, 'getCalificaciones']);
+Route::get('/calificaciones-grupo',         [ServiciosEscolaresController::class, 'getCalificacionesGrupo']);
+Route::get('/carreras/{id}/actas',          [ServiciosEscolaresController::class, 'getActasPorCarrera']);
+Route::post('/actas/{id}/generar',          [ServiciosEscolaresController::class, 'generarActa']);
+Route::get('/alumnos/{control}/historial',  [ServiciosEscolaresController::class, 'historialPorControl']);
 Route::post('/guardar-calificaciones', [ServiciosEscolaresController::class, 'guardarCalificaciones']);
 Route::put('/calificaciones/{id}', [ServiciosEscolaresController::class, 'actualizarCalificacion']);
 Route::delete('/calificaciones/{id}', [ServiciosEscolaresController::class, 'eliminarCalificacion']);
@@ -43,8 +49,7 @@ Route::delete('/calificaciones/{id}', [ServiciosEscolaresController::class, 'eli
 // 1. Semestres de una carrera (si hay llamada directa)
 Route::get('/carreras/{id}/semestres', [CarreraController::class, 'semestres']);
 
-// 2. Actas de una carrera
-Route::get('/carreras/{id}/actas', [CarreraController::class, 'actas']);
+// 2. Actas de una carrera — implementado en ServiciosEscolaresController
 
 // 3. Alumnos de un grupo
 Route::get('/grupos/{id}/alumnos', [GrupoController::class, 'alumnos']);
@@ -111,10 +116,6 @@ Route::get('/filtros', function () {
 });
 
 // CARRERAS, DEPARTAMENTOS Y NIVELES
-use App\Http\Controllers\CarreraController;
-use App\Http\Controllers\DepartamentoController;
-use App\Http\Controllers\NivelCarreraController;
-
 Route::get('/carreras', [CarreraController::class, 'index']);
 Route::post('/carreras', [CarreraController::class, 'store']);
 Route::put('/carreras/{id}', [CarreraController::class, 'update']);
