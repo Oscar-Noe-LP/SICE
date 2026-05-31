@@ -28,6 +28,52 @@
         <!-- existe una ruta dedicada en el menú lateral para esta acción.     -->
       </div>
 
+      <!-- ─── KPIs DASHBOARD ─── -->
+      <div class="kpis-grid">
+        <!-- Activos -->
+        <div class="kpi-card">
+          <div class="kpi-icono-wrap kpi-activos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2" width="22" height="22">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="kpi-datos">
+            <span class="kpi-numero">{{ kpiActivos }}</span>
+            <span class="kpi-label">Activos</span>
+          </div>
+        </div>
+
+        <!-- Próximos -->
+        <div class="kpi-card">
+          <div class="kpi-icono-wrap kpi-proximos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#1D52B7" stroke-width="2" width="22" height="22">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div class="kpi-datos">
+            <span class="kpi-numero">{{ kpiProximos }}</span>
+            <span class="kpi-label">Próximos (30 días)</span>
+          </div>
+        </div>
+
+        <!-- Finalizados -->
+        <div class="kpi-card">
+          <div class="kpi-icono-wrap kpi-finalizados">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#828282" stroke-width="2" width="22" height="22">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="kpi-datos">
+            <span class="kpi-numero">{{ kpiFinalizados }}</span>
+            <span class="kpi-label">Finalizados</span>
+          </div>
+        </div>
+      </div>
+
       <!-- ─── EVENTOS PRÓXIMOS ─── -->
       <div class="seccion-titulo-wrapper">
         <h2 class="seccion-titulo">
@@ -771,6 +817,18 @@ onMounted(() => { cargarTipos(); cargarEventos() })
 // ──────────────────────────────────────────────────
 const hoy = new Date().toISOString().split('T')[0]
 
+// ──────────────────────────────────────────────────
+// KPIs
+// ──────────────────────────────────────────────────
+const kpiActivos     = computed(() => eventos.value.filter(e => e.fecha >= hoy).length)
+const kpiFinalizados = computed(() => eventos.value.filter(e => e.fecha < hoy).length)
+const kpiProximos    = computed(() => {
+  const en30 = new Date()
+  en30.setDate(en30.getDate() + 30)
+  const limite = en30.toISOString().split('T')[0]
+  return eventos.value.filter(e => e.fecha >= hoy && e.fecha <= limite).length
+})
+
 const eventosFiltrados = computed(() => {
   return eventos.value.filter(e => {
     const matchNombre  = !busquedaNombre.value || e.nombre_evento?.toLowerCase().includes(busquedaNombre.value.toLowerCase())
@@ -1193,6 +1251,66 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
 
 /* Pie de página */
 .pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
+
+/* ─────────────────────────────────────────────── */
+/* KPIs DASHBOARD                                  */
+/* ─────────────────────────────────────────────── */
+.kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.kpi-card {
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(29, 82, 183, 0.05);
+  padding: 1.2rem 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.kpi-card:hover {
+  box-shadow: 0 6px 20px rgba(29, 82, 183, 0.1);
+  transform: translateY(-2px);
+}
+.kpi-icono-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.kpi-activos    { background: rgba(39, 174, 96, 0.10); }
+.kpi-proximos   { background: rgba(29, 82, 183, 0.15); }
+.kpi-finalizados { background: rgba(189, 189, 189, 0.20); }
+.kpi-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.kpi-numero {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333333;
+  line-height: 1;
+  font-family: 'Montserrat', sans-serif;
+}
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #828282;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 640px) {
+  .kpis-grid { grid-template-columns: 1fr; }
+}
 
 /* ─────────────────────────────────────────────── */
 /* RESPONSIVE                                      */

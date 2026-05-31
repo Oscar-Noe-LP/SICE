@@ -52,6 +52,14 @@
           <h2 class="seccion-titulo">Listado de Participantes</h2>
           <p class="subtitulo">Alumnos registrados en este evento</p>
         </div>
+        <button class="btn-exportar" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Exportar
+        </button>
         <button @click="mostrarModalRegistro = true" class="btn-primario">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -477,6 +485,23 @@ const iniciales = (n) => {
   transition: background 0.2s;
 }
 .btn-cancelar:hover { background: #F5F5F5; }
+
+.btn-exportar {
+  background: #F4F6F9;
+  color: #4F4F4F;
+  border: 1px solid #E0E0E0;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: not-allowed;
+  font-family: inherit;
+  opacity: 0.6;
+  white-space: nowrap;
+}
 
 .spinner {
   width: 16px; height: 16px; border-radius: 50%;
