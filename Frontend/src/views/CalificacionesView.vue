@@ -1632,6 +1632,7 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
   font-family: 'Montserrat', sans-serif;
   box-sizing: border-box;
   padding: 1rem 1rem 2rem;
+  text-transform: uppercase; 
 }
 
 .semestre-badge {
@@ -1672,7 +1673,7 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
 .carrera-card-body { padding: 25px 20px 0; display: flex; align-items: flex-start; gap: 15px; }
 .carrera-card-icono { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .carrera-card-info { flex: 1; }
-.carrera-card-nombre { font-size: 1.2rem; font-weight: 700; margin: 0 0 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.carrera-card-nombre { font-size: 1.2rem; font-weight: 700; margin: 0 0 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); font-family: 'Montserrat', sans-serif;}
 .carrera-card-stats { font-size: 0.85rem; display: flex; gap: 8px; flex-wrap: wrap; opacity: 0.9; }
 .stat-sep { opacity: 0.5; }
 .carrera-card-footer { background: rgba(0,0,0,0.15); padding: 12px 20px; font-weight: 600; font-size: 0.9rem; backdrop-filter: blur(5px); }
@@ -2035,7 +2036,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
 .docente-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
 .docente-card-body { padding: 1.4rem 1.4rem 0.8rem; display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; }
 .docente-avatar { width: 56px; height: 56px; border-radius: 50%; background: #1B396A; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; margin-bottom: 0.75rem; }
-.docente-nombre { font-size: 1.05rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.5rem; }
+.docente-nombre { font-size: 1.05rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.5rem; font-family: 'Montserrat', sans-serif;}
 .docente-materias { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-bottom: 0.8rem; }
 .materia-tag { background: #DBEAFE; color: #1B396A; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
 .docente-stats { font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem; }
@@ -2177,6 +2178,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
 
 .semestre-card {
   text-align: center;
+  
 }
 
 .semestre-numero {
@@ -2191,6 +2193,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   font-weight: 700;
   color: #333;
   margin: 0 0 0.5rem 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .card-info {
@@ -2258,6 +2261,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   font-size: 0.8rem;
   color: #6B7280;
   margin-bottom: 0.5rem;
+  
 }
 
 /* Para que las secciones de título se vean bien */
@@ -2272,6 +2276,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   font-weight: 700;
   color: #1A1A1A;
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* Barra de guardado por unidad */

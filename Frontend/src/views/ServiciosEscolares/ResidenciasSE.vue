@@ -335,6 +335,9 @@ onMounted(() => {
   font-family: 'Montserrat', sans-serif;
   box-sizing: border-box;
   padding: 1rem 1rem 2rem;
+  text-transform: uppercase; 
+   
+
 }
 
 /* Breadcrumb */
@@ -346,7 +349,7 @@ onMounted(() => {
 
 /* Encabezado */
 .encabezado-seccion { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.titulo-pagina { color: #1A1A1A; font-size: 1.9rem; font-weight: 800; margin: 0 0 0.25rem; }
+.titulo-pagina { color: #1A1A1A; font-size: 1.9rem; font-weight: 800; margin: 0 0 0.25rem; font-family: 'Montserrat', sans-serif;}
 .subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; }
 
 /* Barra de carga */
@@ -373,7 +376,7 @@ onMounted(() => {
 .tabla-califs tr:last-child td { border-bottom: none; }
 
 /* Sección título (para alinear con AnaliticaView) */
-.seccion-titulo.sin-margen { margin: 0; font-size: 1rem; font-weight: 700; color: #1A1A1A; }
+.seccion-titulo.sin-margen { margin: 0; font-size: 1rem; font-weight: 700; color: #1A1A1A; font-family: 'Montserrat', sans-serif;}
 
 /* Badges */
 .badge-estado { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
@@ -420,7 +423,7 @@ onMounted(() => {
 .detalle-valor { font-weight: 500; color: #1A1A1A; }
 
 /* Botones */
-.btn-primario { background: #1B396A; color: #FFFFFF; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+.btn-primario { background: #1B396A; color: #FFFFFF; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: background 0.2s; white-space: nowrap; font-family: 'Montserrat', sans-serif;}
 .btn-primario:hover:not(:disabled) { background: #1D4ED8; }
 .btn-primario:disabled { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
 .btn-cancelar { background: #FFFFFF; color: #6B7280; border: 1px solid #E5E7EB; padding: 10px 1.4rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem; cursor: pointer; }

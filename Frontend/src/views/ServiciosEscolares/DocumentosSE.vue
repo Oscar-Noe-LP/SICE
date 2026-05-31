@@ -1162,6 +1162,7 @@ async function descargarDocumento() {
   font-size: 24px;
   font-weight: 700;
   line-height: 1.15;
+  font-family: 'Montserrat', sans-serif;
 }
 .page-subtitle {
   margin: 4px 0 0;

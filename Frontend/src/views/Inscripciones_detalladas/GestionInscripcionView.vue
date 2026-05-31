@@ -528,7 +528,7 @@ const claseEstatus = e => ({ 'activo':e==='Activo', 'baja-temporal':e==='Baja Te
 .pie-pagina{text-align:center;color:#9CA3AF;font-size:.82rem;padding-top:2rem;border-top:1px solid #E5E7EB;margin-top:1rem;font-family:'Montserrat',sans-serif}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:2000;padding:1rem}
 .modal-content{background:#FFF;width:540px;max-width:95%;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.22);overflow:hidden;border:1px solid #E5E7EB;max-height:90vh;display:flex;flex-direction:column;font-family:'Montserrat',sans-serif}
-.modal-header{background:#1B396A;padding:1.1rem 1.6rem;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.modal-header{background:#1B396A;padding:1.1rem 1.6rem;display:flex;justify-content:space-between;align-items:center;flex-shrink:0 ; font-family: 'Montserrat', sans-serif;}
 .modal-header h3{margin:0;font-size:1.1rem;font-weight:700;color:#FFF;font-family:'Montserrat',sans-serif}
 .btn-cerrar-modal{background:none;border:none;color:#FFF;font-size:1.8rem;cursor:pointer;line-height:1;opacity:.85;padding:0}
 .btn-cerrar-modal:hover{opacity:1}
