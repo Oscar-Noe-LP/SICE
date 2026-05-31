@@ -551,4 +551,55 @@ class GrupoController extends Controller
             'Funcionalidad no disponible en esta versión de la BD'
         ], 503);
     }
+
+    public function materias(int $id)
+    {
+        try {
+            $grupo = DB::table('grupo as g')
+                ->leftJoin('materia as m', 'g.id_materia', '=', 'm.id_materia')
+                ->leftJoin('docente as d',   'g.id_docente',  '=', 'd.id_docente')
+                ->leftJoin('empleado as e',  'd.id_empleado', '=', 'e.id_empleado')
+                ->leftJoin('persona as p',   'e.id_persona',  '=', 'p.id_persona')
+                ->where('g.id_grupo', $id)
+                ->select(
+                    'g.id_grupo',
+                    'g.clave_grupo',
+                    'm.id_materia',
+                    'm.nombre as nombre_materia',
+                    'm.clave as clave_materia',
+                    'm.creditos',
+                    DB::raw("COALESCE(
+                        CONCAT(p.nombre, ' ', p.apellido_paterno, ' ', COALESCE(p.apellido_materno, '')),
+                        'Sin docente'
+                    ) as docente"),
+                    DB::raw("(
+                        SELECT COUNT(*)
+                        FROM inscripcion AS i
+                        WHERE i.id_grupo = g.id_grupo
+                        AND i.estatus IN ('Activo', 'activo', 'inscrito')
+                    ) as inscritos")
+                )
+                ->first();
+
+            if (!$grupo) {
+                return response()->json(['error' => 'Grupo no encontrado'], 404);
+            }
+
+            return response()->json([
+                'id_grupo'    => $grupo->id_grupo,
+                'clave_grupo' => $grupo->clave_grupo,
+                'materias'    => [[
+                    'id_materia' => $grupo->id_materia,
+                    'nombre'     => $grupo->nombre_materia,
+                    'clave'      => $grupo->clave_materia,
+                    'creditos'   => $grupo->creditos,
+                    'docente'    => trim($grupo->docente),
+                    'inscritos'  => (int) $grupo->inscritos,
+                ]],
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

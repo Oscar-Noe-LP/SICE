@@ -61,6 +61,7 @@ Route::put('/grupos/{id}', [GrupoController::class, 'update']);
 Route::delete('/grupos/{id}', [GrupoController::class, 'destroy']);
 Route::post('/grupos/{id}/cerrar-acta', [GrupoController::class, 'cerrarActa']);
 Route::post('/grupos/{id}/abrir-acta',  [GrupoController::class, 'abrirActa']);
+Route::get('/grupos/{id}/materias', [GrupoController::class, 'materias']);
 
 // 🔹 EVALUACIONES
 Route::post('/evaluaciones/guardar', [ServiciosEscolaresController::class, 'guardarEvaluaciones']);
