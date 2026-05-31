@@ -646,9 +646,10 @@ const cargarPeriodos = async () => {
     // Auto-seleccionar el periodo activo si existe
     if (!periodo.value) {
       const activo = periodos.value.find(p =>
+        p.activo === true ||
         p.nombre?.toLowerCase().includes('actual') ||
         p.nombre?.toLowerCase().includes('activo')
-      )
+      ) ?? periodos.value[0]
       if (activo) periodo.value = activo.id
     }
   } catch (err) {

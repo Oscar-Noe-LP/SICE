@@ -375,7 +375,17 @@ class InscripcionController extends Controller
     public function periodos()
     {
         return response()->json(
-            DB::table('periodo')->select('id_periodo', 'nombre_periodo')->get()
+            DB::table('periodo')
+                ->select('id_periodo', 'nombre_periodo as nombre', 'estatus')
+                ->orderByDesc('estatus')
+                ->orderByDesc('id_periodo')
+                ->get()
+                ->map(fn($p) => [
+                    'id'     => $p->id_periodo,
+                    'nombre' => $p->nombre,
+                    'estatus'=> $p->estatus,
+                    'activo' => (bool) $p->estatus,
+                ])
         );
     }
 
