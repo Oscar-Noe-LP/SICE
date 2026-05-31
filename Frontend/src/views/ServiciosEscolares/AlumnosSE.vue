@@ -307,8 +307,7 @@
           <tbody>
             <tr
               v-for="(alumno, index) in paginatedAlumnos"
-              :key="alumno.id_alumno || alumno.id"
-              v-memo="[alumno.id_alumno || alumno.id, filaActiva === index, seleccionados.has(alumno.id_alumno || alumno.id)]"
+              :key="`${alumno.id_alumno || alumno.id}-${alumno.estatus}-${alumno.id_estatus_alumno}`"
               class="fila-alumno"
               :class="{
                 'fila-activa': filaActiva === index && selectedCount === 0,
@@ -879,7 +878,7 @@
 * - Breadcrumb dinámico: ALUMNOS → EXPEDIENTE: [NO_CONTROL]
 * - Botón "← VOLVER A LA LISTA" en el modal preserva scroll/filtros/página
 */
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, toRaw } from 'vue'
 import { useRouter, useRoute }                       from 'vue-router'
 import MainLayout                                    from '@/layouts/MainLayout.vue'
 
@@ -1392,14 +1391,18 @@ const verKardex = (alumno) => {
 }
 
 const abrirModalEditar = (alumno) => {
+  // Normalizar siempre a Number para que el v-model del select coincida con los :value de las options
+  const idEstatus = alumno.id_estatus_alumno
+    ? Number(alumno.id_estatus_alumno)
+    : Number(catalogos.value.estatus_alumno.find(e => e.nombre === alumno.estatus)?.id_estatus_alumno) || null
+
   alumnoEditar.value = {
-    id_alumno:         alumno.id_alumno || alumno.id,
+    id_alumno:         Number(alumno.id_alumno || alumno.id),
     noControl:         alumno.numero_control || alumno.noControl || '',
     nombre:            resolverNombre(alumno),
-    id_carrera:        resolverIdCarrera(alumno),
+    id_carrera:        Number(resolverIdCarrera(alumno)) || null,
     semestre:          alumno.semestre_actual || alumno.semestre || 1,
-    id_estatus_alumno: alumno.id_estatus_alumno ||
-      catalogos.value.estatus_alumno.find(e => e.nombre === alumno.estatus)?.id_estatus_alumno || null
+    id_estatus_alumno: idEstatus,
   }
   showModal.value = true
 }
@@ -1407,38 +1410,125 @@ const abrirModalEditar = (alumno) => {
 const cerrarModal = () => { showModal.value = false }
 const nuevoAlumno = () => router.push('/formulario-alumno')
 
-const guardarCambios = async () => {
-  const id = alumnoEditar.value.id_alumno
-  if (!id)                                   { mostrarNotificacion('No se encontró el identificador.', 'error'); return }
-  if (!alumnoEditar.value.id_carrera)        { mostrarNotificacion('Selecciona una carrera.', 'error');          return }
-  if (!alumnoEditar.value.id_estatus_alumno) { mostrarNotificacion('Selecciona un estatus.', 'error');           return }
+const actualizarAlumnoEnLista = (datosActualizados) => {
+  const idBuscado = Number(datosActualizados.id_alumno ?? datosActualizados.id)
+  if (!idBuscado) return
 
-  const nombreEstatus = catalogos.value.estatus_alumno
-  .find(e => e.id_estatus_alumno === alumnoEditar.value.id_estatus_alumno)?.nombre || 'Activo'
+  const index = alumnos.value.findIndex(a => Number(a.id_alumno ?? a.id) === idBuscado)
+  if (index === -1) return
+
+  const carreraCat = catalogos.value.carreras.find(c => 
+    Number(c.id_carrera) === Number(datosActualizados.id_carrera)
+  )
+  const estatusCat = catalogos.value.estatus_alumno.find(e => 
+    Number(e.id_estatus_alumno) === Number(datosActualizados.id_estatus_alumno)
+  )
+
+  // Crear objeto COMPLETAMENTE NUEVO (no usar toRaw del original)
+  const alumnoOriginal = alumnos.value[index]
+  const alumnoNuevo = {
+    id_alumno: alumnoOriginal.id_alumno,
+    id: alumnoOriginal.id,
+    numero_control: alumnoOriginal.numero_control,
+    noControl: alumnoOriginal.noControl,
+    nombre: corregirNombreAlumno(datosActualizados.nombre ?? alumnoOriginal.nombre),
+    id_carrera: Number(datosActualizados.id_carrera),
+    id_estatus_alumno: Number(datosActualizados.id_estatus_alumno),
+    semestre_actual: Number(datosActualizados.semestre_actual),
+    semestre: Number(datosActualizados.semestre_actual),
+    estatus: estatusCat?.nombre ?? datosActualizados.estatus ?? alumnoOriginal.estatus,
+    fecha_ingreso: alumnoOriginal.fecha_ingreso,
+    carrera: {
+      id_carrera: Number(datosActualizados.id_carrera),
+      nombre_carrera: carreraCat?.nombre ?? alumnoOriginal.carrera?.nombre_carrera ?? ''
+    },
+    persona: alumnoOriginal.persona ? {
+      ...alumnoOriginal.persona,
+      nombre: corregirNombreAlumno(datosActualizados.nombre ?? alumnoOriginal.persona.nombre),
+      nombre_completo: corregirNombreAlumno(datosActualizados.nombre ?? alumnoOriginal.persona.nombre_completo)
+    } : undefined,
+    // Copiar TODAS las demás propiedades que pueda tener
+    ...Object.fromEntries(
+      Object.entries(alumnoOriginal).filter(([key]) => 
+        !['id_alumno','id','numero_control','noControl','nombre','id_carrera',
+          'id_estatus_alumno','semestre_actual','semestre','estatus','fecha_ingreso',
+          'carrera','persona'].includes(key)
+      )
+    )
+  }
+
+  // Reemplazo directo
+  alumnos.value[index] = alumnoNuevo
+  // Forzar nueva referencia de array
+  alumnos.value = [...alumnos.value]
+
+  console.log('✅ Alumno actualizado en lista:', alumnoNuevo.nombre, '| Estatus:', alumnoNuevo.estatus)
+
+  // Sincronizar modal si está abierto
+  if (alumnoSeleccionado.value && 
+      Number(alumnoSeleccionado.value.id_alumno ?? alumnoSeleccionado.value.id) === idBuscado) {
+    alumnoSeleccionado.value = { ...alumnoNuevo }
+  }
+}
+
+const guardarCambios = async () => {
+  const id = Number(alumnoEditar.value.id_alumno)
+  if (!id) return mostrarNotificacion('No se encontró el identificador.', 'error')
+  if (!alumnoEditar.value.id_carrera) return mostrarNotificacion('Selecciona una carrera.', 'error')
+  if (!alumnoEditar.value.id_estatus_alumno) return mostrarNotificacion('Selecciona un estatus.', 'error')
+
+  const idEstatusNum = Number(alumnoEditar.value.id_estatus_alumno)
+  const idCarreraNum = Number(alumnoEditar.value.id_carrera)
+
+  // Buscar nombre del estatus desde catálogos
+  const estatusCat = catalogos.value.estatus_alumno.find(e => 
+    Number(e.id_estatus_alumno) === idEstatusNum
+  )
+  const nombreEstatus = estatusCat?.nombre || ''
+
+  console.log('💾 Guardando cambios:', {
+    id,
+    idEstatusNum,
+    nombreEstatus,
+    semestre: parseInt(alumnoEditar.value.semestre, 10)
+  })
 
   guardando.value = true
   try {
-    const res = await fetch(`${API_URL}/api/alumnos/${id}`, {
-      method:   'PUT',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        nombre:            alumnoEditar.value.nombre,
-        id_carrera:        alumnoEditar.value.id_carrera,
-        semestre_actual:   parseInt(alumnoEditar.value.semestre),
-        estatus:           nombreEstatus,
-        id_estatus_alumno: alumnoEditar.value.id_estatus_alumno
-      })
-    })
-    const data = await res.json()
-    if (res.ok) {
-      await cargarAlumnosDesdeBD()
-      cerrarModal()
-      mostrarNotificacion('Alumno actualizado correctamente.', 'exito')
-    } else {
-      mostrarNotificacion(data.message || data.error || 'Error al actualizar.', 'error')
+    const payload = {
+      nombre: (alumnoEditar.value.nombre || '').trim().toUpperCase(),
+      id_carrera: idCarreraNum,
+      semestre_actual: parseInt(alumnoEditar.value.semestre, 10) || 1,
+      id_estatus_alumno: idEstatusNum
     }
-  } catch {
-    mostrarNotificacion('Error de conexión.', 'error')
+
+    const res = await fetch(`${API_URL}/api/alumnos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const data = await res.json().catch(() => ({}))
+    
+    if (!res.ok) {
+      console.error('❌ Error API:', data)
+      throw new Error(data.message || 'El servidor rechazó la actualización.')
+    }
+
+    console.log('✅ Respuesta API exitosa:', data)
+
+    // Actualizar inmediatamente en la lista
+    actualizarAlumnoEnLista({ 
+      id_alumno: id, 
+      ...payload, 
+      estatus: nombreEstatus 
+    })
+
+    cerrarModal()
+    mostrarNotificacion('ALUMNO ACTUALIZADO CORRECTAMENTE.', 'exito')
+  } catch (err) {
+    console.error('❌ Error al guardar:', err)
+    mostrarNotificacion(err.message || 'Error al guardar.', 'error')
   } finally {
     guardando.value = false
   }
@@ -1531,7 +1621,7 @@ BASE & OPTIMIZACIÓN DE ESPACIO
 }
 .page-header-left { display: flex; flex-direction: column; gap: 4px; }
 .page-header-btns  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.page-title { font-size: 1.6rem; font-weight: 800; color: #0F172A; letter-spacing: -0.01em; margin: 0; }
+.page-title { font-size: 1.6rem; font-weight: 800; color: #0F172A; letter-spacing: -0.01em; margin: 0; font-family: 'Montserrat', sans-serif; }
 .page-subtitle { font-size: 0.8rem; font-weight: 600; color: #6B7280; letter-spacing: 0.04em; margin: 0; }
 .subtitle-sel  { color: #1B396A; }
 
@@ -1689,7 +1779,7 @@ TABLA DE ALUMNOS
   display: inline-flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: color 0.15s;
 }
 .btn-select-all-table:hover, .btn-select-all-table.activo { color: #1B396A; }
-.col-control { font-family: 'Courier New', monospace; font-weight: 700; color: #1B396A; }
+.col-control { font-family: 'Courier New', monospace; font-weight: 700; color: #1B396A; font-family: 'Montserrat', sans-serif; }
 .col-nombre { font-weight: 700; color: #0F172A; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
 .col-carrera { color: #6B7280; }
 .col-semestre { text-align: center; font-weight: 700; }
@@ -1905,3 +1995,4 @@ RESPONSIVE
   .tabla-alumnos{min-width: 620px;}
 }
 </style>
+
