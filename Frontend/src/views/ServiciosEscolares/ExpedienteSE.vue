@@ -1099,7 +1099,7 @@ watch(() => route.params.noControl, async (nuevo) => {
 .dato-item dt { font-size: .75rem; color: var(--gris); font-weight: 600; letter-spacing: .04em; flex-shrink: 0; }
 .dato-item dd { font-size: .85rem; color: var(--texto); font-weight: 600; text-align: right; margin: 0; }
 .dato-full dd { text-align: left; }
-.mono { font-family: monospace; letter-spacing: .05em; }
+.mono { font-family: Montserrat; letter-spacing: .05em; }
 .sm   { font-size: .8rem; color: var(--gris); }
 
 /* ── KPIs kardex ── */
@@ -1295,7 +1295,7 @@ watch(() => route.params.noControl, async (nuevo) => {
   body:not([data-print])       #print-kardex    { display: block !important; }
 
   .print-zona {
-    font-family: Arial, sans-serif;
+    font-family: Montserrat, sans-serif;
     font-size: 10pt;
     color: #000;
     background: #fff;
