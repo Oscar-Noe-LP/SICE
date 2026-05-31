@@ -135,7 +135,7 @@
           <div class="grafica-header">
             <div class="grafica-titulo-wrap">
               <BarChart3 :size="18" class="grafica-icono" />
-              <h2 class="grafica-titulo">APROBADOS / REPROBADOS POR PARCIAL</h2>
+              <h2 class="grafica-titulo">APROBADOS / REPROBADOS POR UNIDAD</h2>
             </div>
             <div class="grafica-leyenda">
               <span class="leyenda-item aprobado"><span class="leyenda-dot"></span>APROBADOS</span>
@@ -152,31 +152,31 @@
 
           <div v-else class="barras-parciales">
             <div
-              v-for="(parcial, idx) in datosParciales"
+              v-for="(unidad, idx) in datosUnidades"
               :key="idx"
               class="parcial-grupo"
             >
               <div class="barras-wrap">
                 <div class="barra-col">
-                  <span class="barra-valor-top text-azul">{{ parcial.aprobados }}</span>
+                  <span class="barra-valor-top text-azul">{{ unidad.aprobados }}</span>
                   <div
                     class="barra-rect aprobado-bar"
-                    :style="{ height: calcularAlturaBarra(parcial.aprobados) }"
-                    :title="`${parcial.aprobados} alumnos aprobados`"
+                    :style="{ height: calcularAlturaBarra(unidad.aprobados) }"
+                    :title="`${unidad.aprobados} alumnos aprobados`"
                   ></div>
                 </div>
                 <div class="barra-col">
-                  <span class="barra-valor-top text-rojo">{{ parcial.reprobados }}</span>
+                  <span class="barra-valor-top text-rojo">{{ unidad.reprobados }}</span>
                   <div
                     class="barra-rect reprobado-bar"
-                    :style="{ height: calcularAlturaBarra(parcial.reprobados) }"
-                    :title="`${parcial.reprobados} alumnos reprobados`"
+                    :style="{ height: calcularAlturaBarra(unidad.reprobados) }"
+                    :title="`${unidad.reprobados} alumnos reprobados`"
                   ></div>
                 </div>
               </div>
-              <div class="parcial-etiqueta">{{ parcial.etiqueta }}</div>
+              <div class="parcial-etiqueta">{{ unidad.etiqueta }}</div>
               <div class="parcial-pct">
-                <span class="pct-aprobado">{{ parcial.pctAprobado }}%</span>
+                <span class="pct-aprobado">{{ unidad.pctAprobado }}%</span>
               </div>
             </div>
           </div>
@@ -477,7 +477,7 @@ const limpiarFiltros = () => {
   cargarDatos()
 }
 
-// ── KPI Cards (Incluye el nuevo KPI de Deserción) ──────────────────
+// ── KPI Cards (Incluye el KPI de Deserción) ──────────────────
 const kpisData = ref({
   totalAlumnos:      1284,
   promedioGeneral:   7.42,
@@ -544,16 +544,16 @@ const kpis = computed(() => [
   }
 ])
 
-// ── Datos gráfica parciales ────────────────────────────────────────
-const datosParciales = ref([
-  { etiqueta: '1° PARCIAL',  aprobados: 312, reprobados: 88,  pctAprobado: 78 },
-  { etiqueta: '2° PARCIAL',  aprobados: 298, reprobados: 102, pctAprobado: 74 },
-  { etiqueta: '3° PARCIAL',  aprobados: 276, reprobados: 124, pctAprobado: 69 },
+// ── Datos gráfica unidades ────────────────────────────────────────
+const datosUnidades = ref([
+  { etiqueta: '1° UNIDAD',   aprobados: 312, reprobados: 88,  pctAprobado: 78 },
+  { etiqueta: '2° UNIDAD',   aprobados: 298, reprobados: 102, pctAprobado: 74 },
+  { etiqueta: '3° UNIDAD',   aprobados: 276, reprobados: 124, pctAprobado: 69 },
   { etiqueta: 'FINAL',       aprobados: 289, reprobados: 111, pctAprobado: 72 }
 ])
 
 const maxBarra = computed(() =>
-  Math.max(...datosParciales.value.flatMap(p => [p.aprobados, p.reprobados]))
+  Math.max(...datosUnidades.value.flatMap(p => [p.aprobados, p.reprobados]))
 )
 
 const calcularAlturaBarra = (val) => {
@@ -668,7 +668,7 @@ const cargarDatos = async () => {
     const data = await res.json()
 
     if (data.kpis)             kpisData.value    = data.kpis
-    if (data.parciales)        datosParciales.value = data.parciales
+    if (data.parciales)        datosUnidades.value = data.parciales
     if (data.tronco)           datosTronco.value = data.tronco
     if (data.estatus)          datosEstatus.value = data.estatus
     if (data.materias_riesgo)  materiasRiesgo.value = data.materias_riesgo
@@ -708,7 +708,6 @@ onMounted(() => {
   --texto:        #111827;
   --gris:         #6B7280;
   
-  /* BORDES REDONDEADOS A 16px COMO FUE SOLICITADO */
   --radio:        16px; 
   --sombra:       0 4px 12px rgba(11, 37, 69, 0.05);
 
