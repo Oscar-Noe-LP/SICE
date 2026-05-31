@@ -139,25 +139,27 @@
           </div>
 
           <template v-else-if="state.bitacora.length > 0">
-            <div
-              v-for="(item, i) in state.bitacora"
-              :key="item.id_bitacora || i"
-              class="bit-item"
-              @click="modalItem = item"
-              role="button"
-              tabindex="0"
-              @keydown.enter="modalItem = item"
-            >
-              <div class="bit-av" aria-hidden="true">
-                {{ (item.usuario || item.nombre_usuario || '?').slice(0,2).toUpperCase() }}
-              </div>
-              <div class="bit-body">
-                <div class="bit-r1">
-                  <span class="bit-usr">{{ (item.usuario || item.nombre_usuario || '—').toUpperCase() }}</span>
-                  <span class="bdg" :class="claseBadge(item.accion)">{{ item.accion?.toUpperCase() }}</span>
+            <div class="bit-lista">
+              <div
+                v-for="(item, i) in state.bitacora"
+                :key="item.id_bitacora || i"
+                class="bit-item"
+                @click="modalItem = item"
+                role="button"
+                tabindex="0"
+                @keydown.enter="modalItem = item"
+              >
+                <div class="bit-av" aria-hidden="true">
+                  {{ (item.usuario || item.nombre_usuario || '?').slice(0,2).toUpperCase() }}
                 </div>
-                <div class="bit-desc">{{ item.accion?.toUpperCase() }}</div>
-                <div class="bit-t">{{ tiempoRelativo(item.fecha_hora) }}</div>
+                <div class="bit-body">
+                  <div class="bit-r1">
+                    <span class="bit-usr">{{ (item.usuario || item.nombre_usuario || '—').toUpperCase() }}</span>
+                    <span class="bdg" :class="claseBadge(item.accion)">{{ item.accion?.toUpperCase() }}</span>
+                  </div>
+                  <div class="bit-desc">{{ item.accion?.toUpperCase() }}</div>
+                  <div class="bit-t">{{ tiempoRelativo(item.fecha_hora) }}</div>
+                </div>
               </div>
             </div>
           </template>
@@ -483,7 +485,7 @@ const cargarBitacora = async () => {
   state.cargandoBitacora = true
   state.errorBitacora    = false
   try {
-    const res = await fetch(`${API_URL}/api/bitacora?limit=8`)
+    const res = await fetch(`${API_URL}/api/bitacora?limit=4`)
     const data = await res.json()
     state.bitacora = data.registros ?? data ?? []
   } catch (e) {
@@ -623,11 +625,12 @@ onMounted(() => {
 .sk-chip  { height:42px; background:#F2F4F7; border-radius:8px; }
 
 /* ═══ GRAFICAS ═══ */
-.row-graficas { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) 250px; gap:14px; }
+.row-graficas { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(220px, 300px); gap:14px; }
 
 /* Card base */
 .card { background:#FFFFFF; border:1px solid #E0E0E0; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(29,82,183,0.05); }
-.card-bit { padding:14px; }
+.card-bit { padding:14px; display:flex; flex-direction:column; }
+.card-bit .bit-lista { overflow-y:auto; max-height:260px; flex:1; }
 .ch   { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
 .ct   { font-size:13px; font-weight:700; color:#333333; font-family:'Montserrat',sans-serif; letter-spacing:.03em; }
 .cl   { font-size:10px; font-weight:600; color:#2F80ED; cursor:pointer; display:flex; align-items:center; gap:3px; text-decoration:none; font-family:'Montserrat',sans-serif; letter-spacing:.04em; }
