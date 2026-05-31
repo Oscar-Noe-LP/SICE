@@ -883,6 +883,10 @@ onMounted(() => {
   padding-bottom: 2rem;
 }
 
+.grupo-detail-page * {
+  font-family: 'Montserrat', sans-serif;
+}
+
 .page-header { margin-bottom: 1rem; }
 .page-title { color: #1A1A1A; font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; margin: 0; font-family: 'Montserrat', sans-serif; }
 

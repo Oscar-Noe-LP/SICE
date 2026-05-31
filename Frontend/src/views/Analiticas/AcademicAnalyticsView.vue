@@ -101,6 +101,34 @@
         </div>
       </div>
 
+      <div class="graficas-grid integracion-chartjs" style="margin-bottom: 1rem;">
+        <div class="grafica-card">
+          <div class="grafica-header">
+            <div class="grafica-titulo-wrap">
+              <BarChart3 :size="18" class="grafica-icono" />
+              <h2 class="grafica-titulo">RENDIMIENTO POR CARRERA</h2>
+            </div>
+          </div>
+          <div class="chart-wrap" style="position: relative; height: 250px; width: 100%;">
+            <Bar v-if="!cargando" :data="dataRendimiento" :options="chartOptions" />
+            <div v-else class="tendencia-skeleton" style="height: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="grafica-card">
+          <div class="grafica-header">
+            <div class="grafica-titulo-wrap">
+              <BarChart3 :size="18" class="grafica-icono" />
+              <h2 class="grafica-titulo">COMPARATIVO DE GRUPOS (PROMEDIO)</h2>
+            </div>
+          </div>
+          <div class="chart-wrap" style="position: relative; height: 250px; width: 100%;">
+            <Bar v-if="!cargando" :data="dataComparativoGrupos" :options="chartOptions" />
+            <div v-else class="tendencia-skeleton" style="height: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="graficas-grid">
 
         <div class="grafica-card grafica-parciales">
@@ -201,7 +229,9 @@
           </div>
         </div>
 
-      </div><div class="fila-inferior">
+      </div>
+      
+      <div class="fila-inferior">
 
         <div class="panel-card panel-estatus">
           <div class="panel-header">
@@ -372,7 +402,8 @@
           </div>
         </div>
 
-      </div></div>
+      </div>
+    </div>
   </MainLayout>
 </template>
 
@@ -383,10 +414,32 @@ import {
   TrendingUp, Calendar, Download, RefreshCw, AlertCircle,
   SlidersHorizontal, X, BarChart3, BookOpen, PieChart,
   AlertTriangle, CheckCircle2, LineChart, ChevronRight,
-  Users, GraduationCap, Award, TrendingDown
+  Users, GraduationCap, Award, TrendingDown, UserMinus
 } from 'lucide-vue-next'
 
+// Importaciones de Chart.js para los módulos integrados
+import { Bar } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+
 const API_URL = import.meta.env.VITE_API_URL
+
+// ── Opciones y Datos para Chart.js (Nuevas gráficas) ───────────────
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { position: 'bottom', labels: { font: { family: 'Montserrat', size: 11 }, color: '#828282' } } }
+}
+
+const dataRendimiento = ref({
+  labels: ['SISTEMAS', 'INDUSTRIAL', 'ELÉCTRICA', 'MECÁNICA', 'GESTIÓN', 'BIOQUÍMICA'],
+  datasets: [{ label: 'PROMEDIO GENERAL', backgroundColor: '#1D52B7', borderRadius: 6, data: [8.5, 8.2, 8.8, 7.9, 8.4, 8.1] }]
+})
+
+const dataComparativoGrupos = ref({
+  labels: ['1A', '1B', '2A', '3A', '3B', '5A'],
+  datasets: [{ label: 'PROMEDIO DEL GRUPO', backgroundColor: '#0B2545', borderRadius: 6, data: [8.9, 7.5, 8.2, 9.1, 8.0, 8.6] }]
+})
 
 // ── Estado general ─────────────────────────────────────────────────
 const cargando = ref(true)
@@ -424,12 +477,13 @@ const limpiarFiltros = () => {
   cargarDatos()
 }
 
-// ── KPI Cards ──────────────────────────────────────────────────────
+// ── KPI Cards (Incluye el nuevo KPI de Deserción) ──────────────────
 const kpisData = ref({
   totalAlumnos:      1284,
   promedioGeneral:   7.42,
   pctAprobacion:     74.6,
-  alumnosRiesgo:     187
+  alumnosRiesgo:     187,
+  tasaDesercion:     12.4
 })
 
 const kpis = computed(() => [
@@ -476,6 +530,17 @@ const kpis = computed(() => [
     tendenciaClase: 'tend-positiva',
     tendenciaIcono: TrendingDown,
     sufijo: ''
+  },
+  {
+    id: 'desercion',
+    icono: UserMinus,
+    valor: kpisData.value.tasaDesercion,
+    etiqueta: 'TASA DE DESERCIÓN',
+    clase: 'kpi-amarillo',
+    tendencia: '-1.2% VS PERIODO ANT.',
+    tendenciaClase: 'tend-positiva', 
+    tendenciaIcono: TrendingDown,
+    sufijo: '%'
   }
 ])
 
@@ -609,14 +674,14 @@ const cargarDatos = async () => {
     if (data.materias_riesgo)  materiasRiesgo.value = data.materias_riesgo
     if (data.tendencia)        datosTendencia.value = data.tendencia
   } catch {
-    // Backend no disponible: se muestran los datos de demo ya definidos
+    // Backend no disponible
   } finally {
-    cargando.value = false
+    setTimeout(() => { cargando.value = false }, 500) // Simulación ligera
   }
 }
 
 const exportarReporte = () => {
-  console.log('[Analytics] Exportar reporte — pendiente de implementación')
+  console.log('[Analytics] Exportar reporte')
 }
 
 onMounted(() => {
@@ -642,8 +707,10 @@ onMounted(() => {
   --fondo:        #F9FAFB;
   --texto:        #111827;
   --gris:         #6B7280;
-  --radio:        12px;
-  --sombra:       0 2px 8px rgba(0,0,0,0.05);
+  
+  /* BORDES REDONDEADOS A 16px COMO FUE SOLICITADO */
+  --radio:        16px; 
+  --sombra:       0 4px 12px rgba(11, 37, 69, 0.05);
 
   font-family: 'Montserrat', sans-serif;
   padding-bottom: 2.5rem;
@@ -675,7 +742,7 @@ onMounted(() => {
 .bc-link   { color: var(--gris); text-decoration: none; transition: color .15s; }
 .bc-link:hover { color: var(--azul); }
 .bc-sep    { stroke: var(--gris); }
-.bc-actual { color: var(--azul); font-weight: 600; }
+.bc-actual { color: var(--azul); font-weight: 600; text-transform: uppercase; }
 .page-title {
   display: flex;
   align-items: center;
@@ -686,7 +753,7 @@ onMounted(() => {
   margin: 0 0 4px;
 }
 .title-icon { stroke: var(--azul); }
-.page-subtitle { font-size: 0.82rem; color: var(--gris); margin: 0; font-weight: 500; letter-spacing: .05em; }
+.page-subtitle { font-size: 0.82rem; color: var(--gris); margin: 0; font-weight: 500; letter-spacing: .05em; text-transform: uppercase;}
 
 .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .periodo-badge {
@@ -762,7 +829,7 @@ onMounted(() => {
   padding: 7px 10px; border: 1px solid var(--borde);
   border-radius: 8px; font-size: .82rem; font-family: inherit;
   color: var(--texto); background: var(--fondo); outline: none;
-  cursor: pointer; transition: border-color .15s;
+  cursor: pointer; transition: border-color .15s; text-transform: uppercase;
 }
 .filtro-select:focus { border-color: var(--azul); }
 
@@ -781,7 +848,7 @@ onMounted(() => {
 /* ── KPI Grid ── */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
   margin-bottom: 1.2rem;
 }
@@ -808,8 +875,9 @@ onMounted(() => {
 .kpi-verde::before     { background: var(--verde); }
 .kpi-esmeralda::before { background: #059669; }
 .kpi-rojo::before      { background: var(--rojo); }
+.kpi-amarillo::before  { background: var(--amarillo); }
 
-.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.08); }
+.kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(11, 37, 69, .08); }
 
 .kpi-icono-wrap {
   display: flex; align-items: center; justify-content: center;
@@ -823,6 +891,8 @@ onMounted(() => {
 .kpi-esmeralda .kpi-icono-wrap svg { stroke: #059669; }
 .kpi-rojo .kpi-icono-wrap     { background: var(--rojo-claro); }
 .kpi-rojo .kpi-icono-wrap svg { stroke: var(--rojo); }
+.kpi-amarillo .kpi-icono-wrap     { background: var(--amarillo-claro); }
+.kpi-amarillo .kpi-icono-wrap svg { stroke: var(--amarillo); }
 
 .kpi-info { flex: 1; }
 .kpi-valor {
@@ -894,7 +964,7 @@ onMounted(() => {
 .reprobado .leyenda-dot { background: var(--rojo); }
 
 /* ══════════════════════════════════════════════════════
-   BARRAS: Expansión total con números APILADOS (Flexbox real)
+   BARRAS: Expansión total con números APILADOS
 ══════════════════════════════════════════════════════ */
 .barras-parciales {
   display: grid;
@@ -930,16 +1000,15 @@ onMounted(() => {
   flex: 1; 
   height: 100%;
   display: flex;
-  flex-direction: column; /* Apilado en columna (numero arriba, barra abajo) */
-  align-items: center;    /* Centra el texto y la barra */
-  justify-content: flex-end; /* Lo empuja hacia abajo */
+  flex-direction: column;
+  align-items: center; 
+  justify-content: flex-end;
 }
 
-/* El número ya NO es absolute, es parte del flujo natural */
 .barra-valor-top {
   font-size: .7rem; 
   font-weight: 800;
-  margin-bottom: 4px; /* Separación estética entre el número y la barra */
+  margin-bottom: 4px;
   white-space: nowrap;
 }
 .text-azul { color: var(--azul); }
@@ -948,10 +1017,9 @@ onMounted(() => {
 .barra-rect {
   width: 100%;
   transition: height 0.6s ease;
-  min-height: 4px; /* Mínimo visual */
+  min-height: 4px;
 }
 
-/* Bordes redondeados perfectos */
 .aprobado-bar { background: var(--azul); border-radius: 6px 0 0 0; }
 .reprobado-bar { background: var(--rojo); opacity: 0.85; border-radius: 0 6px 0 0; }
 
@@ -1061,7 +1129,7 @@ onMounted(() => {
   display: flex; align-items: center; gap: 8px;
   margin-bottom: 1.2rem; flex-wrap: wrap;
 }
-.panel-titulo { font-size: .9rem; font-weight: 700; color: var(--texto); margin: 0; flex: 1; }
+.panel-titulo { font-size: .9rem; font-weight: 700; color: var(--texto); margin: 0; flex: 1; text-transform: uppercase;}
 .panel-icono { stroke: var(--azul); }
 .riesgo-icono { stroke: var(--rojo) !important; }
 
@@ -1224,7 +1292,6 @@ onMounted(() => {
 }
 
 @media (max-width: 1100px) {
-  .kpi-grid       { grid-template-columns: repeat(2, 1fr); }
   .graficas-grid  { grid-template-columns: 1fr; }
   .fila-inferior  { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
   .panel-tendencia { grid-column: 1 / -1; }
@@ -1237,7 +1304,6 @@ onMounted(() => {
   .filtros-panel { flex-direction: column; align-items: flex-start; }
   .filtros-controles { width: 100%; }
   .filtro-select { font-size: 16px; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: .75rem; }
   .fila-inferior { grid-template-columns: 1fr; }
   .panel-tendencia { grid-column: 1; }
   
@@ -1249,8 +1315,6 @@ onMounted(() => {
 }
 
 @media (max-width: 480px) {
-  .kpi-grid { grid-template-columns: 1fr; }
-  .kpi-valor { font-size: 1.5rem; }
   .btn-exportar { display: none; }
 }
 </style>

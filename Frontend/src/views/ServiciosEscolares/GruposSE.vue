@@ -1,113 +1,116 @@
 <template>
-  <div class="grupos-se">
-    <!-- Nivel 1: Carreras -->
-    <div v-if="nivel === 1" class="nivel-container">
-      <div class="nivel-header">
-        <h2 class="nivel-titulo">SELECCIONA UNA CARRERA</h2>
-        <p class="nivel-subtitulo">{{ carreras.length }} carreras disponibles</p>
-      </div>
-      <div class="cards-grid">
-        <div 
-          v-for="carrera in carreras" 
-          :key="carrera.id"
-          class="card carrera-card"
-          @click="seleccionarCarrera(carrera)"
-        >
-          <div class="card-icon">
-            <GraduationCap :size="28" />
+  <MainLayout>
+    <div class="grupos-se">
+      <!-- Nivel 1: Carreras -->
+      <div v-if="nivel === 1" class="nivel-container">
+        <div class="nivel-header">
+          <h2 class="nivel-titulo">SELECCIONA UNA CARRERA</h2>
+          <p class="nivel-subtitulo">{{ carreras.length }} carreras disponibles</p>
+        </div>
+        <div class="cards-grid">
+          <div 
+            v-for="carrera in carreras" 
+            :key="carrera.id"
+            class="card carrera-card"
+            @click="seleccionarCarrera(carrera)"
+          >
+            <div class="card-icon">
+              <GraduationCap :size="28" />
+            </div>
+            <h3 class="card-titulo">{{ carrera.nombre }}</h3>
+            <p class="card-clave">{{ carrera.clave }}</p>
+            <div class="card-footer">
+              <span class="card-badge">{{ carrera.totalGrupos || 0 }} GRUPOS</span>
+              <ChevronRight :size="16" class="card-arrow" />
+            </div>
           </div>
-          <h3 class="card-titulo">{{ carrera.nombre }}</h3>
-          <p class="card-clave">{{ carrera.clave }}</p>
-          <div class="card-footer">
-            <span class="card-badge">{{ carrera.totalGrupos || 0 }} GRUPOS</span>
+        </div>
+      </div>
+
+      <!-- Nivel 2: Semestres -->
+      <div v-else-if="nivel === 2" class="nivel-container">
+        <div class="nivel-header">
+          <button class="btn-back" @click="volverACarreras">
+            <ArrowLeft :size="16" />
+            VOLVER
+          </button>
+          <div>
+            <h2 class="nivel-titulo">{{ carreraActual?.nombre }}</h2>
+            <p class="nivel-subtitulo">SELECCIONA UN SEMESTRE</p>
+          </div>
+        </div>
+        <div class="cards-grid">
+          <div 
+            v-for="semestre in semestres" 
+            :key="semestre.numero"
+            class="card semestre-card"
+            @click="seleccionarSemestre(semestre)"
+          >
+            <div class="semestre-numero">{{ semestre.numero }}°</div>
+            <h3 class="card-titulo">SEMESTRE {{ semestre.numero }}</h3>
+            <p class="card-info">{{ semestre.gruposCount || 0 }} grupos</p>
             <ChevronRight :size="16" class="card-arrow" />
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Nivel 2: Semestres -->
-    <div v-else-if="nivel === 2" class="nivel-container">
-      <div class="nivel-header">
-        <button class="btn-back" @click="volverACarreras">
-          <ArrowLeft :size="16" />
-          VOLVER
-        </button>
-        <div>
-          <h2 class="nivel-titulo">{{ carreraActual?.nombre }}</h2>
-          <p class="nivel-subtitulo">SELECCIONA UN SEMESTRE</p>
-        </div>
-      </div>
-      <div class="cards-grid">
-        <div 
-          v-for="semestre in semestres" 
-          :key="semestre.numero"
-          class="card semestre-card"
-          @click="seleccionarSemestre(semestre)"
-        >
-          <div class="semestre-numero">{{ semestre.numero }}°</div>
-          <h3 class="card-titulo">SEMESTRE {{ semestre.numero }}</h3>
-          <p class="card-info">{{ semestre.gruposCount || 0 }} grupos</p>
-          <ChevronRight :size="16" class="card-arrow" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Nivel 3: Grupos -->
-    <div v-else-if="nivel === 3" class="nivel-container">
-      <div class="nivel-header">
-        <button class="btn-back" @click="volverASemestres">
-          <ArrowLeft :size="16" />
-          VOLVER
-        </button>
-        <div>
-          <h2 class="nivel-titulo">{{ carreraActual?.nombre }} - {{ semestreActual?.numero }}° SEMESTRE</h2>
-          <p class="nivel-subtitulo">SELECCIONA UN GRUPO</p>
-        </div>
-      </div>
-      <div class="cards-grid">
-        <div 
-          v-for="grupo in grupos" 
-          :key="grupo.id"
-          class="card grupo-card"
-          @click="irADetalleGrupo(grupo)"
-        >
-          <div class="grupo-nombre">{{ grupo.nombre }}</div>
-          <div class="grupo-info">
-            <div class="info-item">
-              <User :size="14" />
-              <span>{{ grupo.tutor || 'SIN TUTOR' }}</span>
-            </div>
-            <div class="info-item">
-              <Users :size="14" />
-              <span>{{ grupo.inscritos || 0 }} inscritos</span>
-            </div>
-            <div class="info-item">
-              <TrendingUp :size="14" />
-              <span :class="grupo.promedio >= 70 ? 'text-verde' : 'text-rojo'">
-                {{ grupo.promedio || 0 }} promedio
-              </span>
-            </div>
+      <!-- Nivel 3: Grupos -->
+      <div v-else-if="nivel === 3" class="nivel-container">
+        <div class="nivel-header">
+          <button class="btn-back" @click="volverASemestres">
+            <ArrowLeft :size="16" />
+            VOLVER
+          </button>
+          <div>
+            <h2 class="nivel-titulo">{{ carreraActual?.nombre }} - {{ semestreActual?.numero }}° SEMESTRE</h2>
+            <p class="nivel-subtitulo">SELECCIONA UN GRUPO</p>
           </div>
-          <div class="card-footer">
-            <span class="card-badge">VER DETALLE</span>
-            <ChevronRight :size="16" class="card-arrow" />
+        </div>
+        <div class="cards-grid">
+          <div 
+            v-for="grupo in grupos" 
+            :key="grupo.id"
+            class="card grupo-card"
+            @click="irADetalleGrupo(grupo)"
+          >
+            <div class="grupo-nombre">{{ grupo.nombre }}</div>
+            <div class="grupo-info">
+              <div class="info-item">
+                <User :size="14" />
+                <span>{{ grupo.tutor || 'SIN TUTOR' }}</span>
+              </div>
+              <div class="info-item">
+                <Users :size="14" />
+                <span>{{ grupo.inscritos || 0 }} inscritos</span>
+              </div>
+              <div class="info-item">
+                <TrendingUp :size="14" />
+                <span :class="grupo.promedio >= 70 ? 'text-verde' : 'text-rojo'">
+                  {{ grupo.promedio || 0 }} promedio
+                </span>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span class="card-badge">VER DETALLE</span>
+              <ChevronRight :size="16" class="card-arrow" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Loading -->
-    <div v-if="cargando" class="loading-state">
-      <div class="spinner"></div>
-      <span>CARGANDO...</span>
+      <!-- Loading -->
+      <div v-if="cargando" class="loading-state">
+        <div class="spinner"></div>
+        <span>CARGANDO...</span>
+      </div>
     </div>
-  </div>
+  </MainLayout>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import MainLayout from '@/layouts/MainLayout.vue'
 import { 
   GraduationCap, 
   ChevronRight, 
@@ -211,7 +214,7 @@ const seleccionarSemestre = async (semestre) => {
 }
 
 const irADetalleGrupo = (grupo) => {
-  router.push(`/gestion-grupos/${grupo.id}`)  // ✅ Usa la ruta que configuraste en index.js
+  router.push(`/gestion-grupos/${grupo.id}`)
 }
 
 // Navegación hacia atrás
@@ -240,6 +243,10 @@ onMounted(() => {
   min-height: 100vh;
 }
 
+* {
+  font-family: 'Montserrat', sans-serif;
+}
+
 .nivel-container {
   animation: fadeIn 0.3s ease;
 }
@@ -263,6 +270,7 @@ onMounted(() => {
   font-weight: 700;
   color: #333333;
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .nivel-subtitulo {
@@ -271,6 +279,7 @@ onMounted(() => {
   color: #828282;
   letter-spacing: 0.05em;
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .btn-back {
@@ -286,6 +295,7 @@ onMounted(() => {
   color: #4F4F4F;
   cursor: pointer;
   transition: all 0.2s;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .btn-back:hover {
@@ -330,6 +340,7 @@ onMounted(() => {
   font-weight: 700;
   color: #333333;
   margin: 0 0 0.5rem 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .card-clave {
@@ -338,6 +349,7 @@ onMounted(() => {
   color: #828282;
   letter-spacing: 0.05em;
   margin-bottom: 1rem;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .card-footer {
@@ -357,6 +369,7 @@ onMounted(() => {
   padding: 4px 10px;
   border-radius: 20px;
   letter-spacing: 0.05em;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .card-arrow {
@@ -378,6 +391,7 @@ onMounted(() => {
   font-weight: 800;
   color: #1D52B7;
   margin-bottom: 0.5rem;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .grupo-card .grupo-nombre {
@@ -385,6 +399,7 @@ onMounted(() => {
   font-weight: 800;
   color: #0B2545;
   margin-bottom: 1rem;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .grupo-info {
@@ -401,6 +416,7 @@ onMounted(() => {
   font-size: 0.7rem;
   font-weight: 600;
   color: #4F4F4F;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .text-verde {
@@ -419,6 +435,7 @@ onMounted(() => {
   padding: 3rem;
   gap: 1rem;
   color: #828282;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .spinner {
