@@ -320,7 +320,7 @@ const router = createRouter({
     {
       path: '/configuracion/plan-curricular',
       name: 'ConfigPlanCurricular',
-      component: () => import('@/views/ServiciosEscolares/ConfiguracionSE.vue')
+      component: () => import('@/views/ServiciosEscolares/PlanCurricularSE.vue')
     },
     {
       path: '/configuracion/periodos',
