@@ -213,18 +213,22 @@ Route::get('/bitacora', [BitacoraController::class, 'index']);
 
 
 // ====================== Modulo Eventos ======================
-Route::get('/eventos', [EventoController::class, 'index']);
-Route::get('/tipos-evento', [EventoController::class, 'tiposEvento']);
-Route::get('/eventos/{id}', [EventoController::class, 'show']);
-Route::post('/eventos', [EventoController::class, 'store']);
-Route::put('/eventos/{id}', [EventoController::class, 'update']);
+Route::get('/tipos-evento',         [EventoController::class, 'tiposEvento']);
+Route::get('/eventos/proximos',     [EventoController::class, 'proximos']);  
+Route::get('/eventos/estadisticas', [EventoController::class, 'estadisticas']);
+Route::get('/eventos',              [EventoController::class, 'index']);
+Route::post('/eventos',             [EventoController::class, 'store']);
+Route::get('/eventos/{id}',         [EventoController::class, 'show']);
+Route::put('/eventos/{id}',         [EventoController::class, 'update']);
+Route::delete('/eventos/{id}',      [EventoController::class, 'destroy']);
 
-Route::get('/eventos/{id}/participantes', [EventoController::class, 'participantes']);
-Route::post('/eventos/{id}/participantes', [EventoController::class, 'registrarParticipante']);
+Route::get('/eventos/{id}/participantes',                        [EventoController::class, 'participantes']);
+Route::post('/eventos/{id}/participantes',                       [EventoController::class, 'registrarParticipante']);
 Route::patch('/eventos/{id}/participantes/{control}/constancia', [EventoController::class, 'emitirConstancia']);
-Route::delete('/eventos/{id}/participantes/{control}', [EventoController::class, 'eliminarParticipante']);
+Route::delete('/eventos/{id}/participantes/{control}',           [EventoController::class, 'eliminarParticipante']);
 
-Route::delete('/eventos/{id}', [EventoController::class, 'destroy']);
+Route::get('/eventos/{id}/constancias',          [EventoController::class, 'constancias']);
+Route::post('/eventos/{id}/constancias/generar', [EventoController::class, 'generarConstancias']);
 
 
 // ====================== MÓDULO DE RECURSOS HUMANOS ======================
