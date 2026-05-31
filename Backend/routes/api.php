@@ -74,6 +74,8 @@ Route::prefix('inscripcion')->group(function () {
     Route::post('/registrar', [InscripcionController::class, 'inscribirAlumno']);
 });
 
+Route::get('/carga-academica/alumno/{id_alumno}', [InscripcionController::class, 'cargaAcademica']);
+
 
 // 🔹 FILTROS DINÁMICOS
 Route::get('/filtros', function () {

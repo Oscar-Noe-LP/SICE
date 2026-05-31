@@ -351,7 +351,7 @@ const PERMISOS_POR_ROL = {
     '/gestion-grupos',
     '/eventos',
   ],
-  'servicios-escolares': [
+  'escolares': [
     '/inicio',
     '/servicios-escolares',
     '/alumnos',
