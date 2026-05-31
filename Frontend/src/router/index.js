@@ -87,40 +87,41 @@ const router = createRouter({
     },
 
     // ══════════════════════════════════════════════════════════════════════
-    // MÓDULO: SERVICIOS ESCOLARES — INSCRIPCIONES
-    // ══════════════════════════════════════════════════════════════════════
-    {
-      path: '/inscripciones/nueva',
-      name: 'NuevaInscripcion',
-      component: () => import('@/views/ServiciosEscolares/InscripcionesSE.vue')
-    },
-    {
-      path: '/inscripciones/cargas',
-      name: 'CargasAcademicas',
-      component: () => import('@/views/ServiciosEscolares/InscripcionesSE.vue')
-    },
-    {
-      path: '/inscripciones/historial',
-      name: 'HistorialInscripciones',
-      component: () => import('@/views/Inscripciones_detalladas/HistorialInscripcionesView.vue')
-    },
-    // Rutas existentes inscripciones detalladas — se mantienen
-    {
-      path: '/inscripciones',
-      name: 'InscripcionesPanel',
-      component: () => import('@/views/Inscripciones_detalladas/InscripcionesView.vue')
-    },
-    {
-      path: '/inscripciones/gestionar/:id',
-      name: 'GestionInscripcion',
-      component: () => import('@/views/Inscripciones_detalladas/GestionInscripcionView.vue')
-    },
-    // Ruta legacy inscripcion simple
-    {
-      path: '/inscripcion',
-      name: 'Inscripcion',
-      component: () => import('@/views/InscripcionView.vue')
-    },
+// MÓDULO: SERVICIOS ESCOLARES — INSCRIPCIONES
+// ══════════════════════════════════════════════════════════════════════
+{
+  path: '/inscripciones',
+  redirect: '/inscripciones/nueva'
+},
+{
+  path: '/inscripciones/nueva',
+  name: 'NuevaInscripcion',
+  component: () => import('@/views/InscripcionView.vue')
+},
+{
+  path: '/inscripciones/cargas',
+  name: 'CargasAcademicas',
+  component: () => import('@/views/CargaAcademicaAlumnoView.vue')
+},
+{
+  path: '/inscripciones/historial',
+  name: 'HistorialInscripciones',
+  component: () => import('@/views/HistorialInscripcionesView.vue')
+},
+{
+  path: '/inscripciones/detalladas',
+  name: 'InscripcionesPanel',
+  component: () => import('@/views/Inscripciones_detalladas/InscripcionesView.vue')
+},
+{
+  path: '/inscripciones/gestionar/:id',
+  name: 'GestionInscripcion',
+  component: () => import('@/views/Inscripciones_detalladas/GestionInscripcionView.vue')
+},
+{
+  path: '/inscripcion',
+  redirect: '/inscripciones/nueva'
+},
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — CALIFICACIONES

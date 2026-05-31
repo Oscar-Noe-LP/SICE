@@ -2,7 +2,7 @@
   <MainLayout>
     <div class="inscripcion-page" ref="paginaRef" @keydown="manejarTeclado" tabindex="-1">
 
-            <!-- BREADCRUMB -->
+      <!-- BREADCRUMB -->
       <nav class="breadcrumb" aria-label="MIGA DE PAN">
         <router-link to="/servicios-escolares" class="breadcrumb-link">
           SERVICIOS ESCOLARES
@@ -18,7 +18,9 @@
       </nav>
 
       <h1 class="page-title">INSCRIPCIÓN</h1>
-      <p class="subtitle">BUSQUE AL ALUMNO POR NÚMERO DE CONTROL O NOMBRE, Y ASÍGNELO A UNO O MÁS GRUPOS DISPONIBLES.</p>
+      <p class="subtitle">
+        BUSQUE AL ALUMNO POR NÚMERO DE CONTROL O NOMBRE, Y ASÍGNELO A UNO O MÁS GRUPOS DISPONIBLES.
+      </p>
 
       <!-- TOAST -->
       <div v-if="notification.message" class="toast" :class="notification.type">
@@ -53,137 +55,151 @@
         </div>
       </div>
 
-      <!-- ── PASO 1 ── -->
-      <div v-if="paso === 1">
-        <div class="paso-header">
-          <div class="paso-icono">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-            </svg>
-          </div>
+      <!-- CARD DE CONTENIDO -->
+      <div class="content-card">
 
-          <div>
-            <h3>BUSCAR ALUMNO</h3>
-            <p class="paso-desc">INGRESE EL NÚMERO DE CONTROL O EL NOMBRE DEL ALUMNO A INSCRIBIR.</p>
-          </div>
-        </div>
-
-        <div class="busqueda-row">
-          <div class="campo-grupo campo-prioritario">
-            <label>NÚMERO DE CONTROL <span class="etiqueta-principal">PRINCIPAL</span></label>
-
-            <div class="input-con-icono">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-              </svg>
-
-              <input
-                type="text"
-                v-model="busquedaControl"
-                placeholder="EJ: 21456987"
-                ref="inputControlRef"
-                @keyup.enter="buscarAlumno"
-                @input="normalizarBusqueda('control')"
-              />
-            </div>
-          </div>
-
-          <div class="campo-grupo">
-            <label>NOMBRE DEL ALUMNO</label>
-
-            <div class="input-con-icono">
+        <!-- ── PASO 1 ── -->
+        <div v-if="paso === 1">
+          <div class="paso-header">
+            <div class="paso-icono">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
+            </div>
 
-              <input
-                type="text"
-                v-model="busquedaNombre"
-                placeholder="EJ: SARA PÉREZ"
-                @keyup.enter="buscarAlumno"
-                @input="normalizarBusqueda('nombre')"
-              />
+            <div>
+              <h3>BUSCAR ALUMNO</h3>
+              <p class="paso-desc">INGRESE EL NÚMERO DE CONTROL O EL NOMBRE DEL ALUMNO A INSCRIBIR.</p>
             </div>
           </div>
 
-          <div class="campo-grupo campo-periodo">
-            <label>PERIODO</label>
+          <div class="busqueda-row">
+            <div class="campo-grupo campo-prioritario">
+              <label>
+                NÚMERO DE CONTROL
+                <span class="etiqueta-principal">PRINCIPAL</span>
+              </label>
 
-            <select v-model="periodo" class="select-periodo" :disabled="cargandoPeriodos">
-              <option :value="null" disabled>
-                {{ cargandoPeriodos ? 'CARGANDO PERIODOS...' : periodos.length === 0 ? 'SIN PERIODOS DISPONIBLES' : 'SELECCIONAR PERIODO' }}
-              </option>
+              <div class="input-con-icono">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
 
-              <option
-                v-for="p in periodos"
-                :key="p.id"
-                :value="p.id"
-              >
-                {{ p.nombre?.toUpperCase() }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="busqueda-acciones">
-          <button class="btn-buscar" @click="buscarAlumno" :disabled="cargando">
-            <span v-if="cargando" class="spinner-btn"></span>
-            {{ cargando ? 'BUSCANDO...' : 'BUSCAR ALUMNO' }}
-          </button>
-        </div>
-
-        <div v-if="resultadosBusqueda.length > 0 && !alumnoSeleccionado" class="resultados-lista">
-          <p class="resultados-titulo">SELECCIONE AL ALUMNO CORRESPONDIENTE:</p>
-
-          <div
-            v-for="alumno in resultadosBusqueda"
-            :key="alumno.noControl"
-            class="resultado-item"
-            @click="elegirAlumno(alumno)"
-          >
-            <div class="resultado-avatar">{{ alumno.nombre.charAt(0).toUpperCase() }}</div>
-
-            <div class="resultado-info">
-              <strong>{{ alumno.nombre?.toUpperCase() }}</strong>
-              <span>{{ alumno.noControl }} · {{ alumno.carrera?.toUpperCase() }} · {{ alumno.semestre }}° SEMESTRE</span>
+                <input
+                  type="text"
+                  v-model="busquedaControl"
+                  placeholder="EJ: 21456987"
+                  ref="inputControlRef"
+                  @keyup.enter="buscarAlumno"
+                  @input="normalizarBusqueda('control')"
+                />
+              </div>
             </div>
 
-            <button class="btn-seleccionar">SELECCIONAR</button>
+            <div class="campo-grupo">
+              <label>NOMBRE DEL ALUMNO</label>
+
+              <div class="input-con-icono">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+
+                <input
+                  type="text"
+                  v-model="busquedaNombre"
+                  placeholder="EJ: SARA PÉREZ"
+                  @keyup.enter="buscarAlumno"
+                  @input="normalizarBusqueda('nombre')"
+                />
+              </div>
+            </div>
+
+            <div class="campo-grupo campo-periodo">
+              <label>PERIODO</label>
+
+              <select v-model="periodo" class="select-periodo" :disabled="cargandoPeriodos">
+                <option :value="null" disabled>
+                  {{ cargandoPeriodos ? 'CARGANDO PERIODOS...' : periodos.length === 0 ? 'SIN PERIODOS DISPONIBLES' : 'SELECCIONAR PERIODO' }}
+                </option>
+
+                <option
+                  v-for="p in periodos"
+                  :key="p.id"
+                  :value="p.id"
+                >
+                  {{ p.nombre?.toUpperCase() }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="busqueda-acciones">
+            <button class="btn-buscar" @click="buscarAlumno" :disabled="cargando">
+              <span v-if="cargando" class="spinner-btn"></span>
+              {{ cargando ? 'BUSCANDO...' : 'BUSCAR ALUMNO' }}
+            </button>
+          </div>
+
+          <div v-if="resultadosBusqueda.length > 0 && !alumnoSeleccionado" class="resultados-lista">
+            <p class="resultados-titulo">SELECCIONE AL ALUMNO CORRESPONDIENTE:</p>
+
+            <div
+              v-for="alumno in resultadosBusqueda"
+              :key="alumno.noControl"
+              class="resultado-item"
+              @click="elegirAlumno(alumno)"
+            >
+              <div class="resultado-avatar">
+                {{ alumno.nombre.charAt(0).toUpperCase() }}
+              </div>
+
+              <div class="resultado-info">
+                <strong>{{ alumno.nombre?.toUpperCase() }}</strong>
+                <span>
+                  {{ alumno.noControl }} · {{ alumno.carrera?.toUpperCase() }} · {{ alumno.semestre }}° SEMESTRE
+                </span>
+              </div>
+
+              <button class="btn-seleccionar">SELECCIONAR</button>
+            </div>
+          </div>
+
+          <div v-if="alumnoSeleccionado" class="alumno-seleccionado">
+            <div class="alumno-avatar">
+              {{ alumnoSeleccionado.nombre.charAt(0).toUpperCase() }}
+            </div>
+
+            <div class="alumno-datos">
+              <strong>{{ alumnoSeleccionado.nombre?.toUpperCase() }}</strong>
+              <span>
+                {{ alumnoSeleccionado.noControl }} · {{ alumnoSeleccionado.carrera?.toUpperCase() }} · {{ alumnoSeleccionado.semestre }}° SEMESTRE
+              </span>
+            </div>
+
+            <div class="alumno-acciones">
+              <button class="btn-carga-academica" @click="abrirModalCargaAlumno(alumnoSeleccionado)">
+                <svg xmlns="http://www.w3.org/2000/svg" class="btn-carga-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                VER CARGA ACADÉMICA
+              </button>
+
+              <button class="btn-cambiar" @click="limpiarAlumno">
+                CAMBIAR ALUMNO
+              </button>
+
+              <button class="btn-siguiente" @click="paso = 2">
+                CONTINUAR
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div v-if="alumnoSeleccionado" class="alumno-seleccionado">
-          <div class="alumno-avatar">{{ alumnoSeleccionado.nombre.charAt(0).toUpperCase() }}</div>
-
-          <div class="alumno-datos">
-            <strong>{{ alumnoSeleccionado.nombre?.toUpperCase() }}</strong>
-            <span>
-              {{ alumnoSeleccionado.noControl }} · {{ alumnoSeleccionado.carrera?.toUpperCase() }} · {{ alumnoSeleccionado.semestre }}° SEMESTRE
-            </span>
-          </div>
-
-          <div class="alumno-acciones">
-            <button class="btn-carga-academica" @click="abrirModalCargaAlumno(alumnoSeleccionado)">
-              <svg xmlns="http://www.w3.org/2000/svg" class="btn-carga-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              VER CARGA ACADÉMICA
-            </button>
-
-            <button class="btn-cambiar" @click="limpiarAlumno">CAMBIAR ALUMNO</button>
-
-            <button class="btn-siguiente" @click="paso = 2">
-              CONTINUAR
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-                <!-- ── PASO 2 ── -->
+        <!-- ── PASO 2 ── -->
         <div v-if="paso === 2">
           <div class="paso-header">
             <div class="paso-icono">
@@ -223,10 +239,14 @@
                 @input="normalizarBusqueda('grupo')"
               />
 
-              <button v-if="busquedaGrupo" @click="busquedaGrupo = ''" class="btn-limpiar-busqueda-g">✕</button>
+              <button v-if="busquedaGrupo" @click="busquedaGrupo = ''" class="btn-limpiar-busqueda-g">
+                ✕
+              </button>
             </div>
 
-            <button class="btn-filtrar-inline" @click="filtrarGrupos">FILTRAR</button>
+            <button class="btn-filtrar-inline" @click="filtrarGrupos">
+              FILTRAR
+            </button>
           </div>
 
           <div v-if="gruposSeleccionados.length > 0" class="seleccion-multiple-resumen">
@@ -311,7 +331,9 @@
                 </tr>
 
                 <tr v-if="gruposFiltrados.length === 0">
-                  <td colspan="7" class="sin-resultados">NO SE ENCONTRARON GRUPOS DISPONIBLES.</td>
+                  <td colspan="7" class="sin-resultados">
+                    NO SE ENCONTRARON GRUPOS DISPONIBLES.
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -321,7 +343,9 @@
             <span>MOSTRANDO {{ gruposFiltrados.length }} DE {{ grupos.length }} GRUPOS</span>
 
             <div class="pagination-buttons">
-              <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">‹</button>
+              <button class="page-btn" @click="prevPage" :disabled="currentPage === 1">
+                ‹
+              </button>
 
               <button
                 v-for="page in totalPages"
@@ -333,7 +357,9 @@
                 {{ page }}
               </button>
 
-              <button class="page-btn" @click="nextPage" :disabled="currentPage === totalPages">›</button>
+              <button class="page-btn" @click="nextPage" :disabled="currentPage === totalPages">
+                ›
+              </button>
             </div>
           </div>
 
@@ -358,7 +384,7 @@
           </div>
         </div>
 
-                <!-- ── PASO 3 ── -->
+        <!-- ── PASO 3 ── -->
         <div v-if="paso === 3">
           <div class="paso-header">
             <div class="paso-icono icono-verde">
@@ -433,7 +459,9 @@
                   </tr>
 
                   <tr v-if="gruposSeleccionados.length === 0">
-                    <td colspan="6" class="sin-resultados">NO HAY MATERIAS SELECCIONADAS.</td>
+                    <td colspan="6" class="sin-resultados">
+                      NO HAY MATERIAS SELECCIONADAS.
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -454,134 +482,137 @@
             </button>
           </div>
         </div>
-
-      </div>
-      <!-- ══════════════════════════════════════
-     MODAL: CARGA ACADÉMICA DEL ALUMNO
-═══════════════════════════════════════ -->
-<div v-if="showModalCargaAlumno" class="modal-carga-overlay" @click.self="cerrarModalCargaAlumno">
-  <div class="modal-carga-content">
-    <div class="modal-carga-header">
-      <div class="modal-carga-alumno">
-        <div class="modal-carga-avatar">
-          {{ alumnoCargaAcademica?.nombre?.charAt(0)?.toUpperCase() || '?' }}
-        </div>
-
-        <div>
-          <span class="modal-carga-tag">CARGA ACADÉMICA DEL ALUMNO</span>
-          <h3>{{ alumnoCargaAcademica?.nombre?.toUpperCase() }}</h3>
-          <p>
-            {{ alumnoCargaAcademica?.noControl }} · {{ alumnoCargaAcademica?.carrera?.toUpperCase() }} · {{ alumnoCargaAcademica?.semestre }}° SEMESTRE
-          </p>
-        </div>
       </div>
 
-      <button class="btn-cerrar-carga" @click="cerrarModalCargaAlumno" title="CERRAR">×</button>
-    </div>
+      <!-- MODAL: CARGA ACADÉMICA DEL ALUMNO -->
+      <div v-if="showModalCargaAlumno" class="modal-carga-overlay" @click.self="cerrarModalCargaAlumno">
+        <div class="modal-carga-content">
+          <div class="modal-carga-header">
+            <div class="modal-carga-alumno">
+              <div class="modal-carga-avatar">
+                {{ alumnoCargaAcademica?.nombre?.charAt(0)?.toUpperCase() || '?' }}
+              </div>
 
-    <div class="modal-carga-body">
-      <div class="carga-resumen-grid">
-        <div class="carga-resumen-card">
-          <span class="carga-resumen-numero">{{ cargaAcademicaAlumno.length }}</span>
-          <span class="carga-resumen-label">MATERIAS</span>
-        </div>
+              <div>
+                <span class="modal-carga-tag">CARGA ACADÉMICA DEL ALUMNO</span>
+                <h3>{{ alumnoCargaAcademica?.nombre?.toUpperCase() }}</h3>
+                <p>
+                  {{ alumnoCargaAcademica?.noControl }} · {{ alumnoCargaAcademica?.carrera?.toUpperCase() }} · {{ alumnoCargaAcademica?.semestre }}° SEMESTRE
+                </p>
+              </div>
+            </div>
 
-        <div class="carga-resumen-card">
-          <span class="carga-resumen-numero">{{ totalCreditosAlumno }}</span>
-          <span class="carga-resumen-label">CRÉDITOS</span>
-        </div>
+            <button class="btn-cerrar-carga" @click="cerrarModalCargaAlumno" title="CERRAR">
+              ×
+            </button>
+          </div>
 
-        <div class="carga-resumen-card">
-          <span class="carga-resumen-numero">{{ totalHorasAlumno }}</span>
-          <span class="carga-resumen-label">HRS / SEMANA</span>
-        </div>
+          <div class="modal-carga-body">
+            <div class="carga-resumen-grid">
+              <div class="carga-resumen-card">
+                <span class="carga-resumen-numero">{{ cargaAcademicaAlumno.length }}</span>
+                <span class="carga-resumen-label">MATERIAS</span>
+              </div>
 
-        <div class="carga-resumen-card">
-          <span class="carga-resumen-numero">{{ periodos.find(p => p.id === periodo)?.nombre?.toUpperCase() ?? '—' }}</span>
-          <span class="carga-resumen-label">PERIODO</span>
-        </div>
-      </div>
+              <div class="carga-resumen-card">
+                <span class="carga-resumen-numero">{{ totalCreditosAlumno }}</span>
+                <span class="carga-resumen-label">CRÉDITOS</span>
+              </div>
 
-      <div class="modal-carga-acciones">
-        <button
-          class="btn-exportar-carga"
-          @click="exportarCargaAlumno"
-          :disabled="cargaAcademicaAlumno.length === 0"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="btn-exportar-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          EXPORTAR CARGA
-        </button>
-      </div>
+              <div class="carga-resumen-card">
+                <span class="carga-resumen-numero">{{ totalHorasAlumno }}</span>
+                <span class="carga-resumen-label">HRS / SEMANA</span>
+              </div>
 
-      <div class="table-container carga-alumno-table-container">
-        <div v-if="cargandoCargaAlumno" class="loading-overlay carga-modal-loading">
-          <div class="loading-spinner"></div>
-          <span>CARGANDO CARGA ACADÉMICA...</span>
-        </div>
-
-        <table v-else-if="cargaAcademicaAlumno.length > 0" class="inscripcion-table carga-alumno-table">
-          <thead>
-            <tr>
-              <th>CLAVE DEL GRUPO</th>
-              <th>MATERIA</th>
-              <th>DOCENTE</th>
-              <th>AULA</th>
-              <th>HORARIO</th>
-              <th class="text-center">CRÉDITOS</th>
-              <th class="text-center">ESTATUS</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr v-for="grupo in cargaAcademicaAlumno" :key="grupo.id">
-              <td class="celda-clave-carga">{{ grupo.claveGrupo }}</td>
-              <td class="celda-materia-carga">{{ grupo.materia }}</td>
-              <td>{{ grupo.docente }}</td>
-              <td>{{ grupo.aula }}</td>
-              <td>
-                <span v-if="grupo.dia || grupo.horaInicio || grupo.horaFin" class="horario-badge">
-                  {{ grupo.dia }} {{ grupo.horaInicio }}–{{ grupo.horaFin }}
+              <div class="carga-resumen-card">
+                <span class="carga-resumen-numero">
+                  {{ periodos.find(p => p.id === periodo)?.nombre?.toUpperCase() ?? '—' }}
                 </span>
-                <span v-else class="sin-dato">—</span>
-              </td>
-              <td class="text-center">
-                <span class="creditos-badge">{{ grupo.creditos }}</span>
-              </td>
-              <td class="text-center">
-                <span class="estatus-carga-badge">{{ grupo.estatus }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <span class="carga-resumen-label">PERIODO</span>
+              </div>
+            </div>
 
-        <div v-else class="estado-vacio-carga">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icono-vacio-carga" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <h3>SIN CARGA ACADÉMICA</h3>
-          <p>EL ALUMNO NO TIENE MATERIAS INSCRITAS EN EL PERIODO SELECCIONADO.</p>
+            <div class="modal-carga-acciones">
+              <button
+                class="btn-exportar-carga"
+                @click="exportarCargaAlumno"
+                :disabled="cargaAcademicaAlumno.length === 0"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="btn-exportar-icono" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                EXPORTAR CARGA
+              </button>
+            </div>
+
+            <div class="table-container carga-alumno-table-container">
+              <div v-if="cargandoCargaAlumno" class="loading-overlay carga-modal-loading">
+                <div class="loading-spinner"></div>
+                <span>CARGANDO CARGA ACADÉMICA...</span>
+              </div>
+
+              <table v-else-if="cargaAcademicaAlumno.length > 0" class="inscripcion-table carga-alumno-table">
+                <thead>
+                  <tr>
+                    <th>CLAVE DEL GRUPO</th>
+                    <th>MATERIA</th>
+                    <th>DOCENTE</th>
+                    <th>AULA</th>
+                    <th>HORARIO</th>
+                    <th class="text-center">CRÉDITOS</th>
+                    <th class="text-center">ESTATUS</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr v-for="grupo in cargaAcademicaAlumno" :key="grupo.id">
+                    <td class="celda-clave-carga">{{ grupo.claveGrupo }}</td>
+                    <td class="celda-materia-carga">{{ grupo.materia }}</td>
+                    <td>{{ grupo.docente }}</td>
+                    <td>{{ grupo.aula }}</td>
+                    <td>
+                      <span v-if="grupo.dia || grupo.horaInicio || grupo.horaFin" class="horario-badge">
+                        {{ grupo.dia }} {{ grupo.horaInicio }}–{{ grupo.horaFin }}
+                      </span>
+                      <span v-else class="sin-dato">—</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="creditos-badge">{{ grupo.creditos }}</span>
+                    </td>
+                    <td class="text-center">
+                      <span class="estatus-carga-badge">{{ grupo.estatus }}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div v-else class="estado-vacio-carga">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icono-vacio-carga" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h3>SIN CARGA ACADÉMICA</h3>
+                <p>EL ALUMNO NO TIENE MATERIAS INSCRITAS EN EL PERIODO SELECCIONADO.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-carga-footer">
+            <span>
+              TOTAL DE HORAS ASIGNADAS:
+              <strong>{{ totalHorasAlumno }} HRS / SEMANA</strong>
+            </span>
+
+            <button class="btn-cerrar-carga-footer" @click="cerrarModalCargaAlumno">
+              CERRAR
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="modal-carga-footer">
-      <span>
-        TOTAL DE HORAS ASIGNADAS:
-        <strong>{{ totalHorasAlumno }} HRS / SEMANA</strong>
-      </span>
-
-      <button class="btn-cerrar-carga-footer" @click="cerrarModalCargaAlumno">
-        CERRAR
-      </button>
-    </div>
-  </div>
 
       <footer class="footer-institucional">
-        © {{ new Date().getFullYear() }} Tecnológico Nacional de México · Todos los derechos reservados
+        © {{ new Date().getFullYear() }} TECNOLÓGICO NACIONAL DE MÉXICO · TODOS LOS DERECHOS RESERVADOS
       </footer>
     </div>
   </MainLayout>
@@ -1060,388 +1091,261 @@ onUnmounted(() => { window.removeEventListener('keydown', manejarTeclado) })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
 
-.inscripcion-page {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  background: #F5F5F5;
-  font-family: 'Montserrat', sans-serif;
-  outline: none;
-}
+/* ============================================= */
+/* BASE GENERAL - INSCRIPCIÓN                    */
+/* ============================================= */
+.inscripcion-page { width: 100%; min-width: 0; box-sizing: border-box; background: #F4F6F9; font-family: 'Montserrat', sans-serif; font-weight: 400; color: #333333; outline: none; text-transform: uppercase; }
+.inscripcion-page * { font-family: 'Montserrat', sans-serif; box-sizing: border-box; }
 
-.breadcrumb { color: #6B7280; font-size: 0.92rem; margin-bottom: 1rem; }
-.arrow { color: #1A1A1A; font-weight: bold; }
-.breadcrumb-link { color: #6B7280; text-decoration: none; transition: color 0.2s; }
-.breadcrumb-link:hover { color: #1B396A; text-decoration: underline; }
+/* ============================================= */
+/* BREADCRUMB                                    */
+/* ============================================= */
+.breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; color: #828282; font-size: 0.875rem; line-height: 1; }
+.breadcrumb-link { display: inline-flex; align-items: center; justify-content: center; color: #828282; font-size: 0.875rem; font-weight: 500; line-height: 1; text-decoration: none; white-space: nowrap; transition: color 0.2s ease; }
+.breadcrumb-link:hover { color: #2F80ED; text-decoration: underline; }
+.breadcrumb-sep { display: inline-flex; align-items: center; justify-content: center; width: 10px; min-width: 10px; height: 1em; color: #BDBDBD; font-size: 1rem; font-weight: 500; line-height: 1; transform: translateY(-1px); user-select: none; }
+.breadcrumb-actual { display: inline-flex; align-items: center; color: #2F80ED; font-size: 0.875rem; font-weight: 600; line-height: 1; white-space: nowrap; }
 
-.page-title { font-size: 1.75rem; font-weight: 700; color: #1A1A1A; margin-bottom: 0.4rem; }
-.subtitle { color: #6B7280; margin-bottom: 1.8rem; font-size: 0.95rem; }
+/* ============================================= */
+/* TÍTULOS Y TEXTO                               */
+/* ============================================= */
+.page-title { color: #333333; font-size: 1.75rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 0.4rem; }
+.subtitle { color: #4F4F4F; margin: 0 0 1.8rem; font-size: 0.875rem; font-weight: 400; line-height: 1.45; }
+.paso-header h3 { color: #333333; font-size: 1.125rem; font-weight: 600; line-height: 1.3; margin: 0 0 4px; }
+.paso-desc { color: #4F4F4F; font-size: 0.875rem; font-weight: 400; line-height: 1.45; margin: 0; }
 
-/* Toast */
-.toast {
-  position: fixed; bottom: 2rem; right: 2rem; padding: 0.9rem 1.4rem;
-  border-radius: 10px; color: white; font-weight: 700; font-size: 0.9rem;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15); z-index: 9999;
-  animation: slideInToast 0.3s ease; display: flex; align-items: center; gap: 0.6rem;
-}
-.toast.success { background: #1B396A; }
-.toast.error { background: #DC2626; }
+/* ============================================= */
+/* TOAST                                         */
+/* ============================================= */
+.toast { position: fixed; bottom: 2rem; right: 2rem; display: flex; align-items: center; gap: 0.6rem; padding: 0.9rem 1.4rem; border-radius: 10px; color: #FFFFFF; font-size: 0.875rem; font-weight: 600; line-height: 1.4; box-shadow: 0 8px 24px rgba(29,82,183,0.15); z-index: 9999; animation: slideInToast 0.3s ease; }
+.toast.success { background: #27AE60; }
+.toast.error { background: #EB5757; }
 @keyframes slideInToast { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-/* Barra de pasos */
-.pasos-barra {
-  display: flex; align-items: center;
-  margin-bottom: 1.5rem;
-  background: #FFFFFF; border-radius: 12px; padding: 1.2rem 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #E5E7EB;
-  width: 100%; box-sizing: border-box;
-}
+/* ============================================= */
+/* BARRA DE PASOS                                */
+/* ============================================= */
+.pasos-barra { display: flex; align-items: center; width: 100%; margin-bottom: 1.5rem; padding: 1.2rem 2rem; background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 12px; box-shadow: 0 4px 14px rgba(29,82,183,0.05); }
 .paso { display: flex; align-items: center; gap: 10px; }
-.paso-circulo {
-  width: 34px; height: 34px; border-radius: 50%; background: #E5E7EB; color: #6B7280;
-  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; transition: all 0.3s;
-}
-.paso.activo .paso-circulo { background: #1B396A; color: white; }
-.paso.completado .paso-circulo { background: #16A34A; color: white; }
-.paso-label { font-size: 0.9rem; font-weight: 600; color: #6B7280; transition: color 0.3s; }
-.paso.activo .paso-label { color: #1B396A; }
-.paso.completado .paso-label { color: #16A34A; }
-.paso-linea { flex: 1; height: 2px; background: #E5E7EB; margin: 0 1rem; transition: background 0.3s; }
-.paso-linea.completado { background: #16A34A; }
+.paso-circulo { width: 34px; height: 34px; border-radius: 50%; background: #F2F4F7; color: #828282; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.875rem; transition: all 0.3s ease; }
+.paso.activo .paso-circulo { background: #1D52B7; color: #FFFFFF; }
+.paso.completado .paso-circulo { background: #27AE60; color: #FFFFFF; }
+.paso-label { color: #828282; font-size: 0.8rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.02em; transition: color 0.3s ease; }
+.paso.activo .paso-label { color: #1D52B7; }
+.paso.completado .paso-label { color: #27AE60; }
+.paso-linea { flex: 1; height: 2px; margin: 0 1rem; background: #E0E0E0; transition: background 0.3s ease; }
+.paso-linea.completado { background: #27AE60; }
 
-/* Card de contenido */
-.content-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-  padding: 2.5rem;
-  border: 1px solid #E5E7EB;
-  max-width: 860px;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
+/* ============================================= */
+/* CARD DE CONTENIDO                             */
+/* ============================================= */
+.content-card { max-width: 980px; margin: 0 auto; padding: 2.2rem; background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 16px; box-shadow: 0 8px 25px rgba(29,82,183,0.05); }
 
-/* Cabecera de cada paso */
-.paso-header {
-  display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 2rem;
-  padding-bottom: 1.5rem; border-bottom: 1px solid #E5E7EB;
-}
-.paso-icono {
-  width: 48px; height: 48px; border-radius: 12px; background: #EFF6FF;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.paso-icono svg { width: 24px; height: 24px; stroke: #1B396A; }
-.icono-verde { background: #F0FDF4; }
-.icono-verde svg { stroke: #16A34A; }
-.paso-header h3 { font-size: 1.25rem; font-weight: 700; color: #1A1A1A; margin: 0 0 4px; }
-.paso-desc { color: #6B7280; font-size: 0.92rem; margin: 0; }
+/* ============================================= */
+/* CABECERA DE PASOS                             */
+/* ============================================= */
+.paso-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #E0E0E0; }
+.paso-icono { width: 48px; height: 48px; border-radius: 12px; background: rgba(47,128,237,0.10); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.paso-icono svg { width: 24px; height: 24px; stroke: #1D52B7; }
+.icono-verde { background: rgba(39,174,96,0.10); }
+.icono-verde svg { stroke: #27AE60; }
 
-/* Paso 1: búsqueda */
-.busqueda-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 1rem;
-  align-items: end;
-  margin-bottom: 1.2rem;
-}
+/* ============================================= */
+/* FORMULARIOS                                   */
+/* ============================================= */
+.busqueda-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end; margin-bottom: 1.2rem; }
 .campo-grupo { display: flex; flex-direction: column; gap: 6px; }
-.campo-periodo { min-width: 150px; }
-.campo-grupo label {
-  font-size: 0.88rem; font-weight: 600; color: #1A1A1A;
-  display: flex; align-items: center; gap: 8px;
-}
-.etiqueta-principal {
-  background: #1B396A; color: white; font-size: 0.7rem;
-  padding: 2px 8px; border-radius: 10px; font-weight: 600;
-}
+.campo-periodo { min-width: 160px; }
+.campo-grupo label { display: flex; align-items: center; gap: 8px; color: #333333; font-size: 0.8rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.02em; }
+.etiqueta-principal { background: #0B2545; color: #FFFFFF; font-size: 0.68rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
 .input-con-icono { position: relative; }
-.input-con-icono svg {
-  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-  width: 18px; height: 18px; stroke: #6B7280; pointer-events: none;
-}
-.input-con-icono input {
-  width: 100%; padding: 12px 14px 12px 40px; border: 1.5px solid #E5E7EB;
-  border-radius: 10px; font-size: 0.97rem; background: #FFFFFF; color: #1A1A1A;
-  box-sizing: border-box; transition: border-color 0.2s; font-family: 'Montserrat', sans-serif;
-}
-.campo-prioritario .input-con-icono input { border-color: #1B396A; }
-.input-con-icono input:focus { outline: none; border-color: #1B396A; box-shadow: 0 0 0 3px rgba(27,57,106,0.1); }
-.select-periodo {
-  width: 100%; padding: 12px 14px; border: 1.5px solid #E5E7EB;
-  border-radius: 10px; font-size: 0.97rem; background: #FFFFFF; color: #1A1A1A;
-  font-family: 'Montserrat', sans-serif;
-}
+.input-con-icono svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: #828282; pointer-events: none; }
+.input-con-icono input { width: 100%; padding: 12px 14px 12px 40px; border: 1.5px solid #E0E0E0; border-radius: 10px; background: #FFFFFF; color: #333333; font-size: 0.875rem; font-weight: 400; line-height: 1.4; text-transform: uppercase; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.input-con-icono input::placeholder { color: #828282; font-size: 0.875rem; font-weight: 400; }
+.campo-prioritario .input-con-icono input { border-color: #1D52B7; }
+.input-con-icono input:focus { outline: none; border-color: #1D52B7; box-shadow: 0 0 0 3px rgba(29,82,183,0.15); }
+.select-periodo { width: 100%; padding: 12px 14px; border: 1.5px solid #E0E0E0; border-radius: 10px; background: #FFFFFF; color: #333333; font-size: 0.875rem; font-weight: 400; line-height: 1.4; text-transform: uppercase; }
+.select-periodo:focus { outline: none; border-color: #1D52B7; box-shadow: 0 0 0 3px rgba(29,82,183,0.15); }
+
+/* ============================================= */
+/* BOTONES                                       */
+/* ============================================= */
 .busqueda-acciones { display: flex; justify-content: flex-end; margin-bottom: 1.5rem; }
-.btn-buscar {
-  background: #1B396A; color: white; padding: 12px 32px; border-radius: 10px;
-  font-weight: 600; font-size: 0.97rem; border: none; cursor: pointer;
-  display: flex; align-items: center; gap: 8px; transition: background 0.2s;
-  font-family: 'Montserrat', sans-serif;
-}
-.btn-buscar:hover:not(:disabled) { background: #2563EB; }
-.btn-buscar:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn-buscar, .btn-filtrar-inline, .btn-siguiente, .btn-confirmar, .btn-atras, .btn-cambiar, .btn-seleccionar, .btn-elegir, .btn-carga-academica, .btn-exportar-carga, .btn-cerrar-carga-footer, .btn-limpiar-seleccion, .btn-quitar-confirmacion { font-family: 'Montserrat', sans-serif; font-size: 0.85rem; font-weight: 600; line-height: 1.2; letter-spacing: 0.01em; text-transform: uppercase; cursor: pointer; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
+.btn-buscar, .btn-filtrar-inline, .btn-siguiente { display: flex; align-items: center; justify-content: center; gap: 8px; background: #1D52B7; color: #FFFFFF; border: none; border-radius: 10px; }
+.btn-buscar { padding: 12px 32px; }
+.btn-filtrar-inline { padding: 9px 20px; white-space: nowrap; }
+.btn-siguiente { padding: 9px 22px; }
+.btn-buscar:hover:not(:disabled), .btn-filtrar-inline:hover, .btn-siguiente:hover:not(:disabled) { background: #2F80ED; }
+.btn-buscar:disabled, .btn-siguiente:disabled, .btn-confirmar:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-cambiar, .btn-atras { display: flex; align-items: center; gap: 6px; background: #FFFFFF; color: #4F4F4F; border: 1px solid #E0E0E0; border-radius: 8px; }
+.btn-cambiar { padding: 9px 18px; }
+.btn-atras { padding: 11px 22px; border-radius: 10px; }
+.btn-cambiar:hover, .btn-atras:hover:not(:disabled) { background: #F2F4F7; }
+.btn-atras svg { width: 16px; height: 16px; stroke: #4F4F4F; }
+.btn-siguiente svg { width: 16px; height: 16px; stroke: #FFFFFF; }
+.btn-seleccionar { background: rgba(47,128,237,0.10); color: #1D52B7; border: 1px solid rgba(47,128,237,0.25); padding: 7px 18px; border-radius: 8px; }
+.btn-seleccionar:hover { background: rgba(47,128,237,0.15); }
+.btn-confirmar { display: flex; align-items: center; gap: 8px; background: #27AE60; color: #FFFFFF; border: none; padding: 13px 36px; border-radius: 10px; font-weight: 700; }
+.btn-confirmar:hover:not(:disabled) { background: #219653; }
+.btn-elegir { background: #1D52B7; color: #FFFFFF; border: none; padding: 8px 20px; border-radius: 8px; }
+.btn-elegir:hover { background: #2F80ED; }
+.btn-elegir.seleccionado { background: #27AE60; color: #FFFFFF; }
+.btn-elegir.seleccionado:hover { background: #219653; }
 
-.resultados-titulo { font-weight: 600; color: #1A1A1A; margin-bottom: 0.8rem; font-size: 0.92rem; }
+/* ============================================= */
+/* RESULTADOS Y ALUMNO SELECCIONADO              */
+/* ============================================= */
+.resultados-titulo { color: #333333; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.8rem; }
 .resultados-lista { margin-top: 0.5rem; display: flex; flex-direction: column; gap: 8px; }
-.resultado-item {
-  display: flex; align-items: center; gap: 14px; border: 1px solid #E5E7EB;
-  border-radius: 10px; padding: 12px 16px; cursor: pointer; transition: border-color 0.2s, background 0.2s;
-}
-.resultado-item:hover { border-color: #1B396A; background: #F8FAFF; }
-.resultado-avatar {
-  width: 40px; height: 40px; border-radius: 50%; background: #1B396A; color: white;
-  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; flex-shrink: 0;
-}
-.resultado-info { flex: 1; display: flex; flex-direction: column; }
-.resultado-info strong { color: #1A1A1A; font-size: 0.97rem; }
-.resultado-info span { color: #6B7280; font-size: 0.85rem; margin-top: 2px; }
-.btn-seleccionar {
-  background: #EFF6FF; color: #1B396A; border: 1px solid #BFDBFE;
-  padding: 7px 18px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
-}
-
-.alumno-seleccionado {
-  display: flex; align-items: center; gap: 16px; background: #F0FDF4;
-  border: 1.5px solid #86EFAC; border-radius: 12px; padding: 16px 20px; margin-top: 1rem; flex-wrap: wrap;
-}
-.alumno-avatar {
-  width: 46px; height: 46px; border-radius: 50%; background: #16A34A; color: white;
-  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem; flex-shrink: 0;
-}
+.resultado-item { display: flex; align-items: center; gap: 14px; border: 1px solid #E0E0E0; border-radius: 10px; padding: 12px 16px; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; }
+.resultado-item:hover { border-color: #1D52B7; background: rgba(29,82,183,0.05); }
+.resultado-avatar { width: 40px; height: 40px; border-radius: 50%; background: #1D52B7; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; flex-shrink: 0; }
+.resultado-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.resultado-info strong { color: #333333; font-size: 0.95rem; font-weight: 600; line-height: 1.3; }
+.resultado-info span { color: #4F4F4F; font-size: 0.85rem; font-weight: 400; line-height: 1.45; margin-top: 2px; }
+.alumno-seleccionado { display: flex; align-items: center; gap: 16px; background: rgba(39,174,96,0.10); border: 1.5px solid rgba(39,174,96,0.35); border-radius: 12px; padding: 16px 20px; margin-top: 1rem; flex-wrap: wrap; }
+.alumno-avatar { width: 46px; height: 46px; border-radius: 50%; background: #27AE60; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; }
 .alumno-datos { flex: 1; min-width: 180px; }
-.alumno-datos strong { display: block; color: #1A1A1A; font-size: 1rem; }
-.alumno-datos span { color: #6B7280; font-size: 0.85rem; }
+.alumno-datos strong { display: block; color: #333333; font-size: 1rem; font-weight: 600; line-height: 1.3; }
+.alumno-datos span { color: #4F4F4F; font-size: 0.85rem; font-weight: 400; line-height: 1.45; }
 .alumno-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
-.btn-cambiar {
-  background: white; color: #6B7280; border: 1px solid #E5E7EB;
-  padding: 9px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
-  font-family: 'Montserrat', sans-serif;
-}
-.btn-siguiente {
-  background: #1B396A; color: white; border: none; padding: 9px 22px; border-radius: 8px;
-  font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.9rem;
-  font-family: 'Montserrat', sans-serif;
-}
-.btn-siguiente svg { width: 16px; height: 16px; stroke: white; }
+.btn-carga-academica { display: flex; align-items: center; gap: 6px; background: rgba(47,128,237,0.10); color: #1D52B7; border: 1px solid rgba(47,128,237,0.25); padding: 9px 16px; border-radius: 8px; font-weight: 600; }
+.btn-carga-academica:hover { background: rgba(47,128,237,0.15); }
+.btn-carga-icono { width: 16px; height: 16px; stroke: #1D52B7; }
 
-/* Paso 2: tabla */
-.filtros-card-inline {
-  background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0.75rem 1.1rem;
-  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.2rem;
-}
-.filtros-label { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 700; color: #6B7280; white-space: nowrap; }
-.filtros-label svg { stroke: #6B7280; }
-.busqueda-grupos-wrap {
-  display: flex; align-items: center; gap: 8px; background: #FFFFFF; border: 1px solid #E5E7EB;
-  border-radius: 8px; padding: 0 12px; flex: 1; min-width: 160px;
-}
-.icono-lupa-gris { stroke: #6B7280; flex-shrink: 0; }
-.input-busqueda-grupos {
-  border: none; background: transparent; padding: 8px 0; font-size: 0.875rem;
-  font-family: 'Montserrat', sans-serif; outline: none; flex: 1; color: #1A1A1A;
-}
-.input-busqueda-grupos::placeholder { color: #9CA3AF; }
-.btn-limpiar-busqueda-g { background: none; border: none; color: #6B7280; cursor: pointer; font-size: 0.9rem; padding: 2px; line-height: 1; }
-.btn-filtrar-inline {
-  background: #1B396A; color: white; border: none; padding: 9px 20px; border-radius: 8px;
-  font-weight: 600; cursor: pointer; font-size: 0.875rem; white-space: nowrap; transition: background 0.2s;
-  font-family: 'Montserrat', sans-serif;
-}
-.btn-filtrar-inline:hover { background: #1D4ED8; }
-
-.table-container { border-radius: 12px; overflow: hidden; border: 1px solid #E5E7EB; position: relative; }
-.loading-state { opacity: 0.7; pointer-events: none; }
-.loading-overlay {
-  position: absolute; inset: 0; background: rgba(255,255,255,0.85);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-  z-index: 10; border-radius: 12px; font-weight: 600; color: #1B396A;
-}
-.loading-spinner {
-  width: 30px; height: 30px; border: 3px solid #E5E7EB; border-top-color: #1B396A;
-  border-radius: 50%; animation: spin 0.7s linear infinite;
-}
+/* ============================================= */
+/* FILTROS Y TABLA                               */
+/* ============================================= */
+.filtros-card-inline { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.2rem; padding: 0.75rem 1.1rem; background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 12px; box-shadow: 0 4px 12px rgba(29,82,183,0.05); }
+.filtros-label { display: flex; align-items: center; gap: 5px; color: #4F4F4F; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+.filtros-label svg { stroke: #4F4F4F; }
+.busqueda-grupos-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 160px; background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 8px; padding: 0 12px; }
+.icono-lupa-gris { stroke: #828282; flex-shrink: 0; }
+.input-busqueda-grupos { flex: 1; border: none; background: transparent; color: #333333; padding: 8px 0; font-size: 0.875rem; font-weight: 400; outline: none; text-transform: uppercase; }
+.input-busqueda-grupos::placeholder { color: #828282; font-size: 0.875rem; font-weight: 400; }
+.btn-limpiar-busqueda-g { background: transparent; border: none; color: #828282; cursor: pointer; font-size: 0.9rem; padding: 2px; line-height: 1; }
+.table-container { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #E0E0E0; background: #FFFFFF; }
+.loading-state { opacity: 0.75; pointer-events: none; }
+.loading-overlay { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 160px; background: rgba(255,255,255,0.88); border-radius: 12px; color: #1D52B7; font-size: 0.875rem; font-weight: 600; }
+.loading-spinner { width: 30px; height: 30px; border: 3px solid #E0E0E0; border-top-color: #1D52B7; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
 .inscripcion-table { width: 100%; border-collapse: collapse; }
-.inscripcion-table th {
-  background: #F5F5F5; padding: 14px 16px; font-weight: 600; color: #1A1A1A;
-  border-bottom: 1px solid #E5E7EB; text-align: left; font-family: 'Montserrat', sans-serif;
-}
-.inscripcion-table td {
-  padding: 14px 16px; border-bottom: 1px solid #E5E7EB; color: #1A1A1A;
-  font-family: 'Montserrat', sans-serif;
-}
-.fila-activa { background: #EFF6FF !important; outline: 2px solid #1B396A; outline-offset: -2px; }
-
-.horario-badge {
-  display: inline-block; background: #EFF6FF; color: #1B396A; border: 1px solid #BFDBFE;
-  border-radius: 6px; padding: 3px 9px; font-size: 0.82rem; font-weight: 500; white-space: nowrap;
-}
-.sin-dato { color: #9CA3AF; font-size: 0.85rem; }
-.lugares-badge {
-  display: inline-block; background: #F0FDF4; color: #16A34A; border: 1px solid #86EFAC;
-  border-radius: 20px; padding: 4px 12px; font-size: 0.85rem; font-weight: 600;
-}
-.lugares-badge.casi { background: #FFFBEB; color: #D97706; border-color: #FCD34D; }
-.lugares-badge.lleno { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
-.btn-elegir {
-  background: #1B396A; color: white; border: none; padding: 8px 20px;
-  border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
-  transition: background 0.2s; font-family: 'Montserrat', sans-serif;
-}
-.btn-elegir:hover { background: #1D4ED8; }
-.badge-lleno {
-  display: inline-block; background: #F5F5F5; color: #9CA3AF; border: 1px solid #E5E7EB;
-  border-radius: 8px; padding: 7px 14px; font-size: 0.88rem; font-weight: 600;
-}
-.sin-resultados { text-align: center; padding: 2rem; color: #6B7280; }
+.inscripcion-table th { background: #F2F4F7; color: #333333; padding: 14px 16px; border-bottom: 1px solid #E0E0E0; text-align: left; font-size: 0.78rem; font-weight: 600; line-height: 1.3; letter-spacing: 0.02em; white-space: nowrap; }
+.inscripcion-table td { padding: 14px 16px; border-bottom: 1px solid #E0E0E0; color: #333333; font-size: 0.85rem; font-weight: 400; line-height: 1.4; vertical-align: middle; }
+.inscripcion-table tbody tr:hover { background: rgba(29,82,183,0.05); }
+.fila-activa { background: rgba(47,128,237,0.10) !important; outline: 2px solid #1D52B7; outline-offset: -2px; }
+.fila-seleccionada-multiple { background: rgba(29,82,183,0.15) !important; outline: 2px solid #1D52B7; outline-offset: -2px; }
 .text-center { text-align: center; }
+.checkbox-grupo { width: 17px; height: 17px; cursor: pointer; accent-color: #1D52B7; }
+.horario-badge { display: inline-block; background: rgba(47,128,237,0.10); color: #1D52B7; border: 1px solid rgba(47,128,237,0.25); border-radius: 6px; padding: 3px 9px; font-size: 0.8rem; font-weight: 500; white-space: nowrap; }
+.sin-dato { color: #828282; font-size: 0.85rem; }
+.lugares-badge { display: inline-block; background: rgba(39,174,96,0.10); color: #27AE60; border: 1px solid rgba(39,174,96,0.35); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; font-weight: 600; }
+.lugares-badge.casi { background: rgba(242,153,74,0.10); color: #F2994A; border-color: rgba(242,153,74,0.35); }
+.lugares-badge.lleno { background: #FFF0F0; color: #EB5757; border-color: rgba(235,87,87,0.35); }
+.badge-lleno { display: inline-block; background: #F2F4F7; color: #828282; border: 1px solid #E0E0E0; border-radius: 8px; padding: 7px 14px; font-size: 0.82rem; font-weight: 600; }
+.sin-resultados { text-align: center; padding: 2rem; color: #4F4F4F; font-size: 0.875rem; }
 
-/* Paginación */
-.pagination {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 1.2rem; font-size: 0.92rem; color: #6B7280; flex-wrap: wrap; gap: 0.5rem;
-}
+/* ============================================= */
+/* SELECCIÓN MÚLTIPLE                            */
+/* ============================================= */
+.seleccion-multiple-resumen { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: rgba(47,128,237,0.10); border: 1px solid rgba(47,128,237,0.25); border-radius: 12px; padding: 12px 16px; margin-bottom: 1rem; }
+.seleccion-multiple-resumen strong { display: block; color: #1D52B7; font-size: 0.875rem; font-weight: 600; }
+.seleccion-multiple-resumen span { display: block; color: #4F4F4F; font-size: 0.8rem; font-weight: 400; margin-top: 2px; }
+.btn-limpiar-seleccion { background: #FFFFFF; color: #1D52B7; border: 1px solid rgba(47,128,237,0.25); padding: 8px 14px; border-radius: 8px; white-space: nowrap; }
+.btn-limpiar-seleccion:hover { background: rgba(47,128,237,0.10); }
+
+/* ============================================= */
+/* PAGINACIÓN                                    */
+/* ============================================= */
+.pagination { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.2rem; color: #4F4F4F; font-size: 0.875rem; font-weight: 400; }
 .pagination-buttons { display: flex; gap: 4px; }
-.page-btn {
-  padding: 6px 12px; border: 1px solid #E5E7EB; background: #FFFFFF;
-  border-radius: 6px; cursor: pointer; color: #1A1A1A; font-weight: 500;
-  font-family: 'Montserrat', sans-serif;
-}
-.page-btn.active { background: #1B396A; color: white; border-color: #1B396A; }
+.page-btn { padding: 6px 12px; border: 1px solid #E0E0E0; background: #FFFFFF; border-radius: 6px; cursor: pointer; color: #333333; font-size: 0.85rem; font-weight: 500; }
+.page-btn.active { background: #1D52B7; color: #FFFFFF; border-color: #1D52B7; }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Paso 3: confirmación */
-.confirmacion-grid {
-  display: flex; align-items: center; gap: 1rem; background: #F8FAFF;
-  border: 1px solid #E5E7EB; border-radius: 12px; padding: 2rem;
-  margin-bottom: 2rem; flex-wrap: wrap;
-}
-.confirmacion-bloque { flex: 1; min-width: 160px; }
-.bloque-titulo { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #6B7280; margin: 0 0 6px; }
-.bloque-valor { font-size: 1.05rem; font-weight: 700; color: #1A1A1A; margin: 0 0 4px; }
-.bloque-sub { font-size: 0.85rem; color: #6B7280; margin: 0 0 2px; }
-.confirmacion-flecha { font-size: 1.5rem; color: #D1D5DB; font-weight: 300; }
+/* ============================================= */
+/* CONFIRMACIÓN                                  */
+/* ============================================= */
+.confirmacion-grid { display: flex; align-items: stretch; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding: 1.5rem; background: rgba(29,82,183,0.05); border: 1px solid #E0E0E0; border-radius: 12px; }
+.confirmacion-grid-multiple { justify-content: space-between; }
+.confirmacion-bloque { flex: 1; min-width: 220px; }
+.bloque-titulo { color: #828282; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.05em; margin: 0 0 6px; }
+.bloque-valor { color: #333333; font-size: 1rem; font-weight: 600; margin: 0 0 4px; }
+.bloque-sub { color: #4F4F4F; font-size: 0.85rem; font-weight: 400; margin: 0 0 2px; }
+.materias-confirmacion-card { margin-bottom: 1.5rem; background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 12px; overflow: hidden; }
+.materias-confirmacion-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 14px 16px; background: #F2F4F7; border-bottom: 1px solid #E0E0E0; }
+.materias-confirmacion-header h4 { margin: 0; color: #333333; font-size: 1rem; font-weight: 600; }
+.materias-confirmacion-header span { color: #4F4F4F; font-size: 0.8rem; font-weight: 600; }
+.btn-quitar-confirmacion { background: #FFF0F0; color: #EB5757; border: 1px solid rgba(235,87,87,0.35); padding: 7px 12px; border-radius: 8px; }
+.btn-quitar-confirmacion:hover { background: rgba(235,87,87,0.10); }
+.paso-navegacion { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #E0E0E0; }
 
-/* Navegación entre pasos */
-.paso-navegacion {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #E5E7EB;
-}
-.btn-atras {
-  background: white; color: #6B7280; border: 1px solid #E5E7EB; padding: 11px 22px;
-  border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
-  font-size: 0.95rem; font-family: 'Montserrat', sans-serif;
-}
-.btn-atras svg { width: 16px; height: 16px; stroke: #6B7280; }
-.btn-confirmar {
-  background: #16A34A; color: white; border: none; padding: 13px 36px; border-radius: 10px;
-  font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;
-  font-size: 1rem; transition: background 0.2s; font-family: 'Montserrat', sans-serif;
-}
-.btn-confirmar:hover:not(:disabled) { background: #15803D; }
-.btn-confirmar:disabled { opacity: 0.7; cursor: not-allowed; }
-
-.spinner-btn {
-  display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4);
-  border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite;
-}
-
-/* Transición entre pasos */
-.content-card > div { animation: fadeSlide 0.25s ease; }
-@keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Footer */
-.footer-institucional {
-  text-align: center; color: #9CA3AF; font-size: 0.82rem;
-  padding-top: 2rem; margin-top: 1rem;
-}
-
-/* Modal carga académica alumno */
-.btn-carga-academica { background: #DBEAFE; color: #1B396A; border: 1px solid #BFDBFE; padding: 9px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.86rem; font-family: 'Montserrat', sans-serif; text-transform: uppercase; transition: background 0.2s; }
-.btn-carga-academica:hover { background: #BFDBFE; }
-.btn-carga-icono { width: 16px; height: 16px; stroke: #1B396A; }
-.modal-carga-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 2500; padding: 1rem; }
-.modal-carga-content { width: min(1050px, 96vw); max-height: 90vh; background: #FFFFFF; border-radius: 16px; box-shadow: 0 25px 60px rgba(0,0,0,0.24); border: 1px solid #E5E7EB; overflow: hidden; display: flex; flex-direction: column; font-family: 'Montserrat', sans-serif; }
-.modal-carga-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.5rem; background: #1B396A; color: #FFFFFF; }
+/* ============================================= */
+/* MODAL CARGA ACADÉMICA                         */
+/* ============================================= */
+.modal-carga-overlay { position: fixed; inset: 0; background: rgba(11,37,69,0.85); display: flex; align-items: center; justify-content: center; z-index: 2500; padding: 1rem; }
+.modal-carga-content { width: min(1050px, 96vw); max-height: 90vh; background: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 16px; box-shadow: 0 25px 60px rgba(11,37,69,0.28); overflow: hidden; display: flex; flex-direction: column; }
+.modal-carga-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.5rem; background: #0B2545; color: #FFFFFF; }
 .modal-carga-alumno { display: flex; align-items: center; gap: 1rem; min-width: 0; }
-.modal-carga-avatar { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.18); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; border: 2px solid rgba(255,255,255,0.35); flex-shrink: 0; }
-.modal-carga-tag { display: block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; opacity: 0.85; text-transform: uppercase; margin-bottom: 3px; }
-.modal-carga-header h3 { margin: 0; font-size: 1.2rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.modal-carga-header p { margin: 3px 0 0; font-size: 0.84rem; opacity: 0.9; text-transform: uppercase; }
-.btn-cerrar-carga { background: rgba(255,255,255,0.15); color: #FFFFFF; border: none; width: 34px; height: 34px; border-radius: 8px; font-size: 1.6rem; line-height: 1; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+.modal-carga-avatar { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.18); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700; border: 2px solid rgba(255,255,255,0.35); flex-shrink: 0; }
+.modal-carga-tag { display: block; margin-bottom: 3px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; opacity: 0.85; }
+.modal-carga-header h3 { margin: 0; font-size: 1.15rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.modal-carga-header p { margin: 3px 0 0; font-size: 0.85rem; font-weight: 400; opacity: 0.9; }
+.btn-cerrar-carga { background: rgba(255,255,255,0.15); color: #FFFFFF; border: none; width: 34px; height: 34px; border-radius: 8px; font-size: 1.6rem; line-height: 1; cursor: pointer; transition: background 0.2s ease; flex-shrink: 0; }
 .btn-cerrar-carga:hover { background: rgba(255,255,255,0.28); }
 .modal-carga-body { padding: 1.25rem 1.5rem; overflow-y: auto; }
 .carga-resumen-grid { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)); gap: 0.9rem; margin-bottom: 1rem; }
-.carga-resumen-card { background: #F8FAFC; border: 1px solid #E5E7EB; border-radius: 12px; padding: 1rem; text-align: center; }
-.carga-resumen-numero { display: block; color: #1A1A1A; font-size: 1.35rem; font-weight: 800; line-height: 1.2; text-transform: uppercase; }
-.carga-resumen-label { display: block; color: #6B7280; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.05em; margin-top: 4px; text-transform: uppercase; }
+.carga-resumen-card { background: #F4F6F9; border: 1px solid #E0E0E0; border-radius: 12px; padding: 1rem; text-align: center; }
+.carga-resumen-numero { display: block; color: #333333; font-size: 2rem; font-weight: 700; line-height: 1.1; }
+.carga-resumen-label { display: block; color: #828282; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; margin-top: 4px; }
 .modal-carga-acciones { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
-.btn-exportar-carga { display: flex; align-items: center; gap: 7px; background: #DBEAFE; color: #1B396A; border: 1px solid #BFDBFE; padding: 9px 16px; border-radius: 8px; font-weight: 700; font-size: 0.86rem; cursor: pointer; font-family: 'Montserrat', sans-serif; text-transform: uppercase; transition: background 0.2s; }
-.btn-exportar-carga:hover:not(:disabled) { background: #BFDBFE; }
+.btn-exportar-carga { display: flex; align-items: center; gap: 7px; background: rgba(47,128,237,0.10); color: #1D52B7; border: 1px solid rgba(47,128,237,0.25); padding: 9px 16px; border-radius: 8px; }
+.btn-exportar-carga:hover:not(:disabled) { background: rgba(47,128,237,0.15); }
 .btn-exportar-carga:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn-exportar-icono { width: 17px; height: 17px; stroke: #1B396A; }
+.btn-exportar-icono { width: 17px; height: 17px; stroke: #1D52B7; }
 .carga-alumno-table-container { position: relative; max-height: 430px; overflow: auto; }
-.carga-modal-loading { min-height: 220px; text-transform: uppercase; }
-.carga-alumno-table th { text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.03em; white-space: nowrap; }
-.carga-alumno-table td { text-transform: uppercase; font-size: 0.86rem; vertical-align: middle; }
-.celda-clave-carga { color: #1B396A; font-weight: 800; white-space: nowrap; }
-.celda-materia-carga { font-weight: 700; min-width: 180px; }
-.creditos-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; background: #EFF6FF; color: #1B396A; border: 1px solid #BFDBFE; border-radius: 999px; padding: 4px 10px; font-weight: 800; }
-.estatus-carga-badge { display: inline-flex; align-items: center; justify-content: center; background: #F0FDF4; color: #16A34A; border: 1px solid #86EFAC; border-radius: 999px; padding: 4px 10px; font-weight: 800; font-size: 0.78rem; }
-.estado-vacio-carga { text-align: center; padding: 3rem 2rem; color: #6B7280; text-transform: uppercase; }
-.icono-vacio-carga { width: 52px; height: 52px; stroke: #9CA3AF; margin-bottom: 12px; }
-.estado-vacio-carga h3 { font-size: 1.1rem; color: #1A1A1A; margin: 0 0 6px; }
-.estado-vacio-carga p { font-size: 0.86rem; margin: 0; }
-.modal-carga-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.5rem; background: #F8FAFC; border-top: 1px solid #E5E7EB; color: #6B7280; font-size: 0.86rem; font-weight: 600; text-transform: uppercase; }
-.modal-carga-footer strong { color: #1B396A; }
-.btn-cerrar-carga-footer { background: #1B396A; color: #FFFFFF; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif; text-transform: uppercase; }
-.btn-cerrar-carga-footer:hover { background: #1D4ED8; }
+.carga-modal-loading { min-height: 220px; }
+.carga-alumno-table th { white-space: nowrap; }
+.carga-alumno-table td { vertical-align: middle; }
+.celda-clave-carga { color: #1D52B7; font-weight: 700; white-space: nowrap; }
+.celda-materia-carga { font-weight: 600; min-width: 180px; }
+.creditos-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; background: rgba(47,128,237,0.10); color: #1D52B7; border: 1px solid rgba(47,128,237,0.25); border-radius: 999px; padding: 4px 10px; font-weight: 700; }
+.estatus-carga-badge { display: inline-flex; align-items: center; justify-content: center; background: rgba(39,174,96,0.10); color: #27AE60; border: 1px solid rgba(39,174,96,0.35); border-radius: 999px; padding: 4px 10px; font-weight: 700; font-size: 0.78rem; }
+.estado-vacio-carga { text-align: center; padding: 3rem 2rem; color: #4F4F4F; }
+.icono-vacio-carga { width: 52px; height: 52px; stroke: #BDBDBD; margin-bottom: 12px; }
+.estado-vacio-carga h3 { color: #333333; font-size: 1rem; font-weight: 600; margin: 0 0 6px; }
+.estado-vacio-carga p { color: #4F4F4F; font-size: 0.875rem; margin: 0; }
+.modal-carga-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.5rem; background: #F4F6F9; border-top: 1px solid #E0E0E0; color: #4F4F4F; font-size: 0.85rem; font-weight: 500; }
+.modal-carga-footer strong { color: #1D52B7; font-weight: 700; }
+.btn-cerrar-carga-footer { background: #1D52B7; color: #FFFFFF; border: none; padding: 9px 18px; border-radius: 8px; }
+.btn-cerrar-carga-footer:hover { background: #2F80ED; }
 
-/* Mayúsculas generales */
-.inscripcion-page { text-transform: uppercase; }
-.input-con-icono input, .input-busqueda-grupos, .select-periodo { text-transform: uppercase; }
+/* ============================================= */
+/* SPINNERS Y TRANSICIONES                       */
+/* ============================================= */
+.spinner-btn { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #FFFFFF; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.content-card > div { animation: fadeSlide 0.25s ease; }
+@keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Breadcrumb normalizado */
-.breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; color: #6B7280; font-family: 'Montserrat', sans-serif; font-size: 0.92rem; line-height: 1; text-transform: uppercase; }
-.breadcrumb-link { display: inline-flex; align-items: center; justify-content: center; color: #6B7280; font-family: 'Montserrat', sans-serif; font-size: 0.92rem; font-weight: 500; line-height: 1; text-decoration: none; text-transform: uppercase; white-space: nowrap; transition: color 0.2s ease; }
-.breadcrumb-link:hover { color: #1B396A; text-decoration: underline; }
-.breadcrumb-sep { display: inline-flex; align-items: center; justify-content: center; width: 10px; min-width: 10px; height: 1em; color: #9CA3AF; font-family: 'Montserrat', sans-serif; font-size: 1rem; font-weight: 500; line-height: 1; transform: translateY(-1px); user-select: none; }
-.breadcrumb-actual { display: inline-flex; align-items: center; color: #1B396A; font-family: 'Montserrat', sans-serif; font-size: 0.92rem; font-weight: 600; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+/* ============================================= */
+/* FOOTER                                        */
+/* ============================================= */
+.footer-institucional { text-align: center; color: #828282; font-size: 0.82rem; font-weight: 400; padding-top: 2rem; margin-top: 1rem; }
 
-/* Selección múltiple de materias */
-.seleccion-multiple-resumen { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 12px 16px; margin-bottom: 1rem; font-family: 'Montserrat', sans-serif; }
-.seleccion-multiple-resumen strong { display: block; color: #1B396A; font-size: 0.9rem; font-weight: 800; }
-.seleccion-multiple-resumen span { display: block; color: #6B7280; font-size: 0.78rem; font-weight: 600; margin-top: 2px; }
-.btn-limpiar-seleccion { background: #FFFFFF; color: #1B396A; border: 1px solid #BFDBFE; padding: 8px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif; text-transform: uppercase; white-space: nowrap; }
-.btn-limpiar-seleccion:hover { background: #DBEAFE; }
-.checkbox-grupo { width: 17px; height: 17px; cursor: pointer; accent-color: #1B396A; }
-.fila-seleccionada-multiple { background: #DBEAFE !important; outline: 2px solid #1B396A; outline-offset: -2px; }
-.btn-elegir.seleccionado { background: #16A34A; color: #FFFFFF; }
-.btn-elegir.seleccionado:hover { background: #15803D; }
-.btn-continuar-materias:disabled { opacity: 0.45; cursor: not-allowed; }
-
-/* Confirmación múltiple */
-.confirmacion-grid-multiple { justify-content: space-between; }
-.materias-confirmacion-card { margin-bottom: 1.5rem; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 12px; overflow: hidden; }
-.materias-confirmacion-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 14px 16px; background: #F8FAFC; border-bottom: 1px solid #E5E7EB; }
-.materias-confirmacion-header h4 { margin: 0; color: #1A1A1A; font-size: 0.95rem; font-weight: 800; }
-.materias-confirmacion-header span { color: #6B7280; font-size: 0.8rem; font-weight: 700; }
-.btn-quitar-confirmacion { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; padding: 7px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: 'Montserrat', sans-serif; text-transform: uppercase; }
-.btn-quitar-confirmacion:hover { background: #FECACA; }
-
-/* Responsive */
+/* ============================================= */
+/* RESPONSIVE                                    */
+/* ============================================= */
 @media (max-width: 700px) {
   .busqueda-row { grid-template-columns: 1fr; }
   .content-card { padding: 1.4rem 1rem; }
   .pasos-barra { padding: 1rem; }
   .paso-label { display: none; }
   .confirmacion-grid { flex-direction: column; }
-  .confirmacion-flecha { transform: rotate(90deg); }
+  .paso-navegacion { flex-direction: column; align-items: stretch; }
+  .btn-atras, .btn-siguiente, .btn-confirmar { width: 100%; justify-content: center; }
   .carga-resumen-grid { grid-template-columns: 1fr 1fr; }
   .modal-carga-footer { flex-direction: column; align-items: stretch; }
   .btn-cerrar-carga-footer { width: 100%; }
