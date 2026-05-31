@@ -18,17 +18,37 @@
         <template v-if="vista === 'carreras'">
           <span class="activo">Calificaciones</span>
         </template>
-        <template v-else-if="vista === 'carrera' && carreraSeleccionada">
-          <span class="breadcrumb-link" @click="volverACarreras" style="cursor:pointer;">Calificaciones</span>
+        <template v-else-if="vista === 'semestres' && carreraSeleccionada">
+          <router-link to="/calificaciones" class="breadcrumb-link">Calificaciones</router-link>
           <span class="sep">›</span>
           <span class="activo">{{ carreraSeleccionada.nombre }}</span>
         </template>
-        <template v-else-if="vista === 'tabla' && grupoSeleccionado">
-          <span class="breadcrumb-link" @click="volverACarrera" style="cursor:pointer;">Calificaciones</span>
+        <template v-else-if="vista === 'grupos' && carreraSeleccionada && semestreSeleccionado">
+          <router-link to="/calificaciones" class="breadcrumb-link">Calificaciones</router-link>
           <span class="sep">›</span>
-          <span class="breadcrumb-link" @click="volverACarreraDesdeTabla" style="cursor:pointer;">{{ carreraSeleccionada?.nombre }}</span>
+          <span class="breadcrumb-link" @click="vista='semestres'" style="cursor:pointer;">{{ carreraSeleccionada.nombre }}</span>
           <span class="sep">›</span>
-          <span class="activo">{{ grupoSeleccionado.clave_grupo }} — {{ grupoSeleccionado.materia }}</span>
+          <span class="activo">{{ semestreSeleccionado.numero }}° Semestre</span>
+        </template>
+        <template v-else-if="vista === 'materias' && grupoSeleccionado && carreraSeleccionada">
+          <router-link to="/calificaciones" class="breadcrumb-link">Calificaciones</router-link>
+          <span class="sep">›</span>
+          <span class="breadcrumb-link" @click="vista='semestres'" style="cursor:pointer;">{{ carreraSeleccionada.nombre }}</span>
+          <span class="sep">›</span>
+          <span class="breadcrumb-link" @click="vista='grupos'" style="cursor:pointer;">{{ semestreSeleccionado.numero }}° Semestre</span>
+          <span class="sep">›</span>
+          <span class="activo">{{ grupoSeleccionado.clave_grupo }}</span>
+        </template>
+        <template v-else-if="vista === 'tabla' && materiaSeleccionada && grupoSeleccionado && carreraSeleccionada">
+          <router-link to="/calificaciones" class="breadcrumb-link">Calificaciones</router-link>
+          <span class="sep">›</span>
+          <span class="breadcrumb-link" @click="vista='semestres'" style="cursor:pointer;">{{ carreraSeleccionada.nombre }}</span>
+          <span class="sep">›</span>
+          <span class="breadcrumb-link" @click="vista='grupos'" style="cursor:pointer;">{{ semestreSeleccionado.numero }}° Semestre</span>
+          <span class="sep">›</span>
+          <span class="breadcrumb-link" @click="vista='materias'" style="cursor:pointer;">{{ grupoSeleccionado.clave_grupo }}</span>
+          <span class="sep">›</span>
+          <span class="activo">{{ materiaSeleccionada.nombre }}</span>
         </template>
       </div>
 
@@ -108,13 +128,13 @@
       </div>
 
       <!-- ============================================================ -->
-      <!-- PANTALLA 2: VISTA GENERAL DE LA CARRERA                      -->
+      <!-- PANTALLA 2: SEMESTRES                                        -->
       <!-- ============================================================ -->
-      <div v-if="vista === 'carrera' && carreraSeleccionada">
+      <div v-if="vista === 'semestres' && carreraSeleccionada">
         <div class="encabezado-seccion">
           <div>
             <h1 class="titulo-pagina">{{ carreraSeleccionada.nombre }}</h1>
-            <p class="subtitulo">Resumen y recursos disponibles</p>
+            <p class="subtitulo">Selecciona un semestre</p>
           </div>
           <button @click="volverACarreras" class="btn-secundario">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -144,78 +164,30 @@
           </div>
         </div>
 
-        <!-- Buscador de grupos y docentes -->
-        <div class="filtros-card" style="margin-bottom: 1.5rem;">
-          <div class="busqueda-wrapper" style="max-width: 100%;">
-            <div class="busqueda-control">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-lupa">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input
-                v-model="busquedaCarreraDetalle"
-                type="text"
-                placeholder="Buscar materia o docente..."
-                class="input-busqueda-control"
-              />
+        <!-- Cards de Semestres -->
+        <div class="seccion-titulo-wrap" style="margin-bottom: 1rem;">
+          <h3 class="seccion-titulo">Semestres</h3>
+        </div>
+        <div class="cards-grid semestres-grid">
+          <div
+            v-for="semestre in semestresDisponibles"
+            :key="semestre.numero"
+            class="card semestre-card"
+            @click="seleccionarSemestre(semestre)"
+          >
+            <div class="semestre-numero">{{ semestre.numero }}°</div>
+            <h3 class="card-titulo">SEMESTRE {{ semestre.numero }}</h3>
+            <p class="card-info">{{ semestre.totalGrupos }} grupo(s)</p>
+            <div class="card-footer">
+              <span class="card-badge">VER GRUPOS</span>
+              <ChevronRight :size="16" class="card-arrow" />
             </div>
           </div>
         </div>
 
-        <!-- Tabla de Grupos (estilo clásico) -->
-        <div class="grupos-seccion">
-          <h3 class="seccion-titulo">Grupos</h3>
-          <div class="tabla-card">
-            <div class="tabla-scroll">
-              <table class="tabla-califs tabla-grupos">
-                <thead>
-                  <tr>
-                    <th>Clave</th>
-                    <th>Materia</th>
-                    <th class="centrado">Semestre</th>
-                    <th>Docente</th>
-                    <th class="centrado">Alumnos</th>
-                    <th class="centrado">Acción</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-if="cargandoGruposCarrera">
-                    <td colspan="5" class="sin-resultados">
-                      <p>Cargando grupos...</p>
-                    </td>
-                  </tr>
-                  <tr v-for="grupo in gruposCarreraFiltrados" :key="grupo.id_grupo">
-                    <td><span class="control-chip">{{ grupo.clave_grupo }}</span></td>
-                    <td>{{ grupo.materia }}</td>
-                    <td class="centrado">                          <!-- ← agregar -->
-                      <span class="semestre-badge">{{ grupo.semestre ?? '—' }}</span>
-                    </td>
-                    <td>{{ grupo.docente || 'Sin asignar' }}</td>
-                    <td class="centrado">{{ grupo.inscritos ?? 0 }}</td>
-                    <td class="centrado acciones-cell">
-                      <button @click="seleccionarGrupo(grupo)" class="btn-accion ver" title="Ver calificaciones">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr v-if="!cargandoGruposCarrera && gruposCarreraFiltrados.length === 0">
-                    <td colspan="6" class="sin-resultados">
-                      <p>No se encontraron grupos para esta búsqueda</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sección Actas -->
+        <!-- Sección Actas (conservada) -->
         <div class="actas-seccion" style="margin-top: 2rem;">
           <h3 class="seccion-titulo">Actas</h3>
-
-          <!-- KPIs actas -->
           <div class="mini-resumen-grid" style="margin-bottom: 1rem;">
             <div class="mini-resumen-item">
               <span class="mini-resumen-numero color-verde">{{ kpisActas.generadas }}</span>
@@ -259,57 +231,20 @@
                     <td>{{ acta.materia }}</td>
                     <td>{{ acta.docente || 'Sin asignar' }}</td>
                     <td class="centrado">
-                      <span
-                        class="badge-estado"
-                        :class="{
-                          'bien': acta.estatus === 'generada',
-                          'regular': acta.estatus === 'pendiente',
-                          'sin-calificar': acta.estatus === 'sin_calificacion'
-                        }"
-                      >
-                        {{
-                          acta.estatus === 'generada' ? 'Generada' :
-                          acta.estatus === 'pendiente' ? 'Pendiente' : 'Sin calificación'
-                        }}
+                      <span class="badge-estado" :class="{'bien': acta.estatus === 'generada', 'regular': acta.estatus === 'pendiente', 'sin-calificar': acta.estatus === 'sin_calificacion'}">
+                        {{ acta.estatus === 'generada' ? 'Generada' : acta.estatus === 'pendiente' ? 'Pendiente' : 'Sin calificación' }}
                       </span>
                     </td>
                     <td class="centrado acciones-cell">
                       <div class="acciones-fila">
-                        <button
-                          @click="generarActa(acta)"
-                          class="btn-accion guardar"
-                          title="Generar acta"
-                          :disabled="acta.estatus === 'sin_calificacion'"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                          </svg>
+                        <button @click="generarActa(acta)" class="btn-accion guardar" title="Generar acta" :disabled="acta.estatus === 'sin_calificacion'">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                         </button>
-                        <button
-                          @click="descargarActa(acta)"
-                          class="btn-accion ver"
-                          title="Descargar PDF"
-                          :disabled="acta.estatus !== 'generada'"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                          </svg>
+                        <button @click="descargarActa(acta)" class="btn-accion ver" title="Descargar PDF" :disabled="acta.estatus !== 'generada'">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                         </button>
-                        <button
-                          @click="imprimirActa(acta)"
-                          class="btn-accion ver"
-                          title="Imprimir"
-                          :disabled="acta.estatus !== 'generada'"
-                          style="background:#EDE9FE;color:#7C3AED;"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                            <polyline points="6 9 6 2 18 2 18 9"/>
-                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                            <rect x="6" y="14" width="12" height="8"/>
-                          </svg>
+                        <button @click="imprimirActa(acta)" class="btn-accion ver" title="Imprimir" :disabled="acta.estatus !== 'generada'" style="background:#EDE9FE;color:#7C3AED;">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                         </button>
                       </div>
                     </td>
@@ -320,54 +255,114 @@
           </div>
         </div>
 
-        <!-- Tarjetas de Docentes (estilo visual diferente) -->
+        <!-- Tarjetas de Docentes -->
         <div class="docentes-seccion" style="margin-top: 2rem;">
           <h3 class="seccion-titulo">Docentes</h3>
           <div class="docentes-grid">
-            <div 
-              v-for="docente in docentesCarreraFiltrados" 
-              :key="docente.nombre" 
-              class="docente-card"
-            >
+            <div v-for="docente in docentesCarreraFiltrados" :key="docente.nombre" class="docente-card">
               <div class="docente-card-body">
-                <div class="docente-avatar">
-                  {{ iniciales(docente.nombre) }}
-                </div>
+                <div class="docente-avatar">{{ iniciales(docente.nombre) }}</div>
                 <h4 class="docente-nombre">{{ docente.nombre }}</h4>
                 <div class="docente-materias">
                   <span v-for="materia in docente.materias" :key="materia" class="materia-tag">{{ materia }}</span>
                 </div>
-                <div class="docente-stats">
-                  <span><strong>{{ docente.grupos.length }}</strong> grupo(s)</span>
-                </div>
+                <div class="docente-stats"><span><strong>{{ docente.grupos.length }}</strong> grupo(s)</span></div>
               </div>
               <div class="docente-card-footer">
                 <button @click="abrirModalDocente(docente)" class="btn-accion ver grande" title="Ver detalles del docente">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   <span>Ver detalles</span>
                 </button>
               </div>
             </div>
-            <div v-if="docentesCarreraFiltrados.length === 0" class="sin-resultados-carreras">
-              <p>No se encontraron docentes para esta búsqueda</p>
+            <div v-if="docentesCarreraFiltrados.length === 0" class="sin-resultados-carreras"><p>No se encontraron docentes</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- PANTALLA 3: GRUPOS DEL SEMESTRE                             -->
+      <!-- ============================================================ -->
+      <div v-else-if="vista === 'grupos' && semestreSeleccionado">
+        <div class="encabezado-seccion">
+          <div>
+            <h1 class="titulo-pagina">{{ carreraSeleccionada.nombre }} - {{ semestreSeleccionado.numero }}° Semestre</h1>
+            <p class="subtitulo">Selecciona un grupo</p>
+          </div>
+          <button @click="vista='semestres'" class="btn-secundario">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Volver
+          </button>
+        </div>
+
+        <div class="cards-grid grupos-grid">
+          <div v-for="grupo in gruposPorSemestre" :key="grupo.id_grupo" class="card grupo-card" @click="seleccionarGrupoParaMaterias(grupo)">
+            <div class="grupo-nombre">{{ grupo.clave_grupo }}</div>
+            <div class="grupo-info">
+              <div class="info-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>{{ grupo.docente || 'Sin tutor' }}</span>
+              </div>
+              <div class="info-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>{{ grupo.inscritos || 0 }} inscritos</span>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span class="card-badge">VER MATERIAS</span>
+              <ChevronRight :size="16" class="card-arrow" />
             </div>
           </div>
+        </div>
+        <div v-if="gruposPorSemestre.length === 0" class="sin-resultados-carreras">
+          <p>No hay grupos en este semestre</p>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- PANTALLA 4: MATERIAS DEL GRUPO                               -->
+      <!-- ============================================================ -->
+      <div v-else-if="vista === 'materias' && grupoSeleccionado">
+        <div class="encabezado-seccion">
+          <div>
+            <h1 class="titulo-pagina">{{ grupoSeleccionado.clave_grupo }}</h1>
+            <p class="subtitulo">Selecciona una materia</p>
+          </div>
+          <button @click="vista='grupos'" class="btn-secundario">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Volver
+          </button>
+        </div>
+
+        <div class="cards-grid materias-grid">
+          <div v-for="materia in materiasGrupo" :key="materia.id_materia" class="card materia-card" @click="seleccionarMateria(materia)">
+            <div class="materia-nombre">{{ materia.nombre }}</div>
+            <p class="materia-docente">{{ materia.docente || 'Sin docente' }}</p>
+            <div class="card-footer">
+              <span class="card-badge">{{ materia.inscritos || 0 }} alumnos</span>
+              <ChevronRight :size="16" class="card-arrow" />
+            </div>
+          </div>
+        </div>
+        <div v-if="materiasGrupo.length === 0 && !cargando" class="sin-resultados-carreras">
+          <p>No se encontraron materias para este grupo</p>
         </div>
       </div>
 
       <!-- ============================================================ -->
       <!-- PANTALLA 3: TABLA DE CALIFICACIONES DEL GRUPO                -->
       <!-- ============================================================ -->
-      <div v-if="vista === 'tabla' && grupoSeleccionado">
+      <div v-if="vista === 'tabla' && grupoSeleccionado && materiaSeleccionada">
         <div class="encabezado-seccion">
           <div>
-            <h1 class="titulo-pagina">{{ grupoSeleccionado.clave_grupo }} — {{ grupoSeleccionado.materia }}</h1>
+            <h1 class="titulo-pagina">{{ grupoSeleccionado.clave_grupo }} — {{ materiaSeleccionada.nombre }}</h1>
             <p class="subtitulo">Captura y consulta de calificaciones</p>
           </div>
-          <button @click="volverACarrera" class="btn-secundario">
+          <button @click="vista='materias'" class="btn-secundario">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
@@ -474,6 +469,31 @@
               </button>
             </div>
           </div>
+
+                    <!-- Barra de guardado por unidad -->
+          <div class="guardar-unidades-bar">
+            <span class="guardar-unidades-label">Guardar por unidad:</span>
+            <button @click="guardarUnidad(1)" class="btn-unidad" :disabled="cargando">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+              U1
+            </button>
+            <button @click="guardarUnidad(2)" class="btn-unidad" :disabled="cargando">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+              U2
+            </button>
+            <button @click="guardarUnidad(3)" class="btn-unidad" :disabled="cargando">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+              U3
+            </button>
+            <button @click="guardarUnidad(4)" class="btn-unidad" :disabled="cargando">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+              U4
+            </button>
+            <button @click="guardarUnidad(5)" class="btn-unidad" :disabled="cargando">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+              U5
+            </button>
+          </div>
           
           <div class="tabla-scroll">
             <table class="tabla-califs" @keydown="navegarTeclado">
@@ -481,9 +501,11 @@
                 <tr>
                   <th>No. de Control</th>
                   <th>Nombre del Alumno</th>
-                  <th class="centrado">Parcial 1 <span class="peso">(30%)</span></th>
-                  <th class="centrado">Parcial 2 <span class="peso">(30%)</span></th>
-                  <th class="centrado">Proyecto <span class="peso">(40%)</span></th>
+                  <th class="centrado">U1</th>
+                  <th class="centrado">U2</th>
+                  <th class="centrado">U3</th>
+                  <th class="centrado">U4</th>
+                  <th class="centrado">U5</th>
                   <th class="centrado">Final</th>
                   <th class="centrado">Estado</th>
                   <th class="centrado">Acciones</th>
@@ -511,34 +533,65 @@
                   <td class="centrado">
                     <div class="input-nota-wrap">
                       <input
-                        v-model="alumno.p1"
-                        type="number" step="0.01" min="0" max="100"
+                        v-model="alumno.u1"
+                        type="number" step="1" min="0" max="100"
                         class="input-nota"
-                        :class="claseNota(alumno.p1)"
+                        :class="claseNota(alumno.u1)"
+                        data-unidad="1"
                         @focus="filaActiva = index"
+                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(1)"
                       />
                     </div>
                   </td>
                   <td class="centrado">
                     <div class="input-nota-wrap">
                       <input
-                        v-model="alumno.p2"
-                        type="number" step="0.01" min="0" max="100"
+                        v-model="alumno.u2"
+                        type="number" step="1" min="0" max="100"
                         class="input-nota"
-                        :class="claseNota(alumno.p2)"
-                        data-campo="p2"
+                        :class="claseNota(alumno.u2)"
+                        data-unidad="2"
                         @focus="filaActiva = index"
+                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(2)"
                       />
                     </div>
                   </td>
                   <td class="centrado">
                     <div class="input-nota-wrap">
                       <input
-                        v-model="alumno.proy"
-                        type="number" step="0.01" min="0" max="100"
+                        v-model="alumno.u3"
+                        type="number" step="1" min="0" max="100"
                         class="input-nota"
-                        :class="claseNota(alumno.proy)"
+                        :class="claseNota(alumno.u3)"
+                        data-unidad="3"
                         @focus="filaActiva = index"
+                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(3)"
+                      />
+                    </div>
+                  </td>
+                  <td class="centrado">
+                    <div class="input-nota-wrap">
+                      <input
+                        v-model="alumno.u4"
+                        type="number" step="1" min="0" max="100"
+                        class="input-nota"
+                        :class="claseNota(alumno.u4)"
+                        data-unidad="4"
+                        @focus="filaActiva = index"
+                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(4)"
+                      />
+                    </div>
+                  </td>
+                  <td class="centrado">
+                    <div class="input-nota-wrap">
+                      <input
+                        v-model="alumno.u5"
+                        type="number" step="1" min="0" max="100"
+                        class="input-nota"
+                        :class="claseNota(alumno.u5)"
+                        data-unidad="5"
+                        @focus="filaActiva = index"
+                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(5)"
                       />
                     </div>
                   </td>
@@ -696,7 +749,7 @@
 
       <!-- Atajos de teclado -->
       <div class="atajos-info" v-if="vista === 'tabla'">
-        <span>⌨ Atajos: <kbd>↑ ↓</kbd> navegar filas · <kbd>Enter</kbd> guardar fila · <kbd>Ctrl+S</kbd> guardar todo · <kbd>Tab</kbd> saltar celdas</span>
+        <span>⌨ Atajos: <kbd>↑ ↓</kbd> navegar filas · <kbd>Enter</kbd> guardar unidad actual · <kbd>Ctrl+S</kbd> guardar todo · <kbd>Tab</kbd> saltar celdas</span>
       </div>
     </div>
 
@@ -820,41 +873,58 @@
               <div class="calificaciones-grid">
                 <div class="cal-card">
                   <div class="cal-header">
-                    <span class="cal-titulo">Parcial 1</span>
-                    <span class="cal-peso">30%</span>
+                    <span class="cal-titulo">Unidad 1</span>
                   </div>
-                  <input v-model="alumnoSeleccionado.p1" type="number" step="0.01" min="0" max="100" class="input-nota grande" :class="claseNota(alumnoSeleccionado.p1)" />
+                  <input v-model="alumnoSeleccionado.u1" type="number" step="1" min="0" max="100" class="input-nota grande" :class="claseNota(alumnoSeleccionado.u1)" />
                   <div class="cal-barra">
-                    <div class="cal-barra-fill" :style="{ width: (Number(alumnoSeleccionado.p1 || 0)) + '%', background: colorNota(Number(alumnoSeleccionado.p1 || 0)) }"></div>
+                    <div class="cal-barra-fill" :style="{ width: (Number(alumnoSeleccionado.u1 || 0)) + '%', background: colorNota(Number(alumnoSeleccionado.u1 || 0)) }"></div>
                   </div>
                 </div>
                 <div class="cal-card">
                   <div class="cal-header">
-                    <span class="cal-titulo">Parcial 2</span>
-                    <span class="cal-peso">30%</span>
+                    <span class="cal-titulo">Unidad 2</span>
                   </div>
-                  <input v-model="alumnoSeleccionado.p2" type="number" step="0.01" min="0" max="100" class="input-nota grande" :class="claseNota(alumnoSeleccionado.p2)" />
+                  <input v-model="alumnoSeleccionado.u2" type="number" step="1" min="0" max="100" class="input-nota grande" :class="claseNota(alumnoSeleccionado.u2)" />
                   <div class="cal-barra">
-                    <div class="cal-barra-fill" :style="{ width: (Number(alumnoSeleccionado.p2 || 0)) + '%', background: colorNota(Number(alumnoSeleccionado.p2 || 0)) }"></div>
+                    <div class="cal-barra-fill" :style="{ width: (Number(alumnoSeleccionado.u2 || 0)) + '%', background: colorNota(Number(alumnoSeleccionado.u2 || 0)) }"></div>
                   </div>
                 </div>
                 <div class="cal-card">
                   <div class="cal-header">
-                    <span class="cal-titulo">Proyecto</span>
-                    <span class="cal-peso">40%</span>
+                    <span class="cal-titulo">Unidad 3</span>
                   </div>
-                  <input v-model="alumnoSeleccionado.proy" type="number" step="0.01" min="0" max="100" class="input-nota grande" :class="claseNota(alumnoSeleccionado.proy)" />
+                  <input v-model="alumnoSeleccionado.u3" type="number" step="1" min="0" max="100" class="input-nota grande" :class="claseNota(alumnoSeleccionado.u3)" />
                   <div class="cal-barra">
-                    <div class="cal-barra-fill" :style="{ width: (Number(alumnoSeleccionado.proy || 0)) + '%', background: colorNota(Number(alumnoSeleccionado.proy || 0)) }"></div>
+                    <div class="cal-barra-fill" :style="{ width: (Number(alumnoSeleccionado.u3 || 0)) + '%', background: colorNota(Number(alumnoSeleccionado.u3 || 0)) }"></div>
+                  </div>
+                </div>
+                <div class="cal-card">
+                  <div class="cal-header">
+                    <span class="cal-titulo">Unidad 4</span>
+                  </div>
+                  <input v-model="alumnoSeleccionado.u4" type="number" step="1" min="0" max="100" class="input-nota grande" :class="claseNota(alumnoSeleccionado.u4)" />
+                  <div class="cal-barra">
+                    <div class="cal-barra-fill" :style="{ width: (Number(alumnoSeleccionado.u4 || 0)) + '%', background: colorNota(Number(alumnoSeleccionado.u4 || 0)) }"></div>
+                  </div>
+                </div>
+                <div class="cal-card">
+                  <div class="cal-header">
+                    <span class="cal-titulo">Unidad 5</span>
+                  </div>
+                  <input v-model="alumnoSeleccionado.u5" type="number" step="1" min="0" max="100" class="input-nota grande" :class="claseNota(alumnoSeleccionado.u5)" />
+                  <div class="cal-barra">
+                    <div class="cal-barra-fill" :style="{ width: (Number(alumnoSeleccionado.u5 || 0)) + '%', background: colorNota(Number(alumnoSeleccionado.u5 || 0)) }"></div>
                   </div>
                 </div>
               </div>
+
               <div class="final-display">
                 <div class="final-label">Calificación Final</div>
                 <div class="final-valor" :class="calcularFinal(alumnoSeleccionado) === null ? 'sin-calificar' : clasePromedio(calcularFinal(alumnoSeleccionado))">
                   {{ calcularFinal(alumnoSeleccionado) ?? '–' }}
                 </div>
               </div>
+
               <div class="modal-acciones">
                 <button @click="guardarDesdeModal" class="btn-primario" :disabled="cargando">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -997,6 +1067,7 @@ import { useCatalogos } from '@/composables/useCatalogos'
 import { getCalificacionesGrupo, guardarCalificaciones } from '../api/calificaciones'
 import api from '../api/axios'
 import * as XLSX from 'xlsx'
+import { ChevronRight } from 'lucide-vue-next'
 
 // --- VISTA CARRERA: GRUPOS CARGADOS DESDE EL BACKEND ---
 const gruposDeCarrera = ref([])
@@ -1022,9 +1093,13 @@ async function cargarGruposCarrera(idCarrera) {
 const { periodos, carreras, materias, grupos, cargandoCatalogos, errorCatalogos, cargarCatalogos } = useCatalogos()
 
 // --- ESTADO DE NAVEGACIÓN ---
-const vista = ref('carreras')
+// --- ESTADO DE NAVEGACIÓN ---
+const vista = ref('carreras') // 'carreras' | 'semestres' | 'grupos' | 'materias' | 'tabla'
 const carreraSeleccionada = ref(null)
-const grupoSeleccionado = ref(null)
+const semestreSeleccionado = ref(null)   // { numero: X, totalGrupos: N }
+const grupoSeleccionado = ref(null)      // objeto grupo
+const materiaSeleccionada = ref(null)    // objeto materia
+const materiasGrupo = ref([])            // materias del grupo actual
 
 // --- CARDS DE CARRERAS ---
 const busquedaCarrera = ref('')
@@ -1039,6 +1114,21 @@ const carrerasFiltradas = computed(() => {
 const busquedaCarreraDetalle = ref('')
 
 const gruposCarrera = computed(() => gruposDeCarrera.value)
+
+const semestresDisponibles = computed(() => {
+  if (!gruposDeCarrera.value.length) return []
+  const semestres = gruposDeCarrera.value.map(g => g.semestre).filter(Boolean)
+  const unique = [...new Set(semestres)].sort((a, b) => a - b)
+  return unique.map(num => ({
+    numero: num,
+    totalGrupos: gruposDeCarrera.value.filter(g => g.semestre == num).length
+  }))
+})
+
+const gruposPorSemestre = computed(() => {
+  if (!semestreSeleccionado.value) return []
+  return gruposDeCarrera.value.filter(g => g.semestre == semestreSeleccionado.value.numero)
+})
 
 const gruposCarreraFiltrados = computed(() => {
   const term = busquedaCarreraDetalle.value.toLowerCase()
@@ -1239,10 +1329,18 @@ const totalNC = computed(() => alumnos.value.filter(a => esNC(a)).length)
 
 // Helpers
 const calcularFinal = (a) => {
-  if (a.p1 === null || a.p2 === null || a.proy === null) return null
-  return (Number(a.p1) * 0.3 + Number(a.p2) * 0.3 + Number(a.proy) * 0.4).toFixed(1)
+  const unidades = [a.u1, a.u2, a.u3, a.u4, a.u5]
+  if (unidades.every(v => v !== null && v !== '' && !isNaN(v))) {
+    return (unidades.reduce((acc, val) => acc + Number(val), 0) / 5).toFixed(1)
+  }
+  return null
 }
-const esNC = (a) => !Number(a.p1) && !Number(a.p2) && !Number(a.proy)
+
+
+const esNC = (a) => {
+  return [a.u1, a.u2, a.u3, a.u4, a.u5].every(v => !Number(v))
+}
+
 const iniciales = (nombre) => nombre ? nombre.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() : '?'
 const claseNota = (val) => {
   const n = Number(val)
@@ -1269,40 +1367,71 @@ const colorNota = (n) => {
 // Navegación entre vistas
 const seleccionarCarrera = async (carrera) => {
   carreraSeleccionada.value = carrera
-  vista.value = 'carrera'
-  await Promise.all([
-    cargarGruposCarrera(carrera.id_carrera),
-    cargarActas(carrera.id_carrera),
-  ])
+  cargandoGruposCarrera.value = true
+  gruposDeCarrera.value = []
+  try {
+    const { data } = await api.get(`/carreras/${carrera.id_carrera}/grupos`)
+    gruposDeCarrera.value = data.grupos ?? []
+    vista.value = 'semestres'
+    // Cargar actas en segundo plano
+    cargarActas(carrera.id_carrera)
+  } catch (err) {
+    mostrarToast('Error al cargar grupos de la carrera', 'error')
+    vista.value = 'carreras'
+  } finally {
+    cargandoGruposCarrera.value = false
+  }
+}
+
+
+const seleccionarSemestre = (semestre) => {
+  semestreSeleccionado.value = semestre
+  vista.value = 'grupos'
+}
+
+const seleccionarGrupoParaMaterias = async (grupo) => {
+  grupoSeleccionado.value = grupo
+  cargandoGruposCarrera.value = true
+  try {
+    const { data } = await api.get(`/grupos/${grupo.id_grupo}/materias`)
+    materiasGrupo.value = data.materias ?? data
+    vista.value = 'materias'
+  } catch (err) {
+    mostrarToast('Error al cargar materias del grupo', 'error')
+    vista.value = 'grupos'
+  } finally {
+    cargandoGruposCarrera.value = false
+  }
+}
+
+const seleccionarMateria = async (materia) => {
+  materiaSeleccionada.value = materia
+  vista.value = 'tabla'
+  paginaActual.value = 1
+  // Cargar calificaciones de la materia en el grupo actual
+  await cargarCalificacionesGrupo(grupoSeleccionado.value.id_grupo, materia.id_materia)
+  cargarEspeciales(grupoSeleccionado.value.id_grupo)
 }
 
 const volverACarreras = () => {
   carreraSeleccionada.value = null
+  semestreSeleccionado.value = null
   grupoSeleccionado.value = null
+  materiaSeleccionada.value = null
   gruposDeCarrera.value = []
+  actas.value = []
   vista.value = 'carreras'
 }
-const seleccionarGrupo = async (grupo) => {
-  grupoSeleccionado.value = grupo
-  vista.value = 'tabla'
-  vistaTabla.value = 'calificaciones'  // ← reset al entrar
-  paginaActual.value = 1
-  filaActiva.value = null
-  await Promise.all([
-    cargarCalificacionesGrupo(grupo.id_grupo),
-    cargarEspeciales(grupo.id_grupo),  // ← agregar
-  ])
-}
-const volverACarrera = () => {
-  grupoSeleccionado.value = null
-  vista.value = 'carrera'
-}
-const volverACarreraDesdeTabla = () => volverACarrera()
 
-async function cargarCalificacionesGrupo(grupoId) {
+
+
+
+async function cargarCalificacionesGrupo(grupoId, materiaId = null) {
   cargando.value = true
   try {
-    const data = await getCalificacionesGrupo({ grupo: grupoId })
+    const params = { grupo: grupoId }
+    if (materiaId) params.materia = materiaId
+    const data = await getCalificacionesGrupo(params)
     alumnos.value = data.alumnos ?? data
   } catch {
     alumnos.value = []
@@ -1330,9 +1459,11 @@ const guardarDesdeModal = async () => {
   try {
     const idx = alumnos.value.findIndex(a => a.control === alumnoSeleccionado.value.control)
     if (idx !== -1) {
-      alumnos.value[idx].p1 = alumnoSeleccionado.value.p1
-      alumnos.value[idx].p2 = alumnoSeleccionado.value.p2
-      alumnos.value[idx].proy = alumnoSeleccionado.value.proy
+      alumnos.value[idx].u1 = alumnoSeleccionado.value.u1
+      alumnos.value[idx].u2 = alumnoSeleccionado.value.u2
+      alumnos.value[idx].u3 = alumnoSeleccionado.value.u3
+      alumnos.value[idx].u4 = alumnoSeleccionado.value.u4
+      alumnos.value[idx].u5 = alumnoSeleccionado.value.u5
     }
     await guardarCalificaciones([alumnoSeleccionado.value])
     mostrarToast('Calificaciones guardadas correctamente')
@@ -1357,12 +1488,49 @@ const guardarTodo = async () => {
   finally { cargando.value = false }
 }
 
+// Guardado por unidad
+const guardarUnidad = async (unidad) => {
+  if (!materiaSeleccionada.value) return
+  const campo = `u${unidad}`
+  const payload = {
+    materia_id: materiaSeleccionada.value.id_materia,
+    unidad: unidad,
+    calificaciones: alumnos.value
+      .filter(a => a[campo] !== null && a[campo] !== '' && !isNaN(a[campo]))
+      .map(a => ({
+        alumno_id: a.id_alumno, // Ajusta si tu backend usa otro identificador
+        calificacion: Number(a[campo])
+      }))
+  }
+
+  if (payload.calificaciones.length === 0) {
+    mostrarToast('No hay calificaciones para guardar en esta unidad', 'error')
+    return
+  }
+
+  cargando.value = true
+  try {
+    await api.post('/calificaciones/unidad', payload)
+    mostrarToast(`Unidad ${unidad} guardada correctamente`)
+  } catch (e) {
+    console.error(e)
+    mostrarToast(`Error al guardar unidad ${unidad}`, 'error')
+  } finally {
+    cargando.value = false
+  }
+}
+
+// Atajo de teclado: Enter en una celda guarda esa unidad
+const guardarUnidadDesdeTeclado = (unidad) => {
+  guardarUnidad(unidad)
+}
+
 const exportar = () => {
   const datos = alumnosFiltrados.value
   if (!datos.length) return mostrarToast('No hay datos para exportar', 'error')
 
   const clave = grupoSeleccionado.value?.clave_grupo ?? 'Grupo'
-  const materia = grupoSeleccionado.value?.materia ?? ''
+  const materia = materiaSeleccionada.value?.nombre ?? ''
   const fecha = new Date().toLocaleDateString('es-MX')
 
   // Fila de encabezado informativo
@@ -1373,9 +1541,11 @@ const exportar = () => {
     return {
       'No. Control': a.control,
       'Nombre': a.nombre,
-      'Parcial 1 (30%)': a.p1 ?? '',
-      'Parcial 2 (30%)': a.p2 ?? '',
-      'Proyecto (40%)': a.proy ?? '',
+      'U1': a.u1 ?? '',
+      'U2': a.u2 ?? '',
+      'U3': a.u3 ?? '',
+      'U4': a.u4 ?? '',
+      'U5': a.u5 ?? '',
       'Final': final ?? '',
       'Estado': final === null ? 'Sin calificar'
                : Number(final) >= 90 ? 'Excelente'
@@ -1788,8 +1958,8 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
 /* Tab Calificaciones */
 .calificaciones-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 .cal-card {
@@ -1981,4 +2151,167 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   background: #FEF3C7;
   color: #B45309;
 }
+
+/* Cards de semestres, grupos, materias */
+.semestres-grid, .grupos-grid, .materias-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid #E5E7EB;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.semestre-card {
+  text-align: center;
+}
+
+.semestre-numero {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1B396A;
+  margin-bottom: 0.5rem;
+}
+
+.card-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.card-info {
+  font-size: 0.8rem;
+  color: #6B7280;
+  margin-bottom: 1rem;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+.card-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #1B396A;
+  background: #DBEAFE;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.card-arrow {
+  color: #6B7280;
+}
+
+.card:hover .card-arrow {
+  color: #1B396A;
+}
+
+.grupo-nombre {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin-bottom: 0.5rem;
+}
+
+.grupo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #4F4F4F;
+}
+
+.materia-nombre {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 0.25rem;
+}
+
+.materia-docente {
+  font-size: 0.8rem;
+  color: #6B7280;
+  margin-bottom: 0.5rem;
+}
+
+/* Para que las secciones de título se vean bien */
+.seccion-titulo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.seccion-titulo {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 0;
+}
+
+/* Barra de guardado por unidad */
+.guardar-unidades-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.4rem;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+  flex-wrap: wrap;
+}
+.guardar-unidades-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6B7280;
+  margin-right: 0.25rem;
+}
+.btn-unidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  color: #1B396A;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Montserrat', sans-serif;
+}
+.btn-unidad:hover:not(:disabled) {
+  background: #DBEAFE;
+  border-color: #BFDBFE;
+}
+.btn-unidad:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 </style>

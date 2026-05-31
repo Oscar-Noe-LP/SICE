@@ -137,17 +137,17 @@ const router = createRouter({
     {
       path: '/calificaciones/captura',
       name: 'CalificacionesCaptura',
-      component: () => import('@/views/ServiciosEscolares/CalificacionesSE.vue')
+      component: () => import('@/views/CalificacionesView.vue')
     },
     {
       path: '/calificaciones/actas',
       name: 'CalificacionesActas',
-      component: () => import('@/views/ServiciosEscolares/CalificacionesSE.vue')
+      component: () => import('@/views/CalificacionesView.vue')
     },
     {
       path: '/calificaciones/especiales',
       name: 'CalificacionesEspeciales',
-      component: () => import('@/views/ServiciosEscolares/CalificacionesSE.vue')
+      component: () => import('@/views/CalificacionesView.vue')
     },
     {
       path: '/calificaciones/residencias',
