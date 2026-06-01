@@ -124,6 +124,7 @@ Route::post('/carreras', [CarreraController::class, 'store']);
 Route::put('/carreras/{id}', [CarreraController::class, 'update']);
 Route::delete('/carreras/{id}', [CarreraController::class, 'destroy']);
 Route::get('/carreras/{id}/grupos', [CarreraController::class, 'grupos']);
+Route::get('/carreras/{id}/semestres/{semestre}/grupos', [CarreraController::class, 'gruposPorSemestre']);
 
 Route::get('/departamentos',           [DepartamentoController::class, 'index']);
 Route::post('/departamentos',          [DepartamentoController::class, 'store']);

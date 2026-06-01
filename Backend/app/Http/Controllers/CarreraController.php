@@ -209,5 +209,72 @@ class CarreraController extends Controller
             'grupos'  => $grupos
         ]);
     }
+
+    // GET /api/carreras/{id}/semestres
+    public function semestres($id)
+    {
+        $carrera = DB::table('carrera')->where('id_carrera', $id)->first();
+        if (!$carrera) {
+            return response()->json(['error' => 'Carrera no encontrada'], 404);
+        }
+        $semestres = DB::table('plan_estudio as pe')
+            ->join('plan_materia as pm', 'pe.id_plan',   '=', 'pm.id_plan')
+            ->join('grupo as g',         'g.id_materia', '=', 'pm.id_materia')
+            ->where('pe.id_carrera', $id)
+            ->where('pe.estatus', 1)
+            ->where('g.estatus',  1)
+            ->select(
+                'pm.semestre as numero',
+                DB::raw('COUNT(DISTINCT g.id_grupo) as gruposCount'),
+                DB::raw('SUM((SELECT COUNT(*) FROM inscripcion i WHERE i.id_grupo = g.id_grupo AND i.estatus = "Activo")) as total_inscritos')
+            )
+            ->groupBy('pm.semestre')
+            ->orderBy('pm.semestre')
+            ->get();
+        return response()->json(['carrera' => $carrera->nombre, 'semestres' => $semestres]);
+    }
+
+    // GET /api/carreras/{id}/semestres/{semestre}/grupos
+    public function gruposPorSemestre($id, $semestre)
+    {
+        $carrera = DB::table('carrera')->where('id_carrera', $id)->first();
+        if (!$carrera) {
+            return response()->json(['error' => 'Carrera no encontrada'], 404);
+        }
+        $materiasDelSemestre = DB::table('plan_estudio as pe')
+            ->join('plan_materia as pm', 'pe.id_plan', '=', 'pm.id_plan')
+            ->where('pe.id_carrera', $id)
+            ->where('pe.estatus',    1)
+            ->where('pm.semestre',   $semestre)
+            ->pluck('pm.id_materia');
+        if ($materiasDelSemestre->isEmpty()) {
+            return response()->json(['carrera' => $carrera->nombre, 'semestre' => (int) $semestre, 'grupos' => []]);
+        }
+        $grupos = DB::table('grupo as g')
+            ->join('materia as m',      'g.id_materia',  '=', 'm.id_materia')
+            ->leftJoin('docente as d',  'g.id_docente',  '=', 'd.id_docente')
+            ->leftJoin('empleado as e', 'd.id_empleado', '=', 'e.id_empleado')
+            ->leftJoin('persona as p',  'e.id_persona',  '=', 'p.id_persona')
+            ->whereIn('g.id_materia', $materiasDelSemestre)
+            ->where('g.estatus', 1)
+            ->select(
+                'g.id_grupo as id',
+                'g.clave_grupo as nombre',
+                DB::raw("COALESCE(CONCAT(p.nombre,' ',p.apellido_paterno,' ',COALESCE(p.apellido_materno,'')), 'Sin asignar') as tutor"),
+                DB::raw("(SELECT COUNT(*) FROM inscripcion i WHERE i.id_grupo = g.id_grupo AND i.estatus = 'Activo') as inscritos"),
+                DB::raw("ROUND((SELECT AVG(sub.cal_pond) FROM (SELECT SUM(c.calificacion * ev.porcentaje / 100) as cal_pond FROM inscripcion i JOIN calificacion c ON c.id_inscripcion = i.id_inscripcion JOIN evaluacion ev ON ev.id_evaluacion = c.id_evaluacion WHERE i.id_grupo = g.id_grupo GROUP BY i.id_inscripcion) sub), 1) as promedio")
+            )
+            ->orderBy('g.clave_grupo')
+            ->get()
+            ->map(fn($g) => [
+                'id'       => $g->id,
+                'nombre'   => $g->nombre,
+                'tutor'    => trim($g->tutor),
+                'inscritos'=> (int) $g->inscritos,
+                'promedio' => $g->promedio !== null ? (float) $g->promedio : null,
+            ]);
+        return response()->json(['carrera' => $carrera->nombre, 'semestre' => (int) $semestre, 'grupos' => $grupos->values()]);
+    }
+
 }
 
