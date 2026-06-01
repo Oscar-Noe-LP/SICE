@@ -441,7 +441,7 @@ class ServiciosEscolaresController extends Controller
     public function getActasPorCarrera($id_carrera)
     {
         try {
-            $periodo = DB::table('periodo')->where('estatus', 1)->orderByDesc('id_periodo')->first();
+            $periodo = DB::table('periodo')->where('activo', 1)->orderByDesc('id_periodo')->first();
 
             $actas = DB::table('grupo as g')
                 ->join('materia as m', 'g.id_materia', '=', 'm.id_materia')
