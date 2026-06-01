@@ -484,3 +484,10 @@ Route::get ('/residencias/{id}',               [ResidenciaController::class, 'sh
 Route::post('/residencias',                    [ResidenciaController::class, 'store']);
 Route::put ('/residencias/{id}',               [ResidenciaController::class, 'update']);
 Route::get ('/empresas-residencia',            [ResidenciaController::class, 'empresas']);
+
+
+//======================= CIERRE DE SEMESTRE ======================
+use App\Http\Controllers\CierreController;
+
+Route::get('/cierre/kpis', [CierreController::class, 'kpis']);
+

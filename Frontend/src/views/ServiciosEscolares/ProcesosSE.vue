@@ -657,8 +657,27 @@ const cargarDatos = async () => {
       fetch(`${API_URL}/api/periodos/activo`),
       fetch(`${API_URL}/api/cierre/kpis`),
     ])
-    if (resPeriodo.ok) periodoActivo.value = await resPeriodo.json()
-    if (resKpis.ok)    kpis.value          = await resKpis.json()
+    if (resPeriodo.ok) {
+      const data = await resPeriodo.json()
+
+      periodoActivo.value = {
+        nombre: data.periodo,
+        fecha_inicio: data.fecha_inicio,
+        fecha_fin: data.fecha_fin
+      }
+    }
+
+    if (resKpis.ok) {
+      const data = await resKpis.json()
+      kpis.value = {
+        total_alumnos: data.kpis.alumnos,
+        grupos_cerrados: data.kpis.grupos_cerrados,
+        grupos_abiertos: data.kpis.grupos_activos,
+        promedio_periodo: data.kpis.promedio_general,
+        actas_pendientes: data.kpis.actas_pendientes,
+        calificaciones_pendientes: data.kpis.calificaciones_pendientes
+      }
+    }
 
     // Actualizar checklist
     checklistCierre.value = checklistCierre.value.map(item => ({
