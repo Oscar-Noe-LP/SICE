@@ -344,7 +344,7 @@ const router = createRouter({
     {
       path: '/procesos/especiales',
       name: 'ProcesosEspeciales',
-      component: () => import('@/views/ServiciosEscolares/ProcesosSE.vue')
+      component: () => import('@/views/ServiciosEscolares/ProcesosEspecialesSE.vue')
     },
 
     // ══════════════════════════════════════════════════════════════════════

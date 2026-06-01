@@ -551,4 +551,262 @@ class AlumnoController extends Controller
             return response()->json(['error' => 'Error al generar PDF', 'detalle' => $e->getMessage()], 500);
         }
     }
+
+
+    // =====================================================================
+    //  EXPEDIENTE  GET /api/alumnos/{numero_control}/expediente
+    //  Retorna todos los datos que necesita ExpedienteSE.vue
+    //
+    //  BD usada (migracion_alumno_campos_nuevos.sql):
+    //    - alumno.nss, folio_subes, tipo_sangre, discapacidad, id_especialidad
+    //    - tabla especialidad  (id_especialidad → nombre)
+    //    - tabla contacto_emergencia_alumno  (FK a alumno, campo nombre_completo)
+    //    - persona_correo.correo  (NO "email")
+    //    - persona_direccion.direccion  (campo text, NO calle/colonia)
+    // =====================================================================
+
+    public function expediente($numero_control)
+    {
+        try {
+            // ── Alumno + relaciones ───────────────────────────────────────
+            $alumno = Alumno::with(['persona', 'carrera', 'estatusAlumno'])
+                ->where('numero_control', $numero_control)
+                ->firstOrFail();
+
+            $persona   = $alumno->persona;
+            $idPersona = $persona->id_persona;
+            $idAlumno  = $alumno->id_alumno;
+
+            // ── Contacto personal ─────────────────────────────────────────
+            $telefono = DB::table('persona_telefono')
+                ->where('id_persona', $idPersona)
+                ->value('telefono');
+
+            // OJO: columna se llama 'correo', no 'email'
+            $correo = DB::table('persona_correo')
+                ->where('id_persona', $idPersona)
+                ->value('correo');
+
+            // persona_direccion tiene un solo campo texto 'direccion'
+            $direccion = DB::table('persona_direccion')
+                ->where('id_persona', $idPersona)
+                ->value('direccion');
+
+            // ── Especialidad (tabla propia, FK desde alumno.id_especialidad) ──
+            $especialidad = null;
+            if ($alumno->id_especialidad) {
+                $especialidad = DB::table('especialidad')
+                    ->where('id_especialidad', $alumno->id_especialidad)
+                    ->select('id_especialidad', 'nombre', 'descripcion')
+                    ->first();
+            }
+
+            // ── Plan de estudios (activo de la carrera) ───────────────────
+            $planEstudio = DB::table('plan_estudio')
+                ->where('id_carrera', $alumno->id_carrera)
+                ->where('estatus', 1)
+                ->orderByDesc('anio_vigencia')
+                ->first();
+
+            // Género: se lee directo por Query Builder porque el modelo Persona
+            // no tiene definida la relación genero() — no modificar Persona.php
+            $generoNombre = DB::table('genero')
+                ->where('id_genero', $persona->id_genero)
+                ->value('nombre_genero');
+
+            // ── Contacto de emergencia (tabla contacto_emergencia_alumno) ──
+            // Campo: nombre_completo (NO 'nombre'), más telefono_alt y es_principal
+            $contactoEmergencia = DB::table('contacto_emergencia_alumno')
+                ->where('id_alumno', $idAlumno)
+                ->where('es_principal', 1)
+                ->first();
+
+            // ── Respuesta ─────────────────────────────────────────────────
+            $response = [
+                'id_alumno'         => $alumno->id_alumno,
+                'numero_control'    => $alumno->numero_control,
+                'semestre_actual'   => $alumno->semestre_actual,
+                'fecha_ingreso'     => $alumno->fecha_ingreso,
+                'estatus'           => $alumno->estatusAlumno?->nombre ?? $alumno->estatus,
+                'id_estatus_alumno' => $alumno->id_estatus_alumno,
+
+                // Datos personales
+                'nombre' => trim(
+                    $persona->nombre . ' ' .
+                    $persona->apellido_paterno . ' ' .
+                    ($persona->apellido_materno ?? '')
+                ),
+                'curp'             => $persona->curp,
+                'fecha_nacimiento' => $persona->fecha_nacimiento,
+                'genero'           => $generoNombre,
+                'estado_civil'     => $persona->estado_civil,
+                'estado'           => $persona->estado,
+
+                // Contacto
+                'telefono'  => $telefono,
+                'email'     => $correo,
+                'direccion' => $direccion,
+
+                // Datos académicos
+                'carrera' => $alumno->carrera ? [
+                    'id_carrera'     => $alumno->carrera->id_carrera,
+                    'nombre_carrera' => $alumno->carrera->nombre,
+                    'nombre'         => $alumno->carrera->nombre,
+                ] : null,
+
+                // Especialidad (objeto completo + nombre plano para el Vue)
+                'id_especialidad' => $alumno->id_especialidad,
+                'especialidad'    => $especialidad?->nombre,
+                'especialidad_obj'=> $especialidad,
+
+                'plan_estudios' => $planEstudio?->nombre_plan,
+                'modalidad'     => 'ESCOLARIZADO',
+
+                // Seguro y SUBES
+                'nss'         => $alumno->nss,
+                'folio_subes' => $alumno->folio_subes,
+                'tipo_sangre' => $alumno->tipo_sangre,
+                'discapacidad'=> $alumno->discapacidad,
+
+                // Contacto de emergencia
+                // Vue usa .nombre, .parentesco, .telefono — mapeamos nombre_completo → nombre
+                'contacto_emergencia' => $contactoEmergencia ? [
+                    'id_contacto'  => $contactoEmergencia->id_contacto,
+                    'nombre'       => $contactoEmergencia->nombre_completo,
+                    'parentesco'   => $contactoEmergencia->parentesco,
+                    'telefono'     => $contactoEmergencia->telefono,
+                    'telefono_alt' => $contactoEmergencia->telefono_alt,
+                ] : null,
+            ];
+
+            return response()->json(['success' => true, 'data' => $response]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['success' => false, 'message' => 'Alumno no encontrado'], 404);
+        } catch (\Exception $e) {
+            Log::error("Error expediente alumno {$numero_control}: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al cargar expediente'], 500);
+        }
+    }
+
+    // =====================================================================
+    //  ACTUALIZAR EXPEDIENTE  PUT /api/alumnos/{numero_control}/expediente
+    // =====================================================================
+
+    public function actualizarExpediente(Request $request, $numero_control)
+    {
+        DB::beginTransaction();
+        try {
+            $alumno    = Alumno::with('persona')->where('numero_control', $numero_control)->firstOrFail();
+            $persona   = $alumno->persona;
+            $idPersona = $persona->id_persona;
+            $idAlumno  = $alumno->id_alumno;
+
+            // ── Persona: CURP, nacimiento, estado civil, estado ───────────
+            $datosPersona = array_filter([
+                'curp'             => $request->curp,
+                'fecha_nacimiento' => $request->fecha_nacimiento,
+                'estado_civil'     => $request->estado_civil,
+                'estado'           => $request->estado,
+            ], fn($v) => $v !== null);
+
+            if (!empty($datosPersona)) {
+                $persona->update($datosPersona);
+            }
+
+            // ── Teléfono, correo, dirección (upsert) ──────────────────────
+            if ($request->filled('telefono')) {
+                DB::table('persona_telefono')->updateOrInsert(
+                    ['id_persona' => $idPersona],
+                    ['telefono'   => $request->telefono]
+                );
+            }
+
+            if ($request->filled('email')) {
+                // columna 'correo', no 'email'
+                DB::table('persona_correo')->updateOrInsert(
+                    ['id_persona' => $idPersona],
+                    ['correo'     => $request->email]
+                );
+            }
+
+            if ($request->filled('direccion')) {
+                DB::table('persona_direccion')->updateOrInsert(
+                    ['id_persona' => $idPersona],
+                    ['direccion'  => $request->direccion]
+                );
+            }
+
+            // ── Alumno: campos de la migración ────────────────────────────
+            // tipo_sangre es ENUM — solo se actualiza si el valor es válido
+            $tiposSangre = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+            $datosAlumno = array_filter([
+                'id_especialidad' => $request->id_especialidad,
+                'nss'             => $request->nss,
+                'folio_subes'     => $request->folio_subes,
+                'tipo_sangre'     => in_array($request->tipo_sangre, $tiposSangre) ? $request->tipo_sangre : null,
+                'discapacidad'    => $request->discapacidad,
+            ], fn($v) => $v !== null);
+
+            if (!empty($datosAlumno)) {
+                $alumno->update($datosAlumno);
+            }
+
+            // ── Contacto de emergencia ────────────────────────────────────
+            // Vue envía: { nombre, parentesco, telefono, telefono_alt }
+            if ($request->filled('contacto_emergencia')) {
+                $ce = $request->contacto_emergencia;
+                DB::table('contacto_emergencia_alumno')->updateOrInsert(
+                    ['id_alumno' => $idAlumno, 'es_principal' => 1],
+                    [
+                        'nombre_completo' => $ce['nombre']       ?? null,
+                        'parentesco'      => $ce['parentesco']   ?? null,
+                        'telefono'        => $ce['telefono']     ?? '',
+                        'telefono_alt'    => $ce['telefono_alt'] ?? null,
+                        'updated_at'      => now(),
+                    ]
+                );
+            }
+
+            DB::commit();
+
+            BitacoraService::registrar('UPDATE', 'alumno', $idAlumno, [], [
+                'accion'         => 'actualizar_expediente',
+                'numero_control' => $numero_control,
+            ]);
+
+            return $this->expediente($numero_control);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'Alumno no encontrado'], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error actualizarExpediente {$numero_control}: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error al actualizar expediente', 'detalle' => $e->getMessage()], 500);
+        }
+    }
+
+    // =====================================================================
+    //  ESPECIALIDADES POR CARRERA
+    //  GET /api/alumnos/especialidades?id_carrera={id}
+    //  Catálogo para el select de especialidad al editar expediente
+    // =====================================================================
+
+    public function especialidades(Request $request)
+    {
+        try {
+            $q = DB::table('especialidad')->where('estatus', 1);
+            if ($request->filled('id_carrera')) {
+                $q->where('id_carrera', $request->id_carrera);
+            }
+            return response()->json(
+                $q->select('id_especialidad', 'id_carrera', 'nombre', 'descripcion')
+                  ->orderBy('nombre')
+                  ->get()
+            );
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }
