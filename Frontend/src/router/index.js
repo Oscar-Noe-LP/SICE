@@ -22,6 +22,13 @@ const router = createRouter({
       component: () => import('@/views/LoginView.vue')
     },
 
+    // ── Microsoft OAuth callback ───────────────────────────────────────────
+    {
+      path: '/auth/callback',
+      name: 'AuthCallback',
+      component: () => import('@/views/AuthCallbackView.vue')
+    },
+
     // ── Dashboard principal ───────────────────────────────────────────────
     {
       path: '/inicio',
@@ -609,7 +616,7 @@ const router = createRouter({
 // GUARD DE NAVEGACIÓN POR ROLES
 // ══════════════════════════════════════════════════════════════════════
 
-const RUTAS_PUBLICAS = ['/login']
+const RUTAS_PUBLICAS = ['/login', '/auth/callback']
 
 // /inicio es accesible para cualquier usuario autenticado — siempre
 const RUTA_FALLBACK = '/inicio'

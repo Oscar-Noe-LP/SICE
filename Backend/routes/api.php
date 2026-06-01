@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 // controllers
+use App\Http\Controllers\Api\MicrosoftAuthController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Api\ServiciosEscolaresController;
@@ -27,6 +28,8 @@ use App\Http\Controllers\NivelCarreraController;
 // ====================== AUTENTICACIÓN ======================
 
 // Rutas públicas — no requieren token
+Route::get('/auth/microsoft',          [MicrosoftAuthController::class, 'redirect']);
+Route::get('/auth/microsoft/callback', [MicrosoftAuthController::class, 'callback']);
 Route::post('/login',  [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout']);
 
