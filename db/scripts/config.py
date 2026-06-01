@@ -1,6 +1,7 @@
 DB_CONFIG = {
     "host": "localhost",
-    "user": "",
+    "port": 3306,
+    "user": "root",
     "password": "",
-    "database": "SICE",
+    "database": "sice",
 }

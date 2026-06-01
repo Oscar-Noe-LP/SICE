@@ -1,0 +1,914 @@
+<!-- ============================================= -->
+<!-- src/views/FormularioEventoView.vue           -->
+<!-- Módulo: Eventos — Crear / Editar evento      -->
+<!-- Rediseño visual SaaS moderno                 -->
+<!-- ============================================= -->
+<template>
+  <MainLayout>
+    <div class="formulario-evento-page">
+      <div class="barra-carga" :class="{ activa: cargando }">
+        <div class="barra-progreso"></div>
+      </div>
+
+      <!-- Breadcrumb -->
+      <div class="breadcrumb">
+        <router-link to="/dashboard" class="breadcrumb-link">INICIO</router-link>
+        <span class="sep">›</span>
+        <router-link to="/eventos" class="breadcrumb-link">EVENTOS</router-link>
+        <span class="sep">›</span>
+        <span class="activo">{{ modoEdicion ? 'EDITAR EVENTO' : 'NUEVO EVENTO' }}</span>
+      </div>
+
+      <!-- Encabezado -->
+      <div class="encabezado-seccion">
+        <div class="encabezado-icono-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1D52B7" stroke-width="2" width="24" height="24">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="titulo-pagina">{{ modoEdicion ? 'EDITAR EVENTO' : 'NUEVO EVENTO' }}</h1>
+          <p class="subtitulo">{{ modoEdicion ? 'MODIFICA LA INFORMACIÓN DEL EVENTO' : 'COMPLETA LA INFORMACIÓN PARA REGISTRAR UN NUEVO EVENTO' }}</p>
+        </div>
+      </div>
+
+      <form @submit.prevent="guardar" novalidate>
+
+        <!-- ─── SECCIÓN 1: Información General ─── -->
+        <div class="seccion-card">
+          <div class="seccion-titulo">
+            <div class="seccion-icono">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1D52B7" stroke-width="2" width="20" height="20">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="seccion-nombre">INFORMACIÓN GENERAL</h2>
+              <p class="seccion-desc">NOMBRE, TIPO Y FECHA DEL EVENTO — CAMPOS REQUERIDOS</p>
+            </div>
+          </div>
+          <div class="divisor"></div>
+
+          <div class="campos-grid">
+            <!-- Nombre -->
+            <div class="campo-form campo-ancho">
+              <label class="campo-label">NOMBRE DEL EVENTO <span class="requerido">*</span></label>
+              <input v-model="form.nombre" type="text" maxlength="150" placeholder="EJ: SEMANA DE INGENIERÍA 2026" class="campo-input" :class="{ 'campo-error': errores.nombre }" @input="validarCampo('nombre')" />
+              <div class="campo-footer-row">
+                <span v-if="errores.nombre" class="mensaje-error">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  {{ errores.nombre }}
+                </span>
+                <span v-else class="campo-hint"></span>
+                <span class="campo-contador" :class="{ 'contador-limite': form.nombre.length > 130 }">{{ form.nombre.length }}/150</span>
+              </div>
+            </div>
+
+            <!-- Tipo -->
+            <div class="campo-form">
+              <label class="campo-label">TIPO DE EVENTO <span class="requerido">*</span></label>
+              <div class="select-wrap">
+                <select v-model="form.tipo_evento_id" class="campo-input campo-select" :class="{ 'campo-error': errores.tipo_evento_id }" @change="validarCampo('tipo_evento_id')">
+                  <option value="">SELECCIONA UN TIPO</option>
+                  <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">{{ t.nombre_tipo }}</option>
+                </select>
+                <svg class="select-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <span v-if="errores.tipo_evento_id" class="mensaje-error">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {{ errores.tipo_evento_id }}
+              </span>
+            </div>
+
+            <!-- Fecha -->
+            <div class="campo-form">
+              <label class="campo-label">FECHA DEL EVENTO <span class="requerido">*</span></label>
+              <div class="campo-fecha-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <input v-model="form.fecha" type="date" :min="modoEdicion ? undefined : fechaMinima" class="campo-input campo-input-fecha" :class="{ 'campo-error': errores.fecha }" @change="validarCampo('fecha')" />
+              </div>
+              <span v-if="errores.fecha" class="mensaje-error">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {{ errores.fecha }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─── SECCIÓN 2: Detalles Adicionales ─── -->
+        <div class="seccion-card">
+          <div class="seccion-titulo">
+            <div class="seccion-icono">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#1D52B7" stroke-width="2" width="20" height="20">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="seccion-nombre">DETALLES ADICIONALES</h2>
+              <p class="seccion-desc">INFORMACIÓN COMPLEMENTARIA Y CONFIGURACIÓN DEL EVENTO</p>
+            </div>
+          </div>
+          <div class="divisor"></div>
+
+          <div class="campos-grid">
+            <!-- Hora Inicio -->
+            <div class="campo-form">
+              <label class="campo-label">HORA DE INICIO <span class="campo-badge-opcional">OPCIONAL</span></label>
+              <div class="campo-hora-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <input v-model="form.hora_inicio" type="time" class="campo-input campo-input-hora" />
+              </div>
+            </div>
+
+            <!-- Hora Fin -->
+            <div class="campo-form">
+              <label class="campo-label">HORA DE FIN <span class="campo-badge-opcional">OPCIONAL</span></label>
+              <div class="campo-hora-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <input v-model="form.hora_fin" type="time" class="campo-input campo-input-hora" />
+              </div>
+            </div>
+
+            <!-- Lugar -->
+            <div class="campo-form campo-ancho">
+              <label class="campo-label">LUGAR <span class="campo-badge-opcional">OPCIONAL</span></label>
+              <div class="campo-icono-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <input v-model="form.lugar" type="text" placeholder="EJ: AUDITORIO PRINCIPAL, SALA DE USOS MÚLTIPLES..." class="campo-input campo-input-icon" />
+              </div>
+            </div>
+
+            <!-- Cupo -->
+            <div class="campo-form">
+              <label class="campo-label">CUPO MÁXIMO <span class="campo-badge-opcional">OPCIONAL</span></label>
+              <div class="campo-icono-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <input v-model.number="form.cupo" type="number" min="1" placeholder="EJ: 100" class="campo-input campo-input-icon" />
+              </div>
+            </div>
+
+            <!-- Responsable -->
+            <div class="campo-form">
+              <label class="campo-label">RESPONSABLE <span class="campo-badge-opcional">OPCIONAL</span></label>
+              <div class="campo-icono-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <input v-model="form.responsable" type="text" placeholder="NOMBRE DEL RESPONSABLE DEL EVENTO" class="campo-input campo-input-icon" />
+              </div>
+            </div>
+
+            <!-- Constancia -->
+            <div class="campo-form campo-ancho">
+              <label class="campo-label">GENERA CONSTANCIA <span class="campo-badge-opcional">OPCIONAL</span></label>
+              <div class="campo-toggle-card" :class="{ 'toggle-activo': form.genera_constancia }">
+                <div class="toggle-card-left">
+                  <div class="toggle-card-icono" :class="{ 'icono-activo': form.genera_constancia }">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                      <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="toggle-card-titulo">CONSTANCIA DE PARTICIPACIÓN</p>
+                    <p class="toggle-card-desc">{{ form.genera_constancia ? 'SE GENERARÁ CONSTANCIA PARA LOS PARTICIPANTES' : 'NO SE GENERARÁ CONSTANCIA DE PARTICIPACIÓN' }}</p>
+                  </div>
+                </div>
+                <label class="toggle">
+                  <input v-model="form.genera_constancia" type="checkbox" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Descripción -->
+            <div class="campo-form campo-ancho">
+              <label class="campo-label">DESCRIPCIÓN <span class="campo-badge-opcional">OPCIONAL</span></label>
+              <textarea v-model="form.descripcion" rows="4" maxlength="300" placeholder="DESCRIBE BREVEMENTE EL OBJETIVO O CONTENIDO DEL EVENTO..." class="campo-input campo-textarea"></textarea>
+              <div class="campo-footer-row">
+                <span class="campo-hint">VISIBLE EN EL DETALLE DEL EVENTO</span>
+                <span class="campo-contador" :class="{ 'contador-limite': form.descripcion.length > 270 }">{{ form.descripcion.length }}/300</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de acciones sticky -->
+        <div class="acciones-form">
+          <div class="acciones-modo-badge" :class="modoEdicion ? 'modo-edicion' : 'modo-creacion'">
+            <svg v-if="modoEdicion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            {{ modoEdicion ? 'MODO EDICIÓN' : 'MODO CREACIÓN' }}
+          </div>
+          <div class="acciones-botones">
+            <button type="button" @click="router.push('/eventos')" class="btn-cancelar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              CANCELAR
+            </button>
+            <button type="submit" class="btn-primario" :disabled="cargando">
+              <span v-if="cargando" class="spinner"></span>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              {{ cargando ? 'GUARDANDO...' : (modoEdicion ? 'ACTUALIZAR EVENTO' : 'GUARDAR EVENTO') }}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <footer class="pie-pagina">© 2026 TECNOLÓGICO NACIONAL DE MÉXICO · TODOS LOS DERECHOS RESERVADOS</footer>
+    </div>
+  </MainLayout>
+
+  <transition name="toast-slide">
+    <div v-if="toast.visible" class="toast" :class="toast.tipo">
+      <span class="toast-icono">
+        <svg v-if="toast.tipo === 'exito'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </span>
+      {{ toast.mensaje }}
+    </div>
+  </transition>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import MainLayout from '@/layouts/MainLayout.vue'
+
+const router = useRouter()
+const route  = useRoute()
+const API    = `${import.meta.env.VITE_API_URL}/api`
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const token     = localStorage.getItem('auth_token')
+const headers   = { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) }
+const headersGet = token ? { Authorization: `Bearer ${token}` } : {}
+
+// ── Estado global ─────────────────────────────────────────────────────────────
+const modoEdicion = computed(() => !!route.params.id)
+const cargando    = ref(false)
+const tiposEvento = ref([])
+const toast       = ref({ visible: false, mensaje: '', tipo: 'exito' })
+let   timerToast  = null
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+const mostrarToast = (m, t = 'exito') => {
+  if (timerToast) clearTimeout(timerToast)
+  toast.value = { visible: true, mensaje: m, tipo: t }
+  timerToast  = setTimeout(() => (toast.value.visible = false), 3500)
+}
+
+// ── Fecha mínima para creación ────────────────────────────────────────────────
+const fechaMinima = computed(() => new Date().toISOString().split('T')[0])
+
+// ── Formulario ────────────────────────────────────────────────────────────────
+// CORRECCIÓN: campos renombrados para coincidir exactamente con el backend.
+//   - nombre        → backend POST/PUT espera "nombre"
+//   - tipo_evento_id → backend POST/PUT espera "tipo_evento_id"
+//   - fecha          → backend POST/PUT espera "fecha"
+//   - descripcion    → backend POST/PUT espera "descripcion" (opcional)
+//
+// Los siguientes campos son de uso visual únicamente (backend no los procesa):
+//   hora_inicio, hora_fin, lugar, cupo, responsable, genera_constancia
+const form = ref({
+  nombre:            '',
+  tipo_evento_id:    '',
+  fecha:             '',
+  descripcion:       '',
+  // Campos visuales (no se envían al backend)
+  hora_inicio:       '',
+  hora_fin:          '',
+  lugar:             '',
+  cupo:              '',
+  responsable:       '',
+  genera_constancia: false,
+})
+
+// ── Errores ───────────────────────────────────────────────────────────────────
+// CORRECCIÓN: sólo se validan los campos que el backend realmente requiere.
+const errores = ref({
+  nombre:         '',
+  tipo_evento_id: '',
+  fecha:          '',
+})
+
+// ── Formulario vacío ──────────────────────────────────────────────────────────
+const resetForm = () => {
+  form.value = {
+    nombre:            '',
+    tipo_evento_id:    '',
+    fecha:             '',
+    descripcion:       '',
+    hora_inicio:       '',
+    hora_fin:          '',
+    lugar:             '',
+    cupo:              '',
+    responsable:       '',
+    genera_constancia: false,
+  }
+  errores.value = { nombre: '', tipo_evento_id: '', fecha: '' }
+}
+
+// ── Cargar tipos de evento ────────────────────────────────────────────────────
+// GET /api/tipos-evento → [{ id_tipo_evento, nombre_tipo, ... }]
+// CORRECCIÓN: manejo defensivo para respuesta paginada { data: [] } de Laravel
+const cargarTipos = async () => {
+  try {
+    const r = await fetch(`${API}/tipos-evento`, { headers: headersGet })
+    if (!r.ok) throw new Error('Error al cargar tipos')
+    const data = await r.json()
+    tiposEvento.value = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : [])
+  } catch {
+    mostrarToast('No se pudieron cargar los tipos de evento.', 'error')
+  }
+}
+
+// ── Cargar evento para edición ────────────────────────────────────────────────
+// GET /api/eventos/{id} devuelve:
+//   { id, id_evento, nombre, nombre_evento, tipo, tipo_evento_id,
+//     tipo_evento: { id_tipo_evento, nombre_tipo },
+//     fecha, descripcion, participantes, cupo_maximo }
+const cargarEvento = async () => {
+  cargando.value = true
+  try {
+    const r = await fetch(`${API}/eventos/${route.params.id}`, { headers: headersGet })
+
+    if (r.status === 404) {
+      mostrarToast('Evento no encontrado.', 'error')
+      router.push('/eventos')
+      return
+    }
+    if (!r.ok) throw new Error(`Error ${r.status}`)
+
+    const d = await r.json()
+
+    // CORRECCIÓN: mapeo correcto de campos del backend al formulario.
+    //   - d.nombre_evento ?? d.nombre  → ambos alias vienen del backend
+    //   - d.tipo_evento_id             → campo real del backend, normalizado a Number para
+    //                                    coincidir con los :value numéricos del <select>
+    //   - Fallback a d.tipo_evento?.id_tipo_evento si tipo_evento_id llega null
+    //   - d.fecha                      → correcto
+    //   - d.descripcion                → correcto
+    //   - El resto de campos visuales no existen en el backend; se dejan vacíos.
+    form.value = {
+      nombre:            d.nombre_evento ?? d.nombre ?? '',
+      tipo_evento_id:    Number(d.tipo_evento_id ?? d.tipo_evento?.id_tipo_evento ?? '') || '',
+      fecha:             d.fecha          ?? '',
+      descripcion:       d.descripcion    ?? '',
+      // Campos visuales — backend no los devuelve
+      hora_inicio:       '',
+      hora_fin:          '',
+      lugar:             '',
+      cupo:              '',
+      responsable:       '',
+      genera_constancia: false,
+    }
+  } catch (e) {
+    console.error(e)
+    mostrarToast('No se pudo cargar el evento.', 'error')
+  } finally {
+    cargando.value = false
+  }
+}
+
+// ── Ciclo de vida ─────────────────────────────────────────────────────────────
+// CORRECCIÓN: cargarTipos debe resolverse ANTES de cargarEvento para que el
+// <select> ya tenga sus <option> cuando se asigne form.tipo_evento_id.
+// En paralelo, el tipo no se preselecciona porque Vue no encuentra la opción todavía.
+onMounted(async () => {
+  await cargarTipos()
+  if (modoEdicion.value) {
+    await cargarEvento()
+  } else {
+    resetForm()
+  }
+})
+
+// ── Validación por campo ──────────────────────────────────────────────────────
+// CORRECCIÓN: sólo se validan los 3 campos requeridos por el backend.
+const validarCampo = (c) => {
+  errores.value[c] = ''
+
+  if (c === 'nombre') {
+    if (!form.value.nombre.trim()) errores.value.nombre = 'Requerido'
+  }
+
+  if (c === 'tipo_evento_id') {
+    if (!form.value.tipo_evento_id) errores.value.tipo_evento_id = 'Selecciona un tipo'
+  }
+
+  if (c === 'fecha') {
+    if (!form.value.fecha) {
+      errores.value.fecha = 'Requerida'
+    } else if (!modoEdicion.value && form.value.fecha < fechaMinima.value) {
+      // CORRECCIÓN: la validación de fecha pasada sólo aplica al crear,
+      // porque un evento editado puede tener fecha en el pasado.
+      errores.value.fecha = 'La fecha no puede ser pasada'
+    }
+  }
+}
+
+// ── Validación completa ───────────────────────────────────────────────────────
+// CORRECCIÓN: sólo valida los campos que el backend requiere (nombre, tipo_evento_id, fecha).
+const validarTodo = () => {
+  ['nombre', 'tipo_evento_id', 'fecha'].forEach(validarCampo)
+  return !Object.values(errores.value).some(Boolean)
+}
+
+// ── Guardar (crear / actualizar) ──────────────────────────────────────────────
+const guardar = async () => {
+  if (!validarTodo()) {
+    mostrarToast('Revisa los campos marcados.', 'error')
+    return
+  }
+
+  cargando.value = true
+
+  try {
+    const url    = modoEdicion.value ? `${API}/eventos/${route.params.id}` : `${API}/eventos`
+    const method = modoEdicion.value ? 'PUT' : 'POST'
+
+    // CORRECCIÓN: payload exacto que espera el backend.
+    //   Campos enviados:  nombre, tipo_evento_id, fecha, descripcion
+    //   Campos NO enviados: nombre_evento, tipo, tipo_evento, cupo_maximo,
+    //                       hora_inicio, hora_fin, lugar, cupo,
+    //                       responsable, genera_constancia
+    const payload = {
+      nombre:         form.value.nombre.trim(),
+      tipo_evento_id: Number(form.value.tipo_evento_id),
+      fecha:          form.value.fecha,
+      descripcion:    form.value.descripcion.trim() || null,
+    }
+
+    const res = await fetch(url, { method, headers, body: JSON.stringify(payload) })
+
+    // CORRECCIÓN: manejo explícito de errores 422 (validación), 404 y 500.
+    if (res.status === 422) {
+      const body = await res.json()
+      // Laravel devuelve { message, errors: { campo: [mensajes] } }
+      const msgs = body.errors
+        ? Object.values(body.errors).flat().join(' · ')
+        : body.message || 'Datos inválidos.'
+      mostrarToast(msgs, 'error')
+      return
+    }
+
+    if (res.status === 404) {
+      mostrarToast('Evento no encontrado.', 'error')
+      return
+    }
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.message || `Error del servidor (${res.status})`)
+    }
+
+    mostrarToast(modoEdicion.value ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.')
+    setTimeout(() => router.push('/eventos'), 800)
+  } catch (e) {
+    mostrarToast(e.message || 'Ocurrió un error inesperado.', 'error')
+  } finally {
+    cargando.value = false
+  }
+}
+</script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+
+/* ─────────────────────────────────────────────── */
+/* BASE                                            */
+/* ─────────────────────────────────────────────── */
+.formulario-evento-page {
+  width: 100%;
+  font-family: 'Montserrat', sans-serif;
+  padding-bottom: 3rem;
+  background: #F4F6F9;
+  min-height: 100vh;
+}
+
+/* Barra de carga */
+.barra-carga { position: fixed; top: 74px; left: 0; right: 0; height: 3px; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.barra-carga.activa { opacity: 1; }
+.barra-progreso { height: 100%; background: linear-gradient(90deg, #0B2545, #1D52B7, #2F80ED, #1D52B7, #0B2545); background-size: 200% 100%; animation: carga-anim 1.4s linear infinite; }
+@keyframes carga-anim { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Breadcrumb */
+.breadcrumb { color: #6B7280; font-size: 0.875rem; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.4rem; }
+.breadcrumb .sep { color: #C8D0DC; }
+.breadcrumb .activo { color: #1D52B7; font-weight: 600; }
+.breadcrumb-link { color: #6B7280; text-decoration: none; transition: color 0.15s; }
+.breadcrumb-link:hover { color: #1D52B7; }
+
+/* ─────────────────────────────────────────────── */
+/* ENCABEZADO                                      */
+/* ─────────────────────────────────────────────── */
+.encabezado-seccion {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.encabezado-icono-wrap {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, rgba(29,82,183,.1) 0%, rgba(47,128,237,.08) 100%);
+  border: 1.5px solid rgba(29,82,183,.15);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.titulo-pagina {
+  color: #0B2545;
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.02em;
+  font-family: 'Montserrat', sans-serif;
+}
+.subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; font-weight: 500; }
+
+/* ─────────────────────────────────────────────── */
+/* CARD DE SECCIÓN                                 */
+/* ─────────────────────────────────────────────── */
+.seccion-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(29,82,183,.08);
+  box-shadow: 0 10px 30px rgba(29,82,183,.07);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.seccion-titulo {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 1.25rem;
+}
+.seccion-icono {
+  width: 44px;
+  height: 44px;
+  background: rgba(29,82,183,.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(29,82,183,.12);
+}
+.seccion-nombre { font-size: 1.05rem; font-weight: 700; color: #0B2545; margin: 0 0 3px; letter-spacing: -0.01em;   font-family: 'Montserrat', sans-serif;}
+.seccion-desc { font-size: 0.82rem; color: #9CA3AF; margin: 0; font-weight: 500; }
+.divisor {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(29,82,183,.15) 0%, transparent 100%);
+  margin-bottom: 1.75rem;
+}
+
+/* ─────────────────────────────────────────────── */
+/* CAMPOS DE FORMULARIO                            */
+/* ─────────────────────────────────────────────── */
+.campos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; }
+.campo-form { display: flex; flex-direction: column; gap: 7px; }
+.campo-ancho { grid-column: 1 / -1; }
+
+.campo-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+  letter-spacing: 0.01em;
+}
+.requerido { color: #EB5757; margin-left: 1px; }
+
+.campo-input {
+  padding: 11px 14px;
+  border: 1.5px solid #E4E9F0;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-family: Montserrat, sans-serif;
+  color: #0B2545;
+  outline: none;
+  background: #FAFBFC;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  font-weight: 500;
+  width: 100%;
+  box-sizing: border-box;
+}
+.campo-input:focus {
+  border-color: #2F80ED;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(47,128,237,.12);
+}
+.campo-input::placeholder { color: #9CA3AF; font-weight: 400; }
+.campo-input.campo-error {
+  border-color: #EB5757;
+  background: #FFF8F8;
+}
+.campo-input.campo-error:focus {
+  box-shadow: 0 0 0 4px rgba(235,87,87,.10);
+}
+.campo-textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
+.campo-hint { font-size: 0.75rem; color: #9CA3AF; font-weight: 500; }
+
+/* Select personalizado */
+.select-wrap { position: relative; }
+.campo-select { appearance: none; padding-right: 40px; }
+.select-icono { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #6B7280; pointer-events: none; }
+
+/* Campos con ícono interior */
+.campo-fecha-wrap,
+.campo-hora-wrap,
+.campo-icono-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.icono-campo { position: absolute; left: 13px; color: #9CA3AF; pointer-events: none; flex-shrink: 0; }
+.campo-input-fecha,
+.campo-input-hora,
+.campo-input-icon { padding-left: 40px; }
+
+/* Mensaje de error */
+.mensaje-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  color: #EB5757;
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────── */
+/* TOGGLE CARD — Genera Constancia                 */
+/* ─────────────────────────────────────────────── */
+.campo-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F8FAFC;
+  border: 1.5px solid #E4E9F0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  gap: 1rem;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+}
+.campo-toggle-card.toggle-activo {
+  background: rgba(29,82,183,.04);
+  border-color: rgba(29,82,183,.25);
+}
+.toggle-card-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.toggle-card-icono {
+  width: 40px;
+  height: 40px;
+  background: #EEF1F6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #6B7280;
+  transition: background 0.2s, color 0.2s;
+}
+.toggle-card-icono.icono-activo { background: rgba(29,82,183,.12); color: #1D52B7; }
+.toggle-card-titulo { font-size: 0.875rem; font-weight: 700; color: #0B2545; margin: 0 0 2px; }
+.toggle-card-desc { font-size: 0.78rem; color: #9CA3AF; margin: 0; font-weight: 500; }
+
+/* Toggle switch */
+.toggle { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: #D1D5DB;
+  border-radius: 26px;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: 3px;
+  bottom: 3px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  transition: transform 0.25s;
+  box-shadow: 0 2px 5px rgba(0,0,0,.15);
+}
+.toggle input:checked + .toggle-slider { background: #1D52B7; }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+/* ─────────────────────────────────────────────── */
+/* BARRA DE ACCIONES                               */
+/* ─────────────────────────────────────────────── */
+.acciones-form {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  background: #FFFFFF;
+  border: 1px solid rgba(29,82,183,.08);
+  border-radius: 14px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 4px 16px rgba(29,82,183,.06);
+  flex-wrap: wrap;
+}
+.acciones-botones {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.acciones-modo-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+.modo-creacion {
+  background: rgba(39,174,96,.10);
+  color: #27AE60;
+  border: 1px solid rgba(39,174,96,.2);
+}
+.modo-edicion {
+  background: rgba(29,82,183,.10);
+  color: #1D52B7;
+  border: 1px solid rgba(29,82,183,.2);
+}
+
+/* Campo contador de caracteres */
+.campo-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.campo-contador {
+  font-size: 0.72rem;
+  color: #9CA3AF;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.campo-contador.contador-limite { color: #F59E0B; }
+
+/* Badge OPCIONAL en labels */
+.campo-badge-opcional {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  background: #F4F6F9;
+  border: 1px solid #E4E9F0;
+  padding: 1px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+/* ─────────────────────────────────────────────── */
+/* BOTONES                                         */
+/* ─────────────────────────────────────────────── */
+.btn-primario {
+  background: linear-gradient(135deg, #0B2545, #1D52B7);
+  color: #FFFFFF;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-family: Montserrat, sans-serif;
+  transition: opacity 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(29,82,183,.28);
+}
+.btn-primario:hover:not(:disabled) {
+  opacity: 0.92;
+  box-shadow: 0 6px 20px rgba(29,82,183,.38);
+}
+.btn-primario:disabled { background: #D1D5DB; color: #9CA3AF; cursor: not-allowed; box-shadow: none; }
+
+.btn-cancelar {
+  background: #FFFFFF;
+  color: #4B5563;
+  border: 1.5px solid #E4E9F0;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: Montserrat, sans-serif;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.btn-cancelar:hover { background: #F4F6F9; border-color: #C8D3E8; }
+
+.spinner {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #FFFFFF;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─────────────────────────────────────────────── */
+/* TOAST                                           */
+/* ─────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 2rem; right: 2rem;
+  padding: 0.9rem 1.4rem;
+  border-radius: 12px;
+  font-weight: 700; font-size: 0.9rem;
+  font-family: 'Montserrat', sans-serif;
+  display: flex; align-items: center; gap: 0.6rem;
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+  z-index: 3000; max-width: 380px; color: #FFFFFF;
+}
+.toast.exito { background: linear-gradient(135deg, #0B2545, #1A4184); }
+.toast.error { background: #EB5757; }
+.toast.info  { background: #2563EB; }
+.toast-slide-enter-active { transition: all 0.3s ease; }
+.toast-slide-leave-active { transition: all 0.25s ease; }
+.toast-slide-enter-from { transform: translateY(20px); opacity: 0; }
+.toast-slide-leave-to   { transform: translateX(100%); opacity: 0; }
+
+/* Pie */
+.pie-pagina { text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem; }
+
+/* ─────────────────────────────────────────────── */
+/* RESPONSIVE                                      */
+/* ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .campos-grid { grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+  .seccion-card { padding: 1.5rem; }
+}
+
+@media (max-width: 640px) {
+  .campos-grid { grid-template-columns: 1fr; gap: 1.1rem; }
+  .seccion-card { padding: 1.25rem; border-radius: 14px; }
+  .encabezado-seccion { gap: 0.75rem; }
+  .titulo-pagina { font-size: 1.5rem; }
+  .acciones-form { flex-direction: column; align-items: stretch; }
+  .acciones-botones { flex-direction: column; }
+  .acciones-modo-badge { justify-content: center; }
+  .btn-primario, .btn-cancelar { width: 100%; justify-content: center; }
+}
+</style>

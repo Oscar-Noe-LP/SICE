@@ -15,4 +15,28 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+
+  server: {
+  host: true,
+  allowedHosts: [
+    'sice.up.railway.app',
+    'localhost',
+    '127.0.0.1'
+  ],
+  proxy: {                              // ← agregar esto
+      '/api': {
+        target: 'http://127.0.0.1:8000', // ← puerto de php artisan serve
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+},
+preview: {
+  host: true,
+  allowedHosts: [
+    'sice.up.railway.app',
+    'localhost',
+    '127.0.0.1'
+  ]
+}
 })

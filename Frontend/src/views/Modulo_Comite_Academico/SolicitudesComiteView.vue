@@ -1,0 +1,1186 @@
+<!-- ============================================= -->
+<!-- src/views/SolicitudesComiteView.vue          -->
+<!-- Módulo: Comité Académico — Solicitudes       -->
+<!-- Refactorizado por: Diego                     -->
+<!-- Cambios: Botones Ver/Resolver ahora abren    -->
+<!-- modales en lugar de redirigir a otras páginas-->
+<!-- ============================================= -->
+<template>
+  <MainLayout v-slot="{ busquedaGlobal }">
+    <div class="solicitudes-page">
+
+      <!-- ── Barra de carga superior ── -->
+      <div class="barra-carga" :class="{ activa: cargando }">
+        <div class="barra-progreso"></div>
+      </div>
+
+      <!-- ── Breadcrumb ── -->
+      <div class="breadcrumb">
+        <router-link to="/dashboard" class="breadcrumb-link">Inicio</router-link>
+        <span class="sep">›</span>
+        <router-link to="/comite" class="breadcrumb-link">Comité Académico</router-link>
+        <span class="sep">›</span>
+        <span class="activo">Solicitudes</span>
+      </div>
+
+      <!-- ── Encabezado ── -->
+      <div class="encabezado-seccion">
+        <div>
+          <h1 class="titulo-pagina">Solicitudes</h1>
+          <p class="subtitulo">Gestión de solicitudes académicas recibidas por el comité</p>
+        </div>
+        <button @click="router.push('/comite/solicitudes/nueva')" class="btn-primario">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Nueva Solicitud
+        </button>
+      </div>
+
+      <!-- ── Filtros ── -->
+      <div class="filtros-card">
+        <div class="busqueda-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-busqueda">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            v-model="busqueda"
+            type="text"
+            placeholder="Buscar por nombre o folio..."
+            class="input-busqueda"
+            @input="reiniciarPagina()"
+          />
+          <button v-if="busqueda" @click="busqueda = ''; reiniciarPagina()" class="btn-limpiar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <button @click="mostrarFiltrosModal = true" class="btn-icono" title="Filtros Avanzados">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+          </svg>
+          Filtros
+        </button>
+
+        <div v-if="hayFiltrosActivos" class="filtros-activos-indicador" @click="mostrarFiltrosModal = true">
+          <span class="filtros-count">{{ filtrosActivosCount }}</span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- MODAL: Filtros Avanzados                          -->
+      <!-- ══════════════════════════════════════════════════ -->
+      <transition name="modal-fade">
+        <div v-if="mostrarFiltrosModal" class="modal-fondo" @click.self="mostrarFiltrosModal = false">
+          <div class="modal-caja">
+            <div class="modal-cabecera">
+              <h3>Filtros de Solicitudes</h3>
+              <button @click="mostrarFiltrosModal = false" class="btn-cerrar-modal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="modal-cuerpo filtros-grid">
+              <div class="campo-form">
+                <label class="campo-label">Tipo de Solicitud</label>
+                <select v-model="filtroTipo" class="campo-input">
+                  <option value="">Todos los tipos</option>
+                  <option v-for="t in tiposSolicitud" :key="t.id" :value="t.nombre">{{ t.nombre }}</option>
+                </select>
+              </div>
+              <div class="campo-form">
+                <label class="campo-label">Estatus</label>
+                <select v-model="filtroEstatus" class="campo-input">
+                  <option value="">Todos los estatus</option>
+                  <option>Pendiente</option>
+                  <option>En revisión</option>
+                  <option>Aprobada</option>
+                  <option>Rechazada</option>
+                </select>
+              </div>
+            </div>
+            <div class="modal-pie">
+              <button @click="limpiarFiltros" class="btn-cancelar">Limpiar</button>
+              <button @click="aplicarFiltros" class="btn-guardar">Aplicar</button>
+            </div>
+          </div>
+        </div>
+      </transition>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- MODAL: Ver Detalle de Solicitud                   -->
+      <!-- Corrige el bug: antes redirigía al inicio.        -->
+      <!-- Ahora abre un modal centrado con toda la info.    -->
+      <!-- ══════════════════════════════════════════════════ -->
+      <transition name="modal-slide">
+        <div
+          v-if="mostrarModalVer && solicitudSeleccionada"
+          class="modal-fondo"
+          @click.self="cerrarModalVer"
+        >
+          <div class="modal-detalle" role="dialog" aria-modal="true" aria-labelledby="modal-ver-titulo">
+
+            <!-- Cabecera del modal -->
+            <div class="modal-det-cabecera">
+              <div class="modal-det-titulo-wrap">
+                <span class="modal-det-folio">{{ solicitudSeleccionada.folio }}</span>
+                <h2 id="modal-ver-titulo" class="modal-det-titulo">Detalle de Solicitud</h2>
+              </div>
+              <button @click="cerrarModalVer" class="btn-cerrar-modal" aria-label="Cerrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="22" height="22">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Cuerpo del modal -->
+            <div class="modal-det-cuerpo">
+
+              <!-- Badge de estatus + tipo -->
+              <div class="modal-det-status-row">
+                <span class="badge-estado badge-lg" :style="estiloBadgeEstado(solicitudSeleccionada.estatus)">
+                  {{ solicitudSeleccionada.estatus }}
+                </span>
+                <span class="tipo-chip">{{ solicitudSeleccionada.tipo }}</span>
+              </div>
+
+              <!-- Grid de datos principales -->
+              <div class="modal-det-grid">
+                <div class="det-campo">
+                  <span class="det-label">Solicitante</span>
+                  <div class="det-valor persona-info">
+                    <div class="persona-avatar persona-avatar-lg">{{ iniciales(solicitudSeleccionada.solicitante) }}</div>
+                    <span>{{ solicitudSeleccionada.solicitante }}</span>
+                  </div>
+                </div>
+                <div class="det-campo">
+                  <span class="det-label">Fecha de Registro</span>
+                  <span class="det-valor">{{ formatearFecha(solicitudSeleccionada.fecha) }}</span>
+                </div>
+                <div class="det-campo">
+                  <span class="det-label">Tipo de Solicitud</span>
+                  <span class="det-valor">{{ solicitudSeleccionada.tipo }}</span>
+                </div>
+                <div class="det-campo">
+                  <span class="det-label">Folio</span>
+                  <span class="det-valor folio-chip">{{ solicitudSeleccionada.folio }}</span>
+                </div>
+              </div>
+
+              <!-- Descripción / Motivo (si existe el campo) -->
+              <div v-if="solicitudSeleccionada.descripcion || solicitudSeleccionada.motivo" class="det-seccion">
+                <span class="det-label">Descripción / Motivo</span>
+                <p class="det-descripcion">
+                  {{ solicitudSeleccionada.descripcion || solicitudSeleccionada.motivo }}
+                </p>
+              </div>
+
+              <!-- Documentos adjuntos (si existen) -->
+              <div v-if="solicitudSeleccionada.documentos?.length" class="det-seccion">
+                <span class="det-label">Documentos Adjuntos</span>
+                <div class="docs-lista">
+                  <a
+                    v-for="doc in solicitudSeleccionada.documentos"
+                    :key="doc.id"
+                    :href="doc.url"
+                    target="_blank"
+                    class="doc-chip"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    {{ doc.nombre || 'Documento' }}
+                  </a>
+                </div>
+              </div>
+
+              <!-- Resolución previa (si existe) -->
+              <div v-if="solicitudSeleccionada.resolucion" class="det-seccion det-resolucion">
+                <span class="det-label">Resolución Registrada</span>
+                <p class="det-descripcion">{{ solicitudSeleccionada.resolucion }}</p>
+              </div>
+
+            </div>
+
+            <!-- Pie del modal: acciones -->
+            <div class="modal-det-pie">
+              <button @click="cerrarModalVer" class="btn-cancelar">Cerrar</button>
+              <!-- El botón Resolver solo aparece si la solicitud no tiene resolución -->
+              <button
+                v-if="!tieneResolucion(solicitudSeleccionada)"
+                @click="abrirModalResolver(solicitudSeleccionada)"
+                class="btn-guardar btn-resolver-inline"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                Registrar Resolución
+              </button>
+              <span v-else class="ya-resuelta-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                Ya resuelta
+              </span>
+            </div>
+          </div>
+        </div>
+      </transition>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- MODAL: Registrar Resolución                       -->
+      <!-- Permite cambiar estado y agregar comentario sin   -->
+      <!-- salir de la vista de solicitudes.                 -->
+      <!-- ══════════════════════════════════════════════════ -->
+      <transition name="modal-slide">
+        <div
+          v-if="mostrarModalResolver && solicitudParaResolver"
+          class="modal-fondo"
+          @click.self="cerrarModalResolver"
+        >
+          <div class="modal-caja modal-resolver" role="dialog" aria-modal="true" aria-labelledby="modal-resolver-titulo">
+
+            <div class="modal-cabecera">
+              <div>
+                <div style="font-size:0.75rem;opacity:0.75;margin-bottom:2px;">{{ solicitudParaResolver.folio }}</div>
+                <h3 id="modal-resolver-titulo">Registrar Resolución</h3>
+              </div>
+              <button @click="cerrarModalResolver" class="btn-cerrar-modal" aria-label="Cerrar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="modal-cuerpo">
+
+              <!-- Resumen compacto de la solicitud -->
+              <div class="resumen-solicitud">
+                <div class="persona-info" style="gap:10px">
+                  <div class="persona-avatar persona-avatar-lg">{{ iniciales(solicitudParaResolver.solicitante) }}</div>
+                  <div>
+                    <div class="texto-principal">{{ solicitudParaResolver.solicitante }}</div>
+                    <div class="texto-secundario">{{ solicitudParaResolver.tipo }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Campo: Nuevo estatus -->
+              <div class="campo-form">
+                <label class="campo-label" for="res-estatus">Resultado de la Resolución <span class="req">*</span></label>
+                <div class="estatus-opciones">
+                  <label
+                    v-for="op in opcionesResolucion"
+                    :key="op.valor"
+                    class="estatus-opcion"
+                    :class="{ seleccionada: resolucionForm.estatus === op.valor, [`op-${op.clase}`]: true }"
+                  >
+                    <input
+                      type="radio"
+                      :value="op.valor"
+                      v-model="resolucionForm.estatus"
+                      style="display:none"
+                    />
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                      <component :is="op.icono"/>
+                    </svg>
+                    {{ op.etiqueta }}
+                  </label>
+                </div>
+              </div>
+
+              <!-- Campo: Comentarios de la resolución -->
+              <div class="campo-form">
+                <label class="campo-label" for="res-comentario">Comentarios / Fundamento <span class="req">*</span></label>
+                <textarea
+                  id="res-comentario"
+                  v-model="resolucionForm.comentario"
+                  class="campo-input campo-textarea"
+                  placeholder="Describe el fundamento o comentarios de esta resolución..."
+                  rows="4"
+                ></textarea>
+              </div>
+
+              <!-- Error de validación -->
+              <p v-if="errorResolver" class="error-msg">{{ errorResolver }}</p>
+
+            </div>
+
+            <div class="modal-pie">
+              <button @click="cerrarModalResolver" class="btn-cancelar" :disabled="guardandoResolucion">Cancelar</button>
+              <button @click="guardarResolucion" class="btn-guardar" :disabled="guardandoResolucion">
+                <svg v-if="!guardandoResolucion" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <span v-if="guardandoResolucion" class="spinner-inline"></span>
+                {{ guardandoResolucion ? 'Guardando...' : 'Guardar Resolución' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </transition>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- TOAST de confirmación                             -->
+      <!-- ══════════════════════════════════════════════════ -->
+      <transition name="toast-fade">
+        <div v-if="toast.visible" class="toast" :class="toast.tipo">
+          <svg v-if="toast.tipo === 'exito'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ toast.mensaje }}
+        </div>
+      </transition>
+
+      <!-- ── Tabla de solicitudes ── -->
+      <div class="tabla-card">
+        <div class="tabla-encabezado">
+          <span class="tabla-contador">
+            {{ solicitudesFiltradas.length }} solicitud(es) · Página {{ paginaActual }} de {{ totalPaginas }}
+          </span>
+        </div>
+
+        <div class="tabla-scroll">
+          <table class="tabla-principal">
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Solicitante</th>
+                <th>Tipo de Solicitud</th>
+                <th>Fecha de Registro</th>
+                <th class="centrado">Estatus</th>
+                <th class="centrado">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="sol in solicitudesPaginadas" :key="sol.id">
+                <td>
+                  <span class="folio-chip">{{ sol.folio }}</span>
+                </td>
+                <td>
+                  <div class="persona-info">
+                    <div class="persona-avatar">{{ iniciales(sol.solicitante) }}</div>
+                    <span class="texto-principal">{{ sol.solicitante }}</span>
+                  </div>
+                </td>
+                <td class="texto-secundario">{{ sol.tipo }}</td>
+                <td class="texto-secundario">{{ formatearFecha(sol.fecha) }}</td>
+                <td class="centrado">
+                  <span class="badge-estado" :style="estiloBadgeEstado(sol.estatus)">
+                    {{ sol.estatus }}
+                  </span>
+                </td>
+                <td class="centrado">
+                  <div class="acciones-fila">
+                    <!-- ✅ CORREGIDO: antes hacía router.push('/') por error.
+                         Ahora abre el modal de detalle. -->
+                    <button
+                      @click="abrirModalVer(sol)"
+                      class="btn-accion ver"
+                      title="Ver detalle de solicitud"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                      Ver
+                    </button>
+
+                    <!-- ✅ CORREGIDO: antes redirigía al formulario externo.
+                         Ahora abre el modal de resolución inline. -->
+                    <button
+                      @click="abrirModalResolver(sol)"
+                      class="btn-accion"
+                      :class="tieneResolucion(sol) ? 'resuelto' : 'resolver'"
+                      :title="tieneResolucion(sol) ? 'Ya tiene resolución registrada' : 'Registrar resolución'"
+                      :disabled="tieneResolucion(sol)"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                      </svg>
+                      Resolver
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Estado vacío -->
+              <tr v-if="solicitudesPaginadas.length === 0">
+                <td colspan="6" class="sin-resultados">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#D6D6D6" stroke-width="1.5" width="40" height="40">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <p>{{ mensajeSinResultados }}</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <div v-if="totalPaginas > 1" class="paginacion-wrap">
+          <button @click="cambiarPagina(paginaActual - 1)" :disabled="paginaActual === 1" class="btn-pag">
+            Anterior
+          </button>
+          <div class="pag-numeros">
+            <button
+              v-for="p in totalPaginas"
+              :key="p"
+              @click="cambiarPagina(p)"
+              class="btn-pag-num"
+              :class="{ activa: paginaActual === p }"
+            >
+              {{ p }}
+            </button>
+          </div>
+          <button @click="cambiarPagina(paginaActual + 1)" :disabled="paginaActual === totalPaginas" class="btn-pag">
+            Siguiente
+          </button>
+        </div>
+      </div>
+
+      <footer class="pie-pagina">© 2026 Tecnológico Nacional de México · Todos los derechos reservados</footer>
+    </div>
+  </MainLayout>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import MainLayout from '@/layouts/MainLayout.vue'
+
+const router = useRouter()
+
+// ─────────────────────────────────────────────────────────
+// ESTADOS GENERALES
+// ─────────────────────────────────────────────────────────
+const cargando        = ref(false)
+const errorCarga      = ref(false)
+const busqueda        = ref('')
+const filtroTipo      = ref('')
+const filtroEstatus   = ref('')
+const paginaActual    = ref(1)
+const registrosPorPagina = 10
+
+// ─────────────────────────────────────────────────────────
+// DATOS
+// ─────────────────────────────────────────────────────────
+const tiposSolicitud = ref([])
+const solicitudes    = ref([])   // Todos los datos cargados del API
+
+// ─────────────────────────────────────────────────────────
+// ESTADOS DE MODALES
+// ─────────────────────────────────────────────────────────
+// Modal de filtros
+const mostrarFiltrosModal  = ref(false)
+
+// Modal: Ver detalle
+const mostrarModalVer        = ref(false)
+const solicitudSeleccionada  = ref(null)
+
+// Modal: Resolver
+const mostrarModalResolver   = ref(false)
+const solicitudParaResolver  = ref(null)
+const guardandoResolucion    = ref(false)
+const errorResolver          = ref('')
+
+// Formulario de resolución
+const resolucionForm = ref({
+  estatus:    '',    // 'Aprobada' | 'Rechazada' | 'En revisión'
+  comentario: ''
+})
+
+// Opciones del radio de resolución
+const opcionesResolucion = [
+  { valor: 'Aprobada',    etiqueta: 'Aprobar',          clase: 'aprobar',  icono: 'IconCheck'   },
+  { valor: 'Rechazada',   etiqueta: 'Rechazar',          clase: 'rechazar', icono: 'IconX'       },
+  { valor: 'En revisión', etiqueta: 'Enviar a revisión', clase: 'revision', icono: 'IconClock'   },
+]
+
+// Toast de notificación
+const toast = ref({ visible: false, mensaje: '', tipo: 'exito' })
+
+// ─────────────────────────────────────────────────────────
+// CONFIGURACIÓN API
+// ─────────────────────────────────────────────────────────
+const BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api`
+
+// ─────────────────────────────────────────────────────────
+// CARGA DE DATOS
+// ─────────────────────────────────────────────────────────
+const cargarTipos = async () => {
+  try {
+    const res = await fetch(`${BASE}/comite/tipos-solicitud`)
+    if (!res.ok) throw new Error()
+    tiposSolicitud.value = await res.json()
+  } catch {
+    console.warn('No se pudieron cargar los tipos de solicitud')
+  }
+}
+
+const cargarSolicitudes = async () => {
+  cargando.value   = true
+  errorCarga.value = false
+  try {
+    const res  = await fetch(`${BASE}/comite/solicitudes`)
+    if (!res.ok) throw new Error('Error en la respuesta del servidor')
+    const data = await res.json()
+    solicitudes.value = Array.isArray(data) ? data : data.data ?? []
+  } catch (error) {
+    console.error('Error cargando solicitudes:', error)
+    errorCarga.value = true
+  } finally {
+    cargando.value = false
+  }
+}
+
+onMounted(() => {
+  cargarTipos()
+  cargarSolicitudes()
+})
+
+// ─────────────────────────────────────────────────────────
+// FILTRADO Y PAGINACIÓN (lógica local, sin llamadas al API)
+// ─────────────────────────────────────────────────────────
+const solicitudesFiltradas = computed(() =>
+  solicitudes.value.filter(s => {
+    const q = busqueda.value.toLowerCase()
+    const coincideBusqueda = !q ||
+      s.folio?.toLowerCase().includes(q) ||
+      s.solicitante?.toLowerCase().includes(q)
+    const coincideTipo    = !filtroTipo.value    || s.tipo    === filtroTipo.value
+    const coincideEstatus = !filtroEstatus.value || s.estatus === filtroEstatus.value
+    return coincideBusqueda && coincideTipo && coincideEstatus
+  })
+)
+
+const totalPaginas = computed(() =>
+  Math.max(1, Math.ceil(solicitudesFiltradas.value.length / registrosPorPagina))
+)
+
+const solicitudesPaginadas = computed(() => {
+  const inicio = (paginaActual.value - 1) * registrosPorPagina
+  return solicitudesFiltradas.value.slice(inicio, inicio + registrosPorPagina)
+})
+
+const reiniciarPagina = () => { paginaActual.value = 1 }
+
+const cambiarPagina = (p) => {
+  if (p >= 1 && p <= totalPaginas.value) paginaActual.value = p
+}
+
+// ─────────────────────────────────────────────────────────
+// INDICADORES DE FILTROS ACTIVOS
+// ─────────────────────────────────────────────────────────
+const hayFiltrosActivos  = computed(() => filtroTipo.value || filtroEstatus.value)
+const filtrosActivosCount = computed(() =>
+  [filtroTipo.value, filtroEstatus.value].filter(Boolean).length
+)
+const mensajeSinResultados = computed(() => {
+  if (cargando.value) return 'Cargando solicitudes...'
+  if (hayFiltrosActivos.value || busqueda.value)
+    return 'No hay resultados con los filtros aplicados'
+  return 'No se encontraron solicitudes'
+})
+
+// ─────────────────────────────────────────────────────────
+// ACCIONES DE FILTROS
+// ─────────────────────────────────────────────────────────
+const aplicarFiltros = () => {
+  reiniciarPagina()
+  mostrarFiltrosModal.value = false
+}
+
+const limpiarFiltros = () => {
+  filtroTipo.value    = ''
+  filtroEstatus.value = ''
+  reiniciarPagina()
+}
+
+// ─────────────────────────────────────────────────────────
+// ACCIONES DE MODALES
+// ─────────────────────────────────────────────────────────
+
+/**
+ * Abre el modal de detalle de solicitud.
+ * CORRECCIÓN: antes el botón Ver hacía router.push('/') (redirigía al inicio).
+ * Ahora simplemente setea la solicitud seleccionada y muestra el modal.
+ */
+const abrirModalVer = (sol) => {
+  solicitudSeleccionada.value = sol
+  mostrarModalVer.value       = true
+}
+
+const cerrarModalVer = () => {
+  mostrarModalVer.value      = false
+  solicitudSeleccionada.value = null
+}
+
+/**
+ * Abre el modal de resolución.
+ * CORRECCIÓN: antes el botón Resolver hacía router.push('/comite/resoluciones/nueva?...')
+ * Ahora abre un modal inline sin cambiar de página.
+ */
+const abrirModalResolver = (sol) => {
+  // Si estamos en el modal de detalle, lo cerramos primero para evitar superposición
+  mostrarModalVer.value      = false
+  solicitudParaResolver.value = sol
+  resolucionForm.value        = { estatus: '', comentario: '' }
+  errorResolver.value         = ''
+  mostrarModalResolver.value  = true
+}
+
+const cerrarModalResolver = () => {
+  mostrarModalResolver.value  = false
+  solicitudParaResolver.value = null
+  errorResolver.value         = ''
+}
+
+/**
+ * Envía la resolución al API y actualiza el estado local de la solicitud.
+ * Si el API falla, muestra un toast de error sin perder los datos del formulario.
+ */
+const guardarResolucion = async () => {
+  // Validación básica del formulario
+  if (!resolucionForm.value.estatus) {
+    errorResolver.value = 'Selecciona un resultado para la resolución.'
+    return
+  }
+  if (!resolucionForm.value.comentario.trim()) {
+    errorResolver.value = 'El campo de comentarios es obligatorio.'
+    return
+  }
+
+  guardandoResolucion.value = true
+  errorResolver.value       = ''
+
+  try {
+    const res = await fetch(
+      `${BASE}/comite/solicitudes/${solicitudParaResolver.value.id}/resolver`,
+      {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          estatus:    resolucionForm.value.estatus,
+          comentario: resolucionForm.value.comentario
+        })
+      }
+    )
+    if (!res.ok) throw new Error('Error al guardar la resolución')
+
+    // Actualización local optimista: no hace falta recargar toda la lista
+    const idx = solicitudes.value.findIndex(s => s.id === solicitudParaResolver.value.id)
+    if (idx !== -1) {
+      solicitudes.value[idx] = {
+        ...solicitudes.value[idx],
+        estatus:      resolucionForm.value.estatus,
+        resolucion_id: 'local-' + Date.now()   // Marca temporal para tieneResolucion()
+      }
+    }
+
+    cerrarModalResolver()
+    mostrarToast('Resolución registrada correctamente.', 'exito')
+  } catch (err) {
+    console.error('Error al guardar resolución:', err)
+    errorResolver.value = 'Ocurrió un error al guardar. Intenta nuevamente.'
+  } finally {
+    guardandoResolucion.value = false
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────────────────
+const mostrarToast = (mensaje, tipo = 'exito') => {
+  toast.value = { visible: true, mensaje, tipo }
+  setTimeout(() => { toast.value.visible = false }, 3500)
+}
+
+// ─────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────
+const tieneResolucion = (sol) =>
+  !!sol.resolucion_id || ['Aprobada', 'Rechazada'].includes(sol.estatus)
+
+const estiloBadgeEstado = (est) => {
+  const fondos = {
+    'Pendiente':   '#DBEAFE',
+    'En revisión': '#FEF3C7',
+    'Aprobada':    '#DCFCE7',
+    'Rechazada':   '#FEF2F2'
+  }
+  const textos = {
+    'Pendiente':   '#1B396A',
+    'En revisión': '#F59E0B',
+    'Aprobada':    '#16A34A',
+    'Rechazada':   '#DC2626'
+  }
+  return {
+    background: fondos[est] || '#F3F4F6',
+    color:      textos[est] || '#6B7280'
+  }
+}
+
+const formatearFecha = (f) => {
+  if (!f) return '—'
+  const [a, m, d] = f.split('-')
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
+  return `${parseInt(d)} ${meses[parseInt(m) - 1]} ${a}`
+}
+
+const iniciales = (nombre) => {
+  if (!nombre) return '?'
+  return nombre.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
+}
+</script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
+
+/* ══════════════════════════════════════════════════════════
+   BASE
+══════════════════════════════════════════════════════════ */
+.solicitudes-page {
+  width: 100%;
+  font-family: 'Montserrat', sans-serif;
+  padding: 1rem 1rem 2rem;
+  box-sizing: border-box;
+}
+
+/* ── Barra de carga ── */
+.barra-carga {
+  position: fixed; top: 74px; left: 0; right: 0; height: 3px;
+  z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.barra-carga.activa { opacity: 1; }
+.barra-progreso {
+  height: 100%;
+  background: linear-gradient(90deg, #1B396A, #1D4ED8, #1B396A);
+  background-size: 200% 100%;
+  animation: carga-anim 1.4s linear infinite;
+}
+@keyframes carga-anim {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Breadcrumb ── */
+.breadcrumb {
+  color: #6B7280; font-size: 0.875rem; margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.breadcrumb .sep    { color: #E5E7EB; }
+.breadcrumb .activo { color: #1B396A; font-weight: 600; }
+.breadcrumb-link    { color: #6B7280; text-decoration: none; transition: color 0.15s; }
+.breadcrumb-link:hover { color: #1B396A; }
+
+/* ── Encabezado ── */
+.encabezado-seccion {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+.titulo-pagina { color: #1A1A1A; font-size: 1.9rem; font-weight: 800; margin: 0 0 0.25rem; }
+.subtitulo     { color: #6B7280; font-size: 0.9rem; margin: 0; }
+
+.btn-primario {
+  background: #1B396A; color: #FFFFFF; border: none; padding: 10px 18px;
+  border-radius: 10px; font-weight: 600; font-size: 0.875rem;
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  font-family: inherit; transition: background 0.2s; white-space: nowrap;
+}
+.btn-primario:hover { background: #1D4ED8; }
+
+/* ══════════════════════════════════════════════════════════
+   FILTROS
+══════════════════════════════════════════════════════════ */
+.filtros-card {
+  background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 0.9rem 1.4rem;
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.busqueda-wrap {
+  display: flex; align-items: center; gap: 8px; background: #F5F5F5;
+  border: 1px solid #E5E7EB; border-radius: 8px; padding: 0 12px;
+  flex: 1; min-width: 200px;
+}
+.busqueda-wrap:focus-within { border-color: #1B396A; background: #DBEAFE; }
+.icono-busqueda { color: #6B7280; flex-shrink: 0; }
+.input-busqueda {
+  border: none; background: transparent; padding: 9px 0;
+  font-size: 0.875rem; font-family: inherit; outline: none;
+  flex: 1; color: #1A1A1A;
+}
+.input-busqueda::placeholder { color: #9CA3AF; }
+.btn-limpiar {
+  background: none; border: none; color: #6B7280;
+  cursor: pointer; padding: 2px; display: flex; align-items: center;
+}
+.btn-icono {
+  background: #FFFFFF; color: #6B7280; border: 1px solid #E5E7EB;
+  padding: 9px 14px; border-radius: 8px; font-weight: 600; font-size: 0.82rem;
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  font-family: inherit; transition: all 0.2s;
+}
+.btn-icono:hover { background: #F5F5F5; color: #1B396A; border-color: #1B396A; }
+.filtros-activos-indicador {
+  width: 22px; height: 22px; background: #1B396A; color: #FFFFFF;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700; cursor: pointer;
+}
+.filtros-count { line-height: 1; }
+
+/* ══════════════════════════════════════════════════════════
+   MODAL BASE (compartido por todos los modales)
+══════════════════════════════════════════════════════════ */
+.modal-fondo {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000; backdrop-filter: blur(4px);
+  padding: 1rem;  /* evita que el modal toque los bordes en móvil */
+}
+.modal-caja {
+  background: #FFFFFF; width: 480px; max-width: 100%;
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+.modal-cabecera {
+  background: #1B396A; color: #FFFFFF; padding: 1.1rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-cabecera h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
+.btn-cerrar-modal {
+  background: none; border: none; color: rgba(255,255,255,0.8);
+  cursor: pointer; display: flex; align-items: center; transition: color 0.2s;
+  padding: 4px;
+}
+.btn-cerrar-modal:hover { color: #FFFFFF; }
+
+.modal-cuerpo {
+  padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem;
+}
+.filtros-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+.campo-form   { display: flex; flex-direction: column; gap: 6px; }
+.campo-label  { font-size: 0.82rem; font-weight: 700; color: #1A1A1A; }
+.campo-label .req { color: #DC2626; }
+.campo-input {
+  padding: 10px 14px; border: 1.5px solid #E5E7EB; border-radius: 8px;
+  font-size: 0.875rem; font-family: inherit; color: #1A1A1A;
+  outline: none; background: #FFFFFF;
+}
+.campo-input:focus { border-color: #1B396A; }
+.campo-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+.modal-pie {
+  padding: 1rem 1.6rem; background: #F5F5F5; border-top: 1px solid #E5E7EB;
+  display: flex; justify-content: flex-end; gap: 0.75rem; align-items: center;
+}
+.btn-cancelar {
+  background: #FFFFFF; color: #6B7280; border: 1px solid #E5E7EB;
+  padding: 9px 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.875rem;
+  cursor: pointer; font-family: inherit; transition: background 0.15s;
+}
+.btn-cancelar:hover:not(:disabled) { background: #F3F4F6; }
+.btn-cancelar:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-guardar {
+  background: #1B396A; color: #FFFFFF; border: none; padding: 9px 1.4rem;
+  border-radius: 8px; font-weight: 600; font-size: 0.875rem;
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  font-family: inherit; transition: background 0.2s;
+}
+.btn-guardar:hover:not(:disabled) { background: #1D4ED8; }
+.btn-guardar:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════════════════
+   MODAL DETALLE (Ver solicitud) — más ancho y scrollable
+══════════════════════════════════════════════════════════ */
+.modal-detalle {
+  background: #FFFFFF;
+  width: 620px; max-width: 100%; max-height: 90vh;
+  border-radius: 16px; overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  display: flex; flex-direction: column;
+}
+.modal-det-cabecera {
+  background: #1B396A; color: #FFFFFF; padding: 1.2rem 1.6rem;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  flex-shrink: 0;
+}
+.modal-det-titulo-wrap { display: flex; flex-direction: column; gap: 4px; }
+.modal-det-folio {
+  font-family: monospace; font-size: 0.75rem; font-weight: 700;
+  background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 4px;
+  align-self: flex-start;
+}
+.modal-det-titulo { margin: 0; font-size: 1.2rem; font-weight: 800; }
+
+.modal-det-cuerpo {
+  padding: 1.6rem; overflow-y: auto; flex: 1;
+  display: flex; flex-direction: column; gap: 1.2rem;
+}
+
+/* Fila de status + tipo */
+.modal-det-status-row {
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+}
+.badge-lg { font-size: 0.8rem !important; padding: 4px 12px !important; }
+.tipo-chip {
+  background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB;
+  padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+}
+
+/* Grid de campos */
+.modal-det-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.5rem;
+}
+.det-campo { display: flex; flex-direction: column; gap: 4px; }
+.det-label { font-size: 0.72rem; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.05em; }
+.det-valor { font-size: 0.88rem; color: #1A1A1A; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+
+/* Secciones largas */
+.det-seccion { display: flex; flex-direction: column; gap: 6px; }
+.det-descripcion {
+  margin: 0; font-size: 0.875rem; color: #374151; line-height: 1.65;
+  background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px;
+  padding: 0.9rem 1rem;
+}
+.det-resolucion .det-descripcion { background: #F0FDF4; border-color: #BBF7D0; }
+
+/* Documentos */
+.docs-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+.doc-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: #DBEAFE; color: #1B396A; border: 1px solid #BFDBFE;
+  padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+  text-decoration: none; transition: background 0.15s;
+}
+.doc-chip:hover { background: #BFDBFE; }
+
+/* Pie del modal detalle */
+.modal-det-pie {
+  padding: 1rem 1.6rem; background: #F5F5F5; border-top: 1px solid #E5E7EB;
+  display: flex; justify-content: flex-end; gap: 0.75rem; align-items: center;
+  flex-shrink: 0;
+}
+.btn-resolver-inline { background: #16A34A; }
+.btn-resolver-inline:hover:not(:disabled) { background: #15803D; }
+.ya-resuelta-label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 0.82rem; color: #16A34A; font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MODAL RESOLVER — opciones de resolución estilo card radio
+══════════════════════════════════════════════════════════ */
+.modal-resolver { width: 520px; }
+
+.resumen-solicitud {
+  background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+
+/* Opciones estilo card */
+.estatus-opciones {
+  display: flex; gap: 0.75rem; flex-wrap: wrap;
+}
+.estatus-opcion {
+  flex: 1; min-width: 120px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 14px; border-radius: 10px; border: 2px solid #E5E7EB;
+  font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  transition: all 0.15s; background: #FFFFFF; color: #6B7280;
+}
+.estatus-opcion.op-aprobar:hover,
+.estatus-opcion.op-aprobar.seleccionada  { border-color: #16A34A; background: #DCFCE7; color: #16A34A; }
+.estatus-opcion.op-rechazar:hover,
+.estatus-opcion.op-rechazar.seleccionada { border-color: #DC2626; background: #FEF2F2; color: #DC2626; }
+.estatus-opcion.op-revision:hover,
+.estatus-opcion.op-revision.seleccionada { border-color: #F59E0B; background: #FEF3C7; color: #D97706; }
+
+/* Error y spinner */
+.error-msg {
+  margin: 0; font-size: 0.82rem; color: #DC2626; font-weight: 600;
+  padding: 8px 12px; background: #FEF2F2; border-radius: 8px;
+  border-left: 3px solid #DC2626;
+}
+.spinner-inline {
+  width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #FFFFFF; border-radius: 50%;
+  animation: spin 0.7s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Avatar grande */
+.persona-avatar-lg {
+  width: 36px !important; height: 36px !important;
+  font-size: 0.85rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px; border-radius: 12px; font-size: 0.875rem; font-weight: 600;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 3000; white-space: nowrap;
+  font-family: 'Montserrat', sans-serif;
+}
+.toast.exito { background: #16A34A; color: #FFFFFF; }
+.toast.error  { background: #DC2626; color: #FFFFFF; }
+
+/* ══════════════════════════════════════════════════════════
+   TABLA
+══════════════════════════════════════════════════════════ */
+.tabla-card {
+  background: #FFFFFF; border-radius: 12px; border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 1.5rem;
+}
+.tabla-encabezado {
+  padding: 0.8rem 1.4rem; border-bottom: 1px solid #E5E7EB;
+  display: flex; align-items: center; justify-content: flex-end;
+}
+.tabla-contador {
+  font-size: 0.8rem; color: #6B7280; background: #F5F5F5;
+  border: 1px solid #E5E7EB; padding: 4px 10px; border-radius: 20px;
+}
+.tabla-scroll    { overflow-x: auto; }
+.tabla-principal { width: 100%; border-collapse: collapse; }
+.tabla-principal th {
+  background: #F5F5F5; padding: 8px 12px; font-size: 0.75rem;
+  font-weight: 700; color: #6B7280; text-transform: uppercase;
+  letter-spacing: 0.04em; border-bottom: 1px solid #E5E7EB; text-align: left;
+}
+.tabla-principal th.centrado { text-align: center; }
+.tabla-principal td {
+  padding: 6px 12px; border-bottom: 1px solid #E5E7EB; vertical-align: middle;
+}
+.tabla-principal td.centrado  { text-align: center; }
+.tabla-principal tr:last-child td { border-bottom: none; }
+.tabla-principal tr:hover     { background: #F9FAFB; }
+
+/* Celdas */
+.folio-chip {
+  background: #DBEAFE; color: #1B396A; padding: 3px 8px;
+  border-radius: 6px; font-family: monospace; font-size: 0.8rem; font-weight: 700;
+}
+.persona-info  { display: flex; align-items: center; gap: 8px; }
+.persona-avatar {
+  width: 28px; height: 28px; background: #DBEAFE; color: #1B396A;
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.7rem; flex-shrink: 0;
+}
+.texto-principal  { font-weight: 600; color: #1A1A1A; font-size: 0.82rem; }
+.texto-secundario { color: #6B7280; font-size: 0.8rem; }
+.badge-estado {
+  font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+}
+
+/* Botones de acción */
+.acciones-fila { display: flex; gap: 4px; justify-content: center; align-items: center; }
+.btn-accion {
+  display: flex; align-items: center; gap: 4px; padding: 4px 10px;
+  border-radius: 6px; border: none; font-size: 0.75rem; font-weight: 600;
+  font-family: inherit; cursor: pointer; transition: transform 0.15s, filter 0.15s;
+}
+.btn-accion:hover:not(:disabled) { transform: scale(1.05); filter: brightness(0.93); }
+.btn-accion.ver      { background: #DBEAFE; color: #1B396A; }
+.btn-accion.resolver { background: #DCFCE7; color: #16A34A; }
+.btn-accion.resuelto { background: #F3F4F6; color: #9CA3AF; cursor: not-allowed; }
+.btn-accion:disabled { cursor: not-allowed; transform: none; }
+
+.sin-resultados {
+  padding: 2.5rem; text-align: center; color: #9CA3AF; font-size: 0.85rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+}
+
+/* Paginación */
+.paginacion-wrap {
+  padding: 0.8rem 1.4rem; border-top: 1px solid #E5E7EB;
+  display: flex; align-items: center; justify-content: space-between; background: #F9FAFB;
+}
+.btn-pag {
+  padding: 6px 12px; border: 1px solid #E5E7EB; background: #FFFFFF;
+  border-radius: 6px; font-size: 0.8rem; cursor: pointer; color: #4B5563;
+}
+.btn-pag:disabled   { opacity: 0.5; cursor: not-allowed; }
+.btn-pag:hover:not(:disabled) { background: #F3F4F6; }
+.pag-numeros { display: flex; gap: 4px; }
+.btn-pag-num {
+  width: 28px; height: 28px; border-radius: 6px; border: 1px solid #E5E7EB;
+  background: #FFFFFF; font-size: 0.8rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-family: inherit;
+}
+.btn-pag-num.activa      { background: #1B396A; color: #FFFFFF; border-color: #1B396A; }
+.btn-pag-num:hover:not(.activa) { background: #F3F4F6; }
+
+/* Footer */
+.pie-pagina {
+  text-align: center; color: #9CA3AF; font-size: 0.82rem; padding-top: 2rem;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TRANSICIONES
+══════════════════════════════════════════════════════════ */
+/* Modal filtros: fade simple */
+.modal-fade-enter-active,
+.modal-fade-leave-active { transition: opacity 0.2s; }
+.modal-fade-enter-from,
+.modal-fade-leave-to     { opacity: 0; }
+
+/* Modales de detalle/resolver: fade + slide-up */
+.modal-slide-enter-active { transition: opacity 0.25s, transform 0.25s; }
+.modal-slide-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.modal-slide-enter-from   { opacity: 0; transform: translateY(20px); }
+.modal-slide-leave-to     { opacity: 0; transform: translateY(10px); }
+
+/* Toast */
+.toast-fade-enter-active  { transition: opacity 0.3s, transform 0.3s; }
+.toast-fade-leave-active  { transition: opacity 0.3s, transform 0.3s; }
+.toast-fade-enter-from    { opacity: 0; transform: translate(-50%, 16px); }
+.toast-fade-leave-to      { opacity: 0; transform: translate(-50%, 16px); }
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .solicitudes-page { padding: 0.75rem 0.5rem 2rem; }
+
+  .filtros-card { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+
+  .tabla-principal th,
+  .tabla-principal td { padding: 8px 6px; font-size: 0.78rem; }
+
+  .persona-info { flex-direction: column; align-items: flex-start; }
+
+  .paginacion-wrap { flex-direction: column; gap: 0.75rem; align-items: center; }
+
+  .acciones-fila { flex-direction: column; gap: 6px; }
+
+  /* Modales en móvil: ancho completo */
+  .modal-fondo { align-items: flex-end; padding: 0; }
+  .modal-detalle,
+  .modal-caja {
+    width: 100% !important; border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+  }
+  .modal-det-grid   { grid-template-columns: 1fr; }
+  .filtros-grid     { grid-template-columns: 1fr; }
+  .estatus-opciones { flex-direction: column; }
+  .modal-det-pie    { flex-wrap: wrap; }
+}
+</style>

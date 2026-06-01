@@ -1,0 +1,46 @@
+/* ══════════════════════════════════════
+   SE-TABS — Pestañas internas de módulos
+   Servicios Escolares
+══════════════════════════════════════ */
+
+.se-vista {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.se-tabs {
+  display: flex;
+  gap: 4px;
+  background: #fff;
+  border-bottom: 2px solid #E5E7EB;
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.se-tabs::-webkit-scrollbar { display: none; }
+
+.se-tab {
+  padding: 10px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6B7280;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+.se-tab:hover {
+  color: #1B396A;
+}
+.se-tab.router-link-active,
+.se-tab.router-link-exact-active {
+  color: #1B396A;
+  border-bottom-color: #1B396A;
+  font-weight: 700;
+}
+
+.se-contenido {
+  padding: 1.5rem 0;
+}

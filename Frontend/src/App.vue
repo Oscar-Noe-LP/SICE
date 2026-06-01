@@ -1,9 +1,6 @@
 <template>
-  <ControlEscolar>
-    <router-view />
-  </ControlEscolar>
+  <router-view />
 </template>
 
 <script setup>
-
 </script>

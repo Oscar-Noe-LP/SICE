@@ -1,9 +1,16 @@
+import os
 import mysql.connector
 import subprocess
 from config import DB_CONFIG
 
+# ==========================================
+# RUTAS ABSOLUTAS
+# ==========================================
 
-SCHEMA_FILE = "../esquema/SICE.sql"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+SCHEMA_FILE = os.path.join(BASE_DIR, "../esquema/SICE.sql")
+SEED_FILE = os.path.join(BASE_DIR, "seed_all.py")
 
 
 def reset_database():
@@ -23,7 +30,9 @@ def reset_database():
         tables = cursor.fetchall()
 
         for table in tables:
-            cursor.execute(f"DROP TABLE IF EXISTS {table[0]}")
+            table_name = table[0]
+            print(f"Eliminando tabla: {table_name}")
+            cursor.execute(f"DROP TABLE IF EXISTS `{table_name}`")
 
         conn.commit()
 
@@ -48,9 +57,12 @@ def create_schema():
     cursor = conn.cursor()
 
     try:
+        print(f"Leyendo archivo SQL:\n{SCHEMA_FILE}")
+
         with open(SCHEMA_FILE, "r", encoding="utf-8") as f:
             sql = f.read()
 
+        # Ejecutar cada sentencia SQL
         for statement in sql.split(";"):
             stmt = statement.strip()
 
@@ -73,10 +85,25 @@ def run_seeds():
 
     print("Ejecutando seeds...")
 
-    subprocess.run(["python", "seed_all.py"])
+    try:
+        print(f"Ejecutando archivo:\n{SEED_FILE}")
+
+        subprocess.run(
+            ["python", SEED_FILE],
+            check=True
+        )
+
+        print("Seeds ejecutados correctamente")
+
+    except subprocess.CalledProcessError as e:
+        print("Error ejecutando seeds:", e)
+
+    except Exception as e:
+        print("Error general:", e)
 
 
 if __name__ == "__main__":
+
     reset_database()
     create_schema()
     run_seeds()
