@@ -305,11 +305,7 @@ const router = createRouter({
       name: 'ConfiguracionAspirantes',
       component: () => import('@/views/ServiciosEscolares/AspirantesSE.vue')
     },
-    {
-      path: '/aspirantes/fichas',
-      name: 'FichasAspirantes',
-      component: () => import('@/views/ServiciosEscolares/AspirantesSE.vue')
-    },
+
 
     // ══════════════════════════════════════════════════════════════════════
     // MÓDULO: SERVICIOS ESCOLARES — CONFIGURACIÓN

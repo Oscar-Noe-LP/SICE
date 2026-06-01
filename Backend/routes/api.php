@@ -75,15 +75,6 @@ Route::get('/alumnos/{numero_control}/expediente', [AlumnoController::class, 'ex
 Route::put('/alumnos/{numero_control}/expediente', [AlumnoController::class, 'actualizarExpediente']);
 
 Route::get('/alumnos/especialidades', [AlumnoController::class, 'especialidades']);
-Route::get('/alumnos/{id}/materias', [AlumnoController::class, 'materias']);
-
-// ESPECIALIDADES CRUD
-use App\Http\Controllers\Api\EspecialidadController;
-Route::get('/especialidades',      [EspecialidadController::class, 'index']);
-Route::get('/especialidades/{id}', [EspecialidadController::class, 'show']);
-Route::post('/especialidades',     [EspecialidadController::class, 'store']);
-Route::put('/especialidades/{id}', [EspecialidadController::class, 'update']);
-Route::delete('/especialidades/{id}', [EspecialidadController::class, 'destroy']);
 // === CRUD COMPLETO DE ALUMNOS ===
 Route::get('/alumnos/catalogos', [AlumnoController::class, 'catalogos']);
 Route::get('/alumnos-crud', [AlumnoController::class, 'index']);
@@ -104,6 +95,20 @@ Route::delete('/grupos/{id}', [GrupoController::class, 'destroy']);
 Route::post('/grupos/{id}/cerrar-acta', [GrupoController::class, 'cerrarActa']);
 Route::post('/grupos/{id}/abrir-acta',  [GrupoController::class, 'abrirActa']);
 Route::get('/grupos/{id}/materias', [GrupoController::class, 'materias']);
+
+Route::get('/carreras',                                      [CarreraController::class, 'index']);
+Route::post('/carreras',                                     [CarreraController::class, 'store']);
+Route::put('/carreras/{id}',                                 [CarreraController::class, 'update']);
+Route::delete('/carreras/{id}',                              [CarreraController::class, 'destroy']);
+
+// Ruta existente (drill-down original)
+Route::get('/carreras/{id}/grupos',                          [CarreraController::class, 'grupos']);
+
+Route::get('/carreras/{id}/grupos-agrupados',                [CarreraController::class, 'gruposAgrupados']);
+
+// Rutas de semestres
+Route::get('/carreras/{id}/semestres',                       [CarreraController::class, 'semestres']);
+Route::get('/carreras/{id}/semestres/{semestre}/grupos',     [CarreraController::class, 'gruposPorSemestre']);
 
 // 🔹 EVALUACIONES
 Route::post('/evaluaciones/guardar', [ServiciosEscolaresController::class, 'guardarEvaluaciones']);
@@ -203,7 +208,6 @@ Route::post('/plan-materia', [PlanMateriaController::class, 'store']);
 use App\Http\Controllers\PeriodoController;
 
 Route::get('/periodos', [PeriodoController::class, 'index']);
-Route::get('/periodos/activo', [PeriodoController::class, 'activo']);
 Route::post('/periodos', [PeriodoController::class, 'store']);
 Route::put('/periodos/{id}', [PeriodoController::class, 'update']);
 Route::patch('/periodos/{id}/activar', [PeriodoController::class, 'activar']);
@@ -507,4 +511,3 @@ Route::get ('/empresas-residencia',            [ResidenciaController::class, 'em
 use App\Http\Controllers\CierreController;
 
 Route::get('/cierre/kpis', [CierreController::class, 'kpis']);
-

@@ -1122,24 +1122,6 @@
               </div>
               <span>Configuración Inicial</span>
             </router-link>
-            <router-link to="/aspirantes/solicitudes" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-              </div>
-              <span>Aspirantes</span>
-            </router-link>
-            <router-link to="/aspirantes/solicitudes" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-              </div>
-              <span>Solicitudes</span>
-            </router-link>
-            <router-link to="/aspirantes/fichas" class="ribbon-item" @click="cerrarTab">
-              <div class="ribbon-icono-wrap">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2"/></svg>
-              </div>
-              <span>Fichas</span>
-            </router-link>
           </template>
           
           <!-- ── SE: Configuración ── -->

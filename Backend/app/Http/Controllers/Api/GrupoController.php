@@ -836,6 +836,7 @@ class GrupoController extends Controller
                 ->where('i.id_grupo', $id)
                 ->whereIn('i.estatus', ['Activo', 'activo', 'Inscrito', 'inscrito', 'INSCRITO'])
                 ->select(
+                    'a.id_alumno',
                     'a.numero_control as noControl',
                     DB::raw("CONCAT(p.nombre,' ',p.apellido_paterno,' ',COALESCE(p.apellido_materno,'')) as nombre"),
                     'i.id_inscripcion'
