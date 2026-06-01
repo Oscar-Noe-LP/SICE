@@ -23,7 +23,7 @@ class PeriodoController extends Controller
 
     public function activo()
     {
-        $periodo = Periodo::where('estatus', 1)
+        $periodo = Periodo::whereIn('estatus', ['ACTIVO', 'activo', '1', 1, true])
             ->orderByDesc('id_periodo')
             ->first();
 
