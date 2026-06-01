@@ -474,6 +474,10 @@ Route::get('/documentos/boletas-masivas', [BoletaController::class, 'generarBole
 Route::get('/documentos/certificado/{numero_control}', [CertificadoController::class, 'generarCertificado'])
     ->name('documentos.certificado');
 
+Route::get('/documentos/acta/{grupo_id}',         [DocumentoController::class, 'acta']);
+Route::get('/documentos/carga/{numero_control}',   [DocumentoController::class, 'carga']);
+Route::get('/documentos/residencia/{id_solicitud}',[DocumentoController::class, 'actaResidencia']);
+
 // Residencias Profesionales
 Route::get ('/residencias/elegibles',          [ResidenciaController::class, 'elegibles']);
 Route::get ('/residencias/{id}/reportes',      [ResidenciaController::class, 'reportes']);
