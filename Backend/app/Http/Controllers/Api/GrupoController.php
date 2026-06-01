@@ -808,4 +808,91 @@ class GrupoController extends Controller
         }
     }
 
+    // =========================================================================
+
+    /**
+     * GET /api/grupos/{id}/calificaciones
+     *
+     * Calificaciones por unidad de todos los alumnos de un grupo.
+     * Campos: noControl, nombre, unidad1, unidad2, unidad3, unidad4, promedio
+     */
+    public function calificaciones(int $id)
+    {
+        try {
+            $grupo = DB::table('grupo')->where('id_grupo', $id)->first();
+
+            if (!$grupo) {
+                return response()->json(['error' => 'Grupo no encontrado'], 404);
+            }
+
+            // Evaluaciones del grupo indexadas por nombre normalizado
+            $evaluaciones = DB::table('evaluacion')
+                ->where('id_grupo', $id)
+                ->get();
+
+            $alumnos = DB::table('inscripcion as i')
+                ->join('alumno as a',  'i.id_alumno',  '=', 'a.id_alumno')
+                ->join('persona as p', 'a.id_persona', '=', 'p.id_persona')
+                ->where('i.id_grupo', $id)
+                ->whereIn('i.estatus', ['Activo', 'activo', 'inscrito'])
+                ->select(
+                    'a.numero_control as noControl',
+                    DB::raw("CONCAT(p.nombre,' ',p.apellido_paterno,' ',COALESCE(p.apellido_materno,'')) as nombre"),
+                    'i.id_inscripcion'
+                )
+                ->orderBy('p.apellido_paterno')
+                ->get()
+                ->map(function ($alumno) use ($evaluaciones) {
+
+                    // Calificaciones del alumno indexadas por id_evaluacion
+                    $califs = DB::table('calificacion')
+                        ->where('id_inscripcion', $alumno->id_inscripcion)
+                        ->pluck('calificacion', 'id_evaluacion');
+
+                    // Buscar calificación por nombre de unidad
+                    $getUnidad = function (int $n) use ($evaluaciones, $califs) {
+                        $eval = $evaluaciones->first(function ($e) use ($n) {
+                            $nombre = strtolower(trim($e->nombre));
+                            return str_contains($nombre, 'unidad ' . $n)
+                                || str_contains($nombre, 'u' . $n)
+                                || str_contains($nombre, 'parcial ' . $n);
+                        });
+                        if (!$eval) return null;
+                        $val = $califs->get($eval->id_evaluacion);
+                        return $val !== null ? (float) $val : null;
+                    };
+
+                    $u1 = $getUnidad(1);
+                    $u2 = $getUnidad(2);
+                    $u3 = $getUnidad(3);
+                    $u4 = $getUnidad(4);
+
+                    // Promedio ponderado real
+                    $promedio = DB::table('calificacion as c')
+                        ->join('evaluacion as ev', 'c.id_evaluacion', '=', 'ev.id_evaluacion')
+                        ->where('c.id_inscripcion', $alumno->id_inscripcion)
+                        ->sum(DB::raw('c.calificacion * ev.porcentaje / 100'));
+
+                    return [
+                        'noControl' => $alumno->noControl,
+                        'nombre'    => trim($alumno->nombre),
+                        'unidad1'   => $u1,
+                        'unidad2'   => $u2,
+                        'unidad3'   => $u3,
+                        'unidad4'   => $u4,
+                        'promedio'  => $promedio ? round((float) $promedio, 1) : null,
+                    ];
+                });
+
+            return response()->json([
+                'id_grupo' => $id,
+                'total'    => $alumnos->count(),
+                'alumnos'  => $alumnos->values(),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
 }
