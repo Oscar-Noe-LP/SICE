@@ -473,25 +473,20 @@
                     <!-- Barra de guardado por unidad -->
           <div class="guardar-unidades-bar">
             <span class="guardar-unidades-label">Guardar por unidad:</span>
-            <button @click="guardarUnidad(1)" class="btn-unidad" :disabled="cargando">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-              U1
-            </button>
-            <button @click="guardarUnidad(2)" class="btn-unidad" :disabled="cargando">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-              U2
-            </button>
-            <button @click="guardarUnidad(3)" class="btn-unidad" :disabled="cargando">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-              U3
-            </button>
-            <button @click="guardarUnidad(4)" class="btn-unidad" :disabled="cargando">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-              U4
-            </button>
-            <button @click="guardarUnidad(5)" class="btn-unidad" :disabled="cargando">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-              U5
+            <button
+              v-for="u in [1,2,3,4,5]"
+              :key="u"
+              @click="guardarUnidad(u)"
+              class="btn-unidad"
+              :class="[
+                { 'btn-unidad-activa': unidadActiva === u },
+                `estado-${estadoUnidades[u-1].estado}`
+              ]"
+              :disabled="cargando"
+              :title="`Guardar U${u} — ${estadoUnidades[u-1].estado}`"
+            >
+              <span class="unidad-dot" :class="`dot-${estadoUnidades[u-1].estado}`"></span>
+              U{{ u }}
             </button>
           </div>
           
@@ -538,8 +533,8 @@
                         class="input-nota"
                         :class="claseNota(alumno.u1)"
                         data-unidad="1"
-                        @focus="filaActiva = index"
-                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(1)"
+                        @focus="filaActiva = index; unidadActiva = 1"
+                        @keydown="manejarTecladoCelda($event, index, 1)"
                       />
                     </div>
                   </td>
@@ -551,8 +546,8 @@
                         class="input-nota"
                         :class="claseNota(alumno.u2)"
                         data-unidad="2"
-                        @focus="filaActiva = index"
-                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(2)"
+                        @focus="filaActiva = index; unidadActiva = 2"
+                        @keydown="manejarTecladoCelda($event, index, 2)"
                       />
                     </div>
                   </td>
@@ -564,8 +559,8 @@
                         class="input-nota"
                         :class="claseNota(alumno.u3)"
                         data-unidad="3"
-                        @focus="filaActiva = index"
-                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(3)"
+                        @focus="filaActiva = index; unidadActiva = 3"
+                        @keydown="manejarTecladoCelda($event, index, 3)"
                       />
                     </div>
                   </td>
@@ -577,8 +572,8 @@
                         class="input-nota"
                         :class="claseNota(alumno.u4)"
                         data-unidad="4"
-                        @focus="filaActiva = index"
-                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(4)"
+                        @focus="filaActiva = index; unidadActiva = 4"
+                        @keydown="manejarTecladoCelda($event, index, 4)"
                       />
                     </div>
                   </td>
@@ -590,8 +585,8 @@
                         class="input-nota"
                         :class="claseNota(alumno.u5)"
                         data-unidad="5"
-                        @focus="filaActiva = index"
-                        @keydown.enter.prevent="guardarUnidadDesdeTeclado(5)"
+                        @focus="filaActiva = index; unidadActiva = 5"
+                        @keydown="manejarTecladoCelda($event, index, 5)"
                       />
                     </div>
                   </td>
@@ -765,7 +760,10 @@
               {{ iniciales(alumnoSeleccionado?.nombre) }}
             </div>
             <div class="modal-alumno-titulo">
-              <h2>{{ alumnoSeleccionado?.nombre }}</h2>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <h2 style="margin:0;">{{ alumnoSeleccionado?.nombre }}</h2>
+                <span v-if="tieneCambios" class="badge-cambios">● Sin guardar</span>
+              </div>
               <span class="modal-alumno-control">{{ alumnoSeleccionado?.control }}</span>
             </div>
             <button @click="cerrarModalAlumno" class="modal-close-btn">
@@ -1064,7 +1062,7 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 import { useCatalogos } from '@/composables/useCatalogos'
-import { getCalificacionesGrupo, guardarCalificaciones } from '../api/calificaciones'
+import { getCalificacionesGrupo } from '../api/calificaciones'
 import api from '../api/axios'
 import * as XLSX from 'xlsx'
 import { ChevronRight } from 'lucide-vue-next'
@@ -1245,6 +1243,23 @@ const filasRef = ref([])
 // --- ESPECIALES Y GLOBALES ---
 const especiales = ref([])
 const vistaTabla = ref('calificaciones') // 'calificaciones' | 'especiales'
+// Unidad actualmente enfocada en la tabla
+const unidadActiva = ref(null)
+
+// Estado visual de cada unidad: 'vacia' | 'parcial' | 'completa'
+const estadoUnidades = computed(() => {
+  return [1, 2, 3, 4, 5].map(u => {
+    const campo = `u${u}`
+    const total = alumnos.value.length
+    if (total === 0) return { unidad: u, estado: 'vacia' }
+    const conDatos = alumnos.value.filter(a =>
+      a[campo] !== null && a[campo] !== '' && !isNaN(Number(a[campo]))
+    ).length
+    if (conDatos === 0)     return { unidad: u, estado: 'vacia' }
+    if (conDatos === total) return { unidad: u, estado: 'completa' }
+    return { unidad: u, estado: 'parcial' }
+  })
+})
 
 async function cargarEspeciales(grupoId) {
   try {
@@ -1275,7 +1290,18 @@ async function cargarHistorial(control) {
 // Modal alumno
 const showModalAlumno = ref(false)
 const alumnoSeleccionado = ref(null)
+
 const modalTab = ref('general')
+// Copia original para detectar cambios sin guardar
+const alumnoOriginal = ref(null)
+
+// True si el usuario modificó algo en el modal sin guardar
+const tieneCambios = computed(() => {
+  if (!alumnoSeleccionado.value || !alumnoOriginal.value) return false
+  return ['u1','u2','u3','u4','u5'].some(u =>
+    String(alumnoSeleccionado.value[u] ?? '') !== String(alumnoOriginal.value[u] ?? '')
+  )
+})
 
 // Toast
 const toast = ref({ visible: false, mensaje: '', tipo: 'exito' })
@@ -1443,20 +1469,28 @@ async function cargarCalificacionesGrupo(grupoId, materiaId = null) {
 
 // Modal Alumno
 const abrirModalAlumno = (alumno) => {
+  alumnoOriginal.value = { u1: alumno.u1, u2: alumno.u2, u3: alumno.u3, u4: alumno.u4, u5: alumno.u5 }
   alumnoSeleccionado.value = { ...alumno }
   modalTab.value = 'general'
+  historialAlumno.value = []   // limpiar historial anterior
   showModalAlumno.value = true
-  cargarHistorial(alumno.control)
 }
 
 const cerrarModalAlumno = () => {
+  if (tieneCambios.value) {
+    if (!confirm('Tienes cambios sin guardar. ¿Cerrar de todas formas?')) return
+  }
   showModalAlumno.value = false
   alumnoSeleccionado.value = null
+  alumnoOriginal.value = null
+  historialAlumno.value = []
 }
+
 const guardarDesdeModal = async () => {
   if (!alumnoSeleccionado.value) return
   cargando.value = true
   try {
+    // Sincronizar cambios del modal de vuelta al array reactivo
     const idx = alumnos.value.findIndex(a => a.control === alumnoSeleccionado.value.control)
     if (idx !== -1) {
       alumnos.value[idx].u1 = alumnoSeleccionado.value.u1
@@ -1465,27 +1499,65 @@ const guardarDesdeModal = async () => {
       alumnos.value[idx].u4 = alumnoSeleccionado.value.u4
       alumnos.value[idx].u5 = alumnoSeleccionado.value.u5
     }
-    await guardarCalificaciones([alumnoSeleccionado.value])
+    await guardarAlumnoLocal(alumnoSeleccionado.value)
+    
+    // Actualizar original para que tieneCambios vuelva a false
+    alumnoOriginal.value = {
+      u1: alumnoSeleccionado.value.u1,
+      u2: alumnoSeleccionado.value.u2,
+      u3: alumnoSeleccionado.value.u3,
+      u4: alumnoSeleccionado.value.u4,
+      u5: alumnoSeleccionado.value.u5
+    }
+    
     mostrarToast('Calificaciones guardadas correctamente')
-  } catch {
+  } catch (e) {
+    console.error('guardarDesdeModal:', e)
     mostrarToast('Error al guardar', 'error')
   } finally {
     cargando.value = false
   }
 }
 
+// Construye el payload correcto para u1–u5 y guarda en el backend
+const guardarAlumnoLocal = async (alumno) => {
+  const payload = {
+    grupo_id:   grupoSeleccionado.value?.id_grupo,
+    materia_id: materiaSeleccionada.value?.id_materia,
+    alumno_id:  alumno.id_alumno ?? alumno.control,
+    u1: alumno.u1 ?? null,
+    u2: alumno.u2 ?? null,
+    u3: alumno.u3 ?? null,
+    u4: alumno.u4 ?? null,
+    u5: alumno.u5 ?? null,
+  }
+  await api.post('/calificaciones/guardar', payload)
+}
+
 // Acciones tabla
 const guardarFila = async (alumno) => {
   cargando.value = true
-  try { await guardarCalificaciones([alumno]); mostrarToast('Calificaciones guardadas') }
-  catch { mostrarToast('Error al guardar.', 'error') }
-  finally { cargando.value = false }
+  try {
+    await guardarAlumnoLocal(alumno)
+    mostrarToast('Calificaciones guardadas')
+  } catch (e) {
+    console.error('guardarFila:', e)
+    mostrarToast('Error al guardar.', 'error')
+  } finally {
+    cargando.value = false
+  }
 }
 const guardarTodo = async () => {
   cargando.value = true
-  try { await guardarCalificaciones(alumnos.value); mostrarToast('Todas las calificaciones guardadas') }
-  catch { mostrarToast('Error al guardar.', 'error') }
-  finally { cargando.value = false }
+  try {
+    await Promise.all(alumnos.value.map(a => guardarAlumnoLocal(a)))
+    mostrarToast('Todas las calificaciones guardadas')
+  } catch (e) {
+    console.error('guardarTodo:', e)
+    mostrarToast('Error al guardar todo.', 'error')
+  } finally {
+    cargando.value = false
+  }
 }
 
 // Guardado por unidad
@@ -1520,10 +1592,6 @@ const guardarUnidad = async (unidad) => {
   }
 }
 
-// Atajo de teclado: Enter en una celda guarda esa unidad
-const guardarUnidadDesdeTeclado = (unidad) => {
-  guardarUnidad(unidad)
-}
 
 const exportar = () => {
   const datos = alumnosFiltrados.value
@@ -1588,6 +1656,60 @@ const buscarEnTiempoReal = () => {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => { paginaActual.value = 1 }, 300)
 }
+
+// Foco programático a un input específico (fila + unidad)
+const focusInput = (filaIdx, unidad) => {
+  nextTick(() => {
+    const fila = filasRef.value[filaIdx]
+    if (!fila) return
+    const input = fila.querySelector(`[data-unidad="${unidad}"]`)
+    if (input) {
+      input.focus()
+      input.select()
+      filaActiva.value = filaIdx
+    }
+  })
+}
+
+// Manejo de teclado dentro de cada celda de calificación
+const manejarTecladoCelda = (event, filaIdx, unidad) => {
+  const totalFilas = alumnosPaginados.value.length
+
+  if (event.key === 'Tab') {
+    event.preventDefault()
+    if (!event.shiftKey) {
+      // Tab → siguiente unidad o primera unidad de la fila de abajo
+      if (unidad < 5) {
+        focusInput(filaIdx, unidad + 1)
+      } else if (filaIdx < totalFilas - 1) {
+        focusInput(filaIdx + 1, 1)
+      }
+    } else {
+      // Shift+Tab → unidad anterior o última unidad de la fila de arriba
+      if (unidad > 1) {
+        focusInput(filaIdx, unidad - 1)
+      } else if (filaIdx > 0) {
+        focusInput(filaIdx - 1, 5)
+      }
+    }
+  } else if (event.key === 'Enter') {
+    event.preventDefault()
+    // Enter guarda la unidad actual y baja a la misma unidad en la fila siguiente
+    guardarUnidad(unidad)
+    if (filaIdx < totalFilas - 1) {
+      focusInput(filaIdx + 1, unidad)
+    }
+  } else if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    event.stopPropagation()
+    if (filaIdx < totalFilas - 1) focusInput(filaIdx + 1, unidad)
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault()
+    event.stopPropagation()
+    if (filaIdx > 0) focusInput(filaIdx - 1, unidad)
+  }
+}
+
 const navegarTeclado = (e) => {
   if (vista.value !== 'tabla') return
   const max = alumnosPaginados.value.length - 1
@@ -1618,6 +1740,19 @@ const reintentarCatalogos = () => cargarCatalogos(['periodos', 'carreras', 'mate
 
 watch(busquedaControl, () => { paginaActual.value = 1 })
 watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) paginaActual.value = nuevoTotal })
+
+// Carga el historial solo cuando el usuario abre esa pestaña
+watch(modalTab, (tab) => {
+  if (
+    tab === 'historial' &&
+    alumnoSeleccionado.value &&
+    !historialAlumno.value.length &&
+    !cargandoHistorial.value
+  ) {
+    cargarHistorial(alumnoSeleccionado.value.control)
+  }
+})
+
 </script>
 
 <style scoped>
@@ -1632,6 +1767,7 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
   font-family: 'Montserrat', sans-serif;
   box-sizing: border-box;
   padding: 1rem 1rem 2rem;
+  text-transform: uppercase; 
 }
 
 .semestre-badge {
@@ -1672,7 +1808,7 @@ watch(totalPaginas, (nuevoTotal) => { if (paginaActual.value > nuevoTotal) pagin
 .carrera-card-body { padding: 25px 20px 0; display: flex; align-items: flex-start; gap: 15px; }
 .carrera-card-icono { width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .carrera-card-info { flex: 1; }
-.carrera-card-nombre { font-size: 1.2rem; font-weight: 700; margin: 0 0 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+.carrera-card-nombre { font-size: 1.2rem; font-weight: 700; margin: 0 0 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); font-family: 'Montserrat', sans-serif;}
 .carrera-card-stats { font-size: 0.85rem; display: flex; gap: 8px; flex-wrap: wrap; opacity: 0.9; }
 .stat-sep { opacity: 0.5; }
 .carrera-card-footer { background: rgba(0,0,0,0.15); padding: 12px 20px; font-weight: 600; font-size: 0.9rem; backdrop-filter: blur(5px); }
@@ -2035,7 +2171,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
 .docente-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
 .docente-card-body { padding: 1.4rem 1.4rem 0.8rem; display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1; }
 .docente-avatar { width: 56px; height: 56px; border-radius: 50%; background: #1B396A; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; margin-bottom: 0.75rem; }
-.docente-nombre { font-size: 1.05rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.5rem; }
+.docente-nombre { font-size: 1.05rem; font-weight: 700; color: #1A1A1A; margin: 0 0 0.5rem; font-family: 'Montserrat', sans-serif;}
 .docente-materias { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-bottom: 0.8rem; }
 .materia-tag { background: #DBEAFE; color: #1B396A; padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
 .docente-stats { font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem; }
@@ -2177,6 +2313,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
 
 .semestre-card {
   text-align: center;
+  
 }
 
 .semestre-numero {
@@ -2191,6 +2328,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   font-weight: 700;
   color: #333;
   margin: 0 0 0.5rem 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .card-info {
@@ -2258,6 +2396,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   font-size: 0.8rem;
   color: #6B7280;
   margin-bottom: 0.5rem;
+  
 }
 
 /* Para que las secciones de título se vean bien */
@@ -2272,6 +2411,7 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
   font-weight: 700;
   color: #1A1A1A;
   margin: 0;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* Barra de guardado por unidad */
@@ -2312,6 +2452,71 @@ kbd { background: #E5E7EB; border-radius: 4px; padding: 1px 6px; font-family: mo
 .btn-unidad:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Unidad activa en la barra */
+.btn-unidad-activa {
+  background: #1B396A !important;
+  color: white !important;
+  border-color: #1B396A !important;
+  box-shadow: 0 2px 8px rgba(27,57,106,0.3);
+}
+
+/* Dot indicador de estado */
+.unidad-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  margin-right: 2px;
+}
+.dot-vacia    { background: #D1D5DB; }
+.dot-parcial  { background: #F59E0B; }
+.dot-completa { background: #16A34A; }
+
+/* Borde superior sutil por estado */
+.estado-completa { border-top: 2px solid #16A34A; }
+.estado-parcial  { border-top: 2px solid #F59E0B; }
+.estado-vacia    { border-top: 2px solid #E5E7EB; }
+
+.badge-cambios {
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.25);
+  color: #FDE68A;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Modal docente - campos de detalle */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.6rem;
+  border-bottom: 1px solid #E5E7EB;
+}
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+.campo:last-child { border-bottom: none; }
+.campo-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.campo-valor {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1A1A1A;
 }
 
 </style>

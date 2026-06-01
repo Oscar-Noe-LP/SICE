@@ -320,7 +320,7 @@ const router = createRouter({
     {
       path: '/configuracion/plan-curricular',
       name: 'ConfigPlanCurricular',
-      component: () => import('@/views/ServiciosEscolares/ConfiguracionSE.vue')
+      component: () => import('@/views/ServiciosEscolares/PlanCurricularSE.vue')
     },
     {
       path: '/configuracion/periodos',
@@ -344,7 +344,7 @@ const router = createRouter({
     {
       path: '/procesos/especiales',
       name: 'ProcesosEspeciales',
-      component: () => import('@/views/ServiciosEscolares/ProcesosSE.vue')
+      component: () => import('@/views/ServiciosEscolares/ProcesosEspecialesSE.vue')
     },
 
     // ══════════════════════════════════════════════════════════════════════

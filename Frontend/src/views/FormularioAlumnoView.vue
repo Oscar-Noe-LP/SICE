@@ -673,6 +673,7 @@ const cancelar = () => router.push('/alumnos')
   color: var(--texto);
   letter-spacing: -0.02em;
   margin: 0 0 4px;
+  font-family: 'Montserrat', sans-serif;
 }
 .subtitle {
   font-size: 0.88rem;
@@ -799,6 +800,7 @@ const cancelar = () => router.push('/alumnos')
   font-weight: 700;
   color: var(--texto);
   margin: 0 0 1.4rem;
+  font-family: 'Montserrat', sans-serif;
 }
 .seccion-num {
   display: inline-flex;

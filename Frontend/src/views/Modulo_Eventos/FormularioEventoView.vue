@@ -58,10 +58,11 @@
             <!-- Nombre -->
             <div class="campo-form campo-ancho">
               <label class="campo-label">NOMBRE DEL EVENTO <span class="requerido">*</span></label>
-              <input v-model="form.nombre_evento" type="text" placeholder="EJ: SEMANA DE INGENIERÍA 2026" class="campo-input" :class="{ 'campo-error': errores.nombre_evento }" @input="validarCampo('nombre_evento')" />
-              <span v-if="errores.nombre_evento" class="mensaje-error">
+              <!-- CORRECCIÓN: v-model apunta a form.nombre (compatible con payload backend) -->
+              <input v-model="form.nombre" type="text" placeholder="EJ: SEMANA DE INGENIERÍA 2026" class="campo-input" :class="{ 'campo-error': errores.nombre }" @input="validarCampo('nombre')" />
+              <span v-if="errores.nombre" class="mensaje-error">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {{ errores.nombre_evento }}
+                {{ errores.nombre }}
               </span>
             </div>
 
@@ -69,15 +70,18 @@
             <div class="campo-form">
               <label class="campo-label">TIPO DE EVENTO <span class="requerido">*</span></label>
               <div class="select-wrap">
-                <select v-model="form.id_tipo_evento" class="campo-input campo-select" :class="{ 'campo-error': errores.id_tipo_evento }" @change="validarCampo('id_tipo_evento')">
+                <!-- CORRECCIÓN: v-model apunta a form.tipo_evento_id (campo correcto del backend) -->
+                <!-- CORRECCIÓN: :value usa t.id_tipo_evento (campo correcto de /api/tipos-evento) -->
+                <!-- CORRECCIÓN: texto usa t.nombre_tipo (campo correcto de /api/tipos-evento) -->
+                <select v-model="form.tipo_evento_id" class="campo-input campo-select" :class="{ 'campo-error': errores.tipo_evento_id }" @change="validarCampo('tipo_evento_id')">
                   <option value="">SELECCIONA UN TIPO</option>
                   <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">{{ t.nombre_tipo }}</option>
                 </select>
                 <svg class="select-icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
               </div>
-              <span v-if="errores.id_tipo_evento" class="mensaje-error">
+              <span v-if="errores.tipo_evento_id" class="mensaje-error">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {{ errores.id_tipo_evento }}
+                {{ errores.tipo_evento_id }}
               </span>
             </div>
 
@@ -91,7 +95,8 @@
                   <line x1="8" y1="2" x2="8" y2="6"/>
                   <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                <input v-model="form.fecha" type="date" :min="fechaMinima" class="campo-input campo-input-fecha" :class="{ 'campo-error': errores.fecha }" @change="validarCampo('fecha')" />
+                <!-- CORRECCIÓN: en modo edición no se restringe min para permitir fechas existentes -->
+                <input v-model="form.fecha" type="date" :min="modoEdicion ? undefined : fechaMinima" class="campo-input campo-input-fecha" :class="{ 'campo-error': errores.fecha }" @change="validarCampo('fecha')" />
               </div>
               <span v-if="errores.fecha" class="mensaje-error">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -99,86 +104,66 @@
               </span>
             </div>
 
-            <!-- Hora Inicio -->
+            <!-- Hora Inicio (campo visual — el backend no lo soporta, se mantiene como opcional/informativo) -->
             <div class="campo-form">
-              <label class="campo-label">HORA DE INICIO <span class="requerido">*</span></label>
+              <label class="campo-label">HORA DE INICIO</label>
               <div class="campo-hora-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
-                <input v-model="form.hora_inicio" type="time" class="campo-input campo-input-hora" :class="{ 'campo-error': errores.hora_inicio }" @change="validarCampo('hora_inicio')" />
+                <input v-model="form.hora_inicio" type="time" class="campo-input campo-input-hora" />
               </div>
-              <span v-if="errores.hora_inicio" class="mensaje-error">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {{ errores.hora_inicio }}
-              </span>
             </div>
 
-            <!-- Hora Fin -->
+            <!-- Hora Fin (campo visual — el backend no lo soporta, se mantiene como opcional/informativo) -->
             <div class="campo-form">
-              <label class="campo-label">HORA DE FIN <span class="requerido">*</span></label>
+              <label class="campo-label">HORA DE FIN</label>
               <div class="campo-hora-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
-                <input v-model="form.hora_fin" type="time" class="campo-input campo-input-hora" :class="{ 'campo-error': errores.hora_fin }" @change="validarCampo('hora_fin')" />
+                <input v-model="form.hora_fin" type="time" class="campo-input campo-input-hora" />
               </div>
-              <span v-if="errores.hora_fin" class="mensaje-error">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {{ errores.hora_fin }}
-              </span>
             </div>
 
-            <!-- Lugar -->
+            <!-- Lugar (campo visual — el backend no lo soporta, se mantiene como opcional/informativo) -->
             <div class="campo-form campo-ancho">
-              <label class="campo-label">LUGAR <span class="requerido">*</span></label>
+              <label class="campo-label">LUGAR</label>
               <div class="campo-icono-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                   <circle cx="12" cy="10" r="3"/>
                 </svg>
-                <input v-model="form.lugar" type="text" placeholder="EJ: AUDITORIO PRINCIPAL, SALA DE USOS MÚLTIPLES..." class="campo-input campo-input-icon" :class="{ 'campo-error': errores.lugar }" @input="validarCampo('lugar')" />
+                <input v-model="form.lugar" type="text" placeholder="EJ: AUDITORIO PRINCIPAL, SALA DE USOS MÚLTIPLES..." class="campo-input campo-input-icon" />
               </div>
-              <span v-if="errores.lugar" class="mensaje-error">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {{ errores.lugar }}
-              </span>
             </div>
 
-            <!-- Cupo -->
+            <!-- Cupo (campo visual — el backend no lo soporta, se mantiene como opcional/informativo) -->
             <div class="campo-form">
-              <label class="campo-label">CUPO MÁXIMO <span class="requerido">*</span></label>
+              <label class="campo-label">CUPO MÁXIMO</label>
               <div class="campo-icono-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                <input v-model.number="form.cupo" type="number" min="1" placeholder="EJ: 100" class="campo-input campo-input-icon" :class="{ 'campo-error': errores.cupo }" @input="validarCampo('cupo')" />
+                <input v-model.number="form.cupo" type="number" min="1" placeholder="EJ: 100" class="campo-input campo-input-icon" />
               </div>
-              <span v-if="errores.cupo" class="mensaje-error">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {{ errores.cupo }}
-              </span>
             </div>
 
-            <!-- Responsable -->
+            <!-- Responsable (campo visual — el backend no lo soporta, se mantiene como opcional/informativo) -->
             <div class="campo-form">
-              <label class="campo-label">RESPONSABLE <span class="requerido">*</span></label>
+              <label class="campo-label">RESPONSABLE</label>
               <div class="campo-icono-wrap">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" class="icono-campo">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
-                <input v-model="form.responsable" type="text" placeholder="NOMBRE DEL RESPONSABLE DEL EVENTO" class="campo-input campo-input-icon" :class="{ 'campo-error': errores.responsable }" @input="validarCampo('responsable')" />
+                <input v-model="form.responsable" type="text" placeholder="NOMBRE DEL RESPONSABLE DEL EVENTO" class="campo-input campo-input-icon" />
               </div>
-              <span v-if="errores.responsable" class="mensaje-error">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {{ errores.responsable }}
-              </span>
             </div>
 
-            <!-- Constancia -->
+            <!-- Constancia (campo visual — el backend no lo soporta, se mantiene como opcional/informativo) -->
             <div class="campo-form campo-ancho">
               <label class="campo-label">GENERA CONSTANCIA</label>
               <div class="campo-toggle-card" :class="{ 'toggle-activo': form.genera_constancia }">
@@ -204,7 +189,7 @@
               </div>
             </div>
 
-            <!-- Descripción -->
+            <!-- Descripción (campo soportado por el backend — opcional) -->
             <div class="campo-form campo-ancho">
               <label class="campo-label">DESCRIPCIÓN</label>
               <textarea v-model="form.descripcion" rows="4" placeholder="DESCRIBE BREVEMENTE EL OBJETIVO O CONTENIDO DEL EVENTO..." class="campo-input campo-textarea"></textarea>
@@ -254,139 +239,230 @@ import { useRouter, useRoute } from 'vue-router'
 import MainLayout from '@/layouts/MainLayout.vue'
 
 const router = useRouter()
-const route = useRoute()
-const API = `${import.meta.env.VITE_API_URL}/api`
+const route  = useRoute()
+const API    = `${import.meta.env.VITE_API_URL}/api`
 
-// Token de autenticación
-const token = localStorage.getItem('auth_token')
-const headers = { 'Content-Type': 'application/json', ...(token && { 'Authorization': `Bearer ${token}` }) }
-const headersGet = token ? { 'Authorization': `Bearer ${token}` } : {}
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const token     = localStorage.getItem('auth_token')
+const headers   = { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) }
+const headersGet = token ? { Authorization: `Bearer ${token}` } : {}
 
+// ── Estado global ─────────────────────────────────────────────────────────────
 const modoEdicion = computed(() => !!route.params.id)
-const cargando = ref(false)
+const cargando    = ref(false)
 const tiposEvento = ref([])
-const toast = ref({ visible: false, mensaje: '', tipo: 'exito' })
-let timerToast = null
+const toast       = ref({ visible: false, mensaje: '', tipo: 'exito' })
+let   timerToast  = null
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
 const mostrarToast = (m, t = 'exito') => {
   if (timerToast) clearTimeout(timerToast)
   toast.value = { visible: true, mensaje: m, tipo: t }
-  timerToast = setTimeout(() => toast.value.visible = false, 3500)
+  timerToast  = setTimeout(() => (toast.value.visible = false), 3500)
 }
 
+// ── Fecha mínima para creación ────────────────────────────────────────────────
 const fechaMinima = computed(() => new Date().toISOString().split('T')[0])
+
+// ── Formulario ────────────────────────────────────────────────────────────────
+// CORRECCIÓN: campos renombrados para coincidir exactamente con el backend.
+//   - nombre        → backend POST/PUT espera "nombre"
+//   - tipo_evento_id → backend POST/PUT espera "tipo_evento_id"
+//   - fecha          → backend POST/PUT espera "fecha"
+//   - descripcion    → backend POST/PUT espera "descripcion" (opcional)
+//
+// Los siguientes campos son de uso visual únicamente (backend no los procesa):
+//   hora_inicio, hora_fin, lugar, cupo, responsable, genera_constancia
 const form = ref({
-  nombre_evento:     '',
-  id_tipo_evento:    '',
+  nombre:            '',
+  tipo_evento_id:    '',
   fecha:             '',
+  descripcion:       '',
+  // Campos visuales (no se envían al backend)
   hora_inicio:       '',
   hora_fin:          '',
   lugar:             '',
   cupo:              '',
   responsable:       '',
   genera_constancia: false,
-  descripcion:       '',
-})
-const errores = ref({
-  nombre_evento:  '',
-  id_tipo_evento: '',
-  fecha:          '',
-  hora_inicio:    '',
-  hora_fin:       '',
-  lugar:          '',
-  cupo:           '',
-  responsable:    '',
 })
 
+// ── Errores ───────────────────────────────────────────────────────────────────
+// CORRECCIÓN: sólo se validan los campos que el backend realmente requiere.
+const errores = ref({
+  nombre:         '',
+  tipo_evento_id: '',
+  fecha:          '',
+})
+
+// ── Formulario vacío ──────────────────────────────────────────────────────────
+const resetForm = () => {
+  form.value = {
+    nombre:            '',
+    tipo_evento_id:    '',
+    fecha:             '',
+    descripcion:       '',
+    hora_inicio:       '',
+    hora_fin:          '',
+    lugar:             '',
+    cupo:              '',
+    responsable:       '',
+    genera_constancia: false,
+  }
+  errores.value = { nombre: '', tipo_evento_id: '', fecha: '' }
+}
+
+// ── Cargar tipos de evento ────────────────────────────────────────────────────
+// GET /api/tipos-evento → [{ id_tipo_evento, nombre_tipo, ... }]
 const cargarTipos = async () => {
   try {
     const r = await fetch(`${API}/tipos-evento`, { headers: headersGet })
-    if (!r.ok) throw new Error()
+    if (!r.ok) throw new Error('Error al cargar tipos')
     tiposEvento.value = await r.json()
   } catch {
     mostrarToast('No se pudieron cargar los tipos de evento.', 'error')
   }
 }
 
+// ── Cargar evento para edición ────────────────────────────────────────────────
+// GET /api/eventos/{id} devuelve:
+//   { id, id_evento, nombre, nombre_evento, tipo, tipo_evento_id,
+//     tipo_evento: { id_tipo_evento, nombre_tipo },
+//     fecha, descripcion, participantes, cupo_maximo }
 const cargarEvento = async () => {
   cargando.value = true
   try {
     const r = await fetch(`${API}/eventos/${route.params.id}`, { headers: headersGet })
-    if (!r.ok) throw new Error()
+
+    if (r.status === 404) {
+      mostrarToast('Evento no encontrado.', 'error')
+      router.push('/eventos')
+      return
+    }
+    if (!r.ok) throw new Error(`Error ${r.status}`)
+
     const d = await r.json()
+
+    // CORRECCIÓN: mapeo correcto de campos del backend al formulario.
+    //   - d.nombre_evento ?? d.nombre  → ambos alias vienen del backend
+    //   - d.tipo_evento_id             → campo real del backend (antes se usaba d.id_tipo_evento — INCORRECTO)
+    //   - d.fecha                      → correcto
+    //   - d.descripcion                → correcto
+    //   - El resto de campos visuales no existen en el backend; se dejan vacíos.
     form.value = {
-      nombre_evento:     d.nombre_evento,
-      id_tipo_evento:    d.id_tipo_evento,
-      fecha:             d.fecha,
-      hora_inicio:       d.hora_inicio    || '',
-      hora_fin:          d.hora_fin       || '',
-      lugar:             d.lugar          || '',
-      cupo:              d.cupo           || '',
-      responsable:       d.responsable    || '',
-      genera_constancia: !!d.genera_constancia,
-      descripcion:       d.descripcion    || '',
+      nombre:            d.nombre_evento ?? d.nombre ?? '',
+      tipo_evento_id:    d.tipo_evento_id ?? '',
+      fecha:             d.fecha          ?? '',
+      descripcion:       d.descripcion    ?? '',
+      // Campos visuales — backend no los devuelve
+      hora_inicio:       '',
+      hora_fin:          '',
+      lugar:             '',
+      cupo:              '',
+      responsable:       '',
+      genera_constancia: false,
     }
   } catch (e) {
     console.error(e)
-    mostrarToast('No se pudo cargar el evento', 'error')
+    mostrarToast('No se pudo cargar el evento.', 'error')
   } finally {
     cargando.value = false
   }
 }
 
+// ── Ciclo de vida ─────────────────────────────────────────────────────────────
 onMounted(() => {
   cargarTipos()
-  if (modoEdicion.value) cargarEvento()
+  if (modoEdicion.value) {
+    cargarEvento()
+  } else {
+    resetForm()
+  }
 })
 
+// ── Validación por campo ──────────────────────────────────────────────────────
+// CORRECCIÓN: sólo se validan los 3 campos requeridos por el backend.
 const validarCampo = (c) => {
   errores.value[c] = ''
-  if (c === 'nombre_evento'  && !form.value.nombre_evento.trim())  errores.value.nombre_evento  = 'Requerido'
-  if (c === 'id_tipo_evento' && !form.value.id_tipo_evento)        errores.value.id_tipo_evento = 'Selecciona un tipo'
+
+  if (c === 'nombre') {
+    if (!form.value.nombre.trim()) errores.value.nombre = 'Requerido'
+  }
+
+  if (c === 'tipo_evento_id') {
+    if (!form.value.tipo_evento_id) errores.value.tipo_evento_id = 'Selecciona un tipo'
+  }
+
   if (c === 'fecha') {
-    if (!form.value.fecha)                               errores.value.fecha = 'Requerida'
-    else if (form.value.fecha < fechaMinima.value)       errores.value.fecha = 'La fecha no puede ser pasada'
+    if (!form.value.fecha) {
+      errores.value.fecha = 'Requerida'
+    } else if (!modoEdicion.value && form.value.fecha < fechaMinima.value) {
+      // CORRECCIÓN: la validación de fecha pasada sólo aplica al crear,
+      // porque un evento editado puede tener fecha en el pasado.
+      errores.value.fecha = 'La fecha no puede ser pasada'
+    }
   }
-  if (c === 'hora_inicio' && !form.value.hora_inicio)   errores.value.hora_inicio  = 'Requerida'
-  if (c === 'hora_fin') {
-    if (!form.value.hora_fin)                            errores.value.hora_fin = 'Requerida'
-    else if (form.value.hora_inicio && form.value.hora_fin <= form.value.hora_inicio)
-                                                         errores.value.hora_fin = 'Debe ser después de la hora de inicio'
-  }
-  if (c === 'lugar'       && !form.value.lugar.trim())   errores.value.lugar       = 'Requerido'
-  if (c === 'cupo'        && (!form.value.cupo || form.value.cupo < 1)) errores.value.cupo = 'Debe ser mayor a 0'
-  if (c === 'responsable' && !form.value.responsable.trim()) errores.value.responsable = 'Requerido'
 }
 
+// ── Validación completa ───────────────────────────────────────────────────────
+// CORRECCIÓN: sólo valida los campos que el backend requiere (nombre, tipo_evento_id, fecha).
 const validarTodo = () => {
-  ['nombre_evento', 'id_tipo_evento', 'fecha', 'hora_inicio', 'hora_fin', 'lugar', 'cupo', 'responsable'].forEach(validarCampo)
+  ['nombre', 'tipo_evento_id', 'fecha'].forEach(validarCampo)
   return !Object.values(errores.value).some(Boolean)
 }
 
+// ── Guardar (crear / actualizar) ──────────────────────────────────────────────
 const guardar = async () => {
-  if (!validarTodo()) return mostrarToast('Revisa los campos marcados', 'error')
+  if (!validarTodo()) {
+    mostrarToast('Revisa los campos marcados.', 'error')
+    return
+  }
+
   cargando.value = true
+
   try {
-    const url = modoEdicion.value ? `${API}/eventos/${route.params.id}` : `${API}/eventos`
+    const url    = modoEdicion.value ? `${API}/eventos/${route.params.id}` : `${API}/eventos`
     const method = modoEdicion.value ? 'PUT' : 'POST'
+
+    // CORRECCIÓN: payload exacto que espera el backend.
+    //   Campos enviados:  nombre, tipo_evento_id, fecha, descripcion
+    //   Campos NO enviados: nombre_evento, tipo, tipo_evento, cupo_maximo,
+    //                       hora_inicio, hora_fin, lugar, cupo,
+    //                       responsable, genera_constancia
     const payload = {
-      nombre:            form.value.nombre_evento.trim(),
-      tipo_evento_id:    Number(form.value.id_tipo_evento),
-      fecha:             form.value.fecha,
-      hora_inicio:       form.value.hora_inicio,
-      hora_fin:          form.value.hora_fin,
-      lugar:             form.value.lugar.trim(),
-      cupo:              Number(form.value.cupo),
-      responsable:       form.value.responsable.trim(),
-      genera_constancia: form.value.genera_constancia ? 1 : 0,
-      descripcion:       form.value.descripcion.trim() || null,
+      nombre:         form.value.nombre.trim(),
+      tipo_evento_id: Number(form.value.tipo_evento_id),
+      fecha:          form.value.fecha,
+      descripcion:    form.value.descripcion.trim() || null,
     }
+
     const res = await fetch(url, { method, headers, body: JSON.stringify(payload) })
-    if (!res.ok) throw new Error((await res.json()).message || 'Error del servidor')
-    mostrarToast(modoEdicion.value ? 'Evento actualizado' : 'Evento creado')
+
+    // CORRECCIÓN: manejo explícito de errores 422 (validación), 404 y 500.
+    if (res.status === 422) {
+      const body = await res.json()
+      // Laravel devuelve { message, errors: { campo: [mensajes] } }
+      const msgs = body.errors
+        ? Object.values(body.errors).flat().join(' · ')
+        : body.message || 'Datos inválidos.'
+      mostrarToast(msgs, 'error')
+      return
+    }
+
+    if (res.status === 404) {
+      mostrarToast('Evento no encontrado.', 'error')
+      return
+    }
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.message || `Error del servidor (${res.status})`)
+    }
+
+    mostrarToast(modoEdicion.value ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.')
     setTimeout(() => router.push('/eventos'), 800)
   } catch (e) {
-    mostrarToast(e.message, 'error')
+    mostrarToast(e.message || 'Ocurrió un error inesperado.', 'error')
   } finally {
     cargando.value = false
   }

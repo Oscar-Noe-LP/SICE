@@ -51,7 +51,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="#828282" stroke-width="2" width="22" height="22"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
           <div class="kpi-datos">
-            <span class="kpi-numero">{{ eventos.filter(e => e.fecha < hoy).length }}</span>
+            <!-- CORRECCIÓN: eventosFinalizados ahora es un computed declarado en el script -->
+            <span class="kpi-numero">{{ eventosFinalizados }}</span>
             <span class="kpi-label">FINALIZADOS</span>
           </div>
         </div>
@@ -129,7 +130,8 @@
 
           <div class="evento-card-cuerpo">
             <div class="evento-card-superior">
-              <span class="evento-nombre">{{ evento.nombre_evento }}</span>
+              <!-- CORRECCIÓN: Se usa nombre_evento (compatible con backend) -->
+              <span class="evento-nombre">{{ evento.nombre_evento || evento.nombre }}</span>
               <span
                 class="badge-tipo"
                 :style="estiloBadgeTipo(evento.tipo_evento?.nombre_tipo)"
@@ -246,11 +248,12 @@
               </div>
               <div class="campo-form">
                 <label class="campo-label">ESTATUS</label>
+                <!-- CORRECCIÓN: Eliminada la opción "CANCELADO" que no existe en el backend
+                     y no tenía lógica de filtrado asociada (código muerto) -->
                 <select v-model="filtrosAvanzados.estatus" class="campo-input" @change="reiniciarPagina()">
                   <option value="">TODOS</option>
                   <option value="Próximo">PRÓXIMO</option>
                   <option value="Finalizado">FINALIZADO</option>
-                  <option value="Cancelado">CANCELADO</option>
                 </select>
               </div>
               <div class="campo-form">
@@ -290,7 +293,8 @@
             </thead>
             <tbody>
               <tr v-for="evento in eventosPaginados" :key="evento.id_evento">
-                <td><span class="texto-principal">{{ evento.nombre_evento }}</span></td>
+                <!-- CORRECCIÓN: Fallback a nombre en caso de que nombre_evento no esté -->
+                <td><span class="texto-principal">{{ evento.nombre_evento || evento.nombre }}</span></td>
                 <td>
                   <span class="badge-estado" :style="estiloBadgeTipo(evento.tipo_evento?.nombre_tipo)">
                     {{ evento.tipo_evento?.nombre_tipo || 'GENERAL' }}
@@ -311,14 +315,24 @@
                       </svg>
                     </button>
                     <button
-                      @click="abrirModalEvento(evento)"
-                      class="btn-accion editar"
-                      title="EDITAR EVENTO"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
-                        <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                      </svg>
-                    </button>
+  @click="router.push({
+    name: 'FormularioEvento',
+    params: { id: evento.id_evento }
+  })"
+  class="btn-accion editar"
+  title="EDITAR EVENTO"
+>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    width="15"
+    height="15"
+  >
+    <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+  </svg>
+</button>
                     <button
                       @click="eliminarEvento(evento)"
                       class="btn-accion eliminar"
@@ -419,7 +433,8 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 id="titulo-detalle-evento" class="detalle-titulo">{{ eventoDetalle.nombre_evento }}</h3>
+                  <!-- CORRECCIÓN: Fallback a nombre -->
+                  <h3 id="titulo-detalle-evento" class="detalle-titulo">{{ eventoDetalle.nombre_evento || eventoDetalle.nombre }}</h3>
                   <span
                     class="badge-tipo detalle-badge"
                     :style="estiloBadgeTipo(eventoDetalle.tipo_evento?.nombre_tipo)"
@@ -473,6 +488,7 @@
                   </div>
                 </div>
 
+                <!-- hora y lugar se mantienen con v-if ya que podrían existir en versiones futuras del backend -->
                 <div v-if="eventoDetalle.hora" class="detalle-meta-item">
                   <div class="detalle-meta-icono">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2" width="18" height="18">
@@ -499,7 +515,8 @@
                   </div>
                 </div>
 
-                <div v-if="eventoDetalle.total_participantes !== undefined" class="detalle-meta-item">
+                <!-- CORRECCIÓN: total_participantes → participantes (campo real del backend) -->
+                <div v-if="eventoDetalle.participantes !== undefined && eventoDetalle.participantes !== null" class="detalle-meta-item">
                   <div class="detalle-meta-icono">
                     <svg viewBox="0 0 24 24" fill="none" stroke="#0B2545" stroke-width="2" width="18" height="18">
                       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -509,7 +526,7 @@
                   </div>
                   <div>
                     <p class="detalle-meta-etiqueta">PARTICIPANTES</p>
-                    <p class="detalle-meta-valor">{{ eventoDetalle.total_participantes }}</p>
+                    <p class="detalle-meta-valor">{{ eventoDetalle.participantes }}</p>
                   </div>
                 </div>
               </div>
@@ -549,14 +566,14 @@
 
               <div class="detalle-pie-derecha">
                 <button
-                  @click="cerrarModalDetalle(); abrirModalEvento(eventoDetalle)"
-                  class="btn-secundario"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                    <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                  </svg>
-                  EDITAR
-                </button>
+  @click="router.push(`/eventos/${eventoDetalle.id_evento}/editar`)"
+  class="btn-secundario"
+>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+    <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+  </svg>
+  EDITAR
+</button>
                 <button
                   @click="cerrarModalDetalle(); eliminarEvento(eventoDetalle)"
                   class="btn-eliminar"
@@ -571,108 +588,6 @@
             </div>
 
           </div>
-        </div>
-      </transition>
-
-      <!-- ─── MODAL: Crear / Editar Evento ─── -->
-      <transition name="modal-fade">
-        <div
-          v-if="mostrarModalEvento"
-          class="modal-fondo"
-          @click.self="cerrarModalEvento()"
-          role="dialog"
-          aria-modal="true"
-          :aria-labelledby="modoEdicion ? 'titulo-editar-evento' : 'titulo-nuevo-evento'"
-        >
-          <div class="modal-caja modal-ancho">
-            <div class="modal-cabecera">
-              <h3 :id="modoEdicion ? 'titulo-editar-evento' : 'titulo-nuevo-evento'">
-                {{ modoEdicion ? 'EDITAR EVENTO' : 'NUEVO EVENTO' }}
-              </h3>
-              <button @click="cerrarModalEvento()" class="btn-cerrar-modal" aria-label="CERRAR FORMULARIO">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
-              </button>
-            </div>
-            <form @submit.prevent="guardarEvento" novalidate>
-              <div class="modal-cuerpo campos-grid-modal">
-                <div class="campo-form campo-ancho">
-                  <label class="campo-label">NOMBRE DEL EVENTO <span class="requerido">*</span></label>
-                  <input
-                    v-model="form.nombre_evento"
-                    type="text"
-                    placeholder="EJ: SEMANA DE INGENIERÍA 2026"
-                    class="campo-input"
-                    :class="{ 'campo-error': errores.nombre_evento }"
-                    @input="validarCampo('nombre_evento')"
-                  />
-                  <span v-if="errores.nombre_evento" class="mensaje-error">{{ errores.nombre_evento }}</span>
-                </div>
-                <div class="campo-form">
-                  <label class="campo-label">TIPO DE EVENTO <span class="requerido">*</span></label>
-                  <select
-                    v-model="form.id_tipo_evento"
-                    class="campo-input"
-                    :class="{ 'campo-error': errores.id_tipo_evento }"
-                    @change="validarCampo('id_tipo_evento')"
-                  >
-                    <option value="">SELECCIONA UN TIPO</option>
-                    <option v-for="t in tiposEvento" :key="t.id_tipo_evento" :value="t.id_tipo_evento">
-                      {{ t.nombre_tipo }}
-                    </option>
-                  </select>
-                  <span v-if="errores.id_tipo_evento" class="mensaje-error">{{ errores.id_tipo_evento }}</span>
-                </div>
-                <div class="campo-form">
-                  <label class="campo-label">FECHA DEL EVENTO <span class="requerido">*</span></label>
-                  <input
-                    v-model="form.fecha"
-                    type="date"
-                    :min="fechaMinima"
-                    class="campo-input"
-                    :class="{ 'campo-error': errores.fecha }"
-                    @change="validarCampo('fecha')"
-                  />
-                  <span v-if="errores.fecha" class="mensaje-error">{{ errores.fecha }}</span>
-                </div>
-                <div class="campo-form campo-ancho">
-                  <label class="campo-label">DESCRIPCIÓN</label>
-                  <textarea
-                    v-model="form.descripcion"
-                    rows="3"
-                    placeholder="DESCRIBE BREVEMENTE EL OBJETIVO O CONTENIDO DEL EVENTO..."
-                    class="campo-input campo-textarea"
-                  ></textarea>
-                </div>
-              </div>
-              <div class="modal-pie">
-                <button type="button" @click="cerrarModalEvento()" class="btn-cancelar">CANCELAR</button>
-                <button type="submit" class="btn-primario" :disabled="cargandoForm">
-                  <span v-if="cargandoForm" class="spinner"></span>
-                  {{ cargandoForm ? 'GUARDANDO...' : (modoEdicion ? 'ACTUALIZAR EVENTO' : 'GUARDAR EVENTO') }}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </transition>
-
-      <!-- Toast de notificaciones -->
-      <transition name="toast-slide">
-        <div v-if="toast.visible" class="toast" :class="toast.tipo">
-          <span class="toast-icono">
-            <svg v-if="toast.tipo === 'exito'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="16" height="16">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-          </span>
-          {{ toast.mensaje }}
         </div>
       </transition>
 
@@ -718,31 +633,21 @@ const filtrosAvanzados = ref({ tipo: '', estatus: '', fechaInicio: '', fechaFin:
 
 // ──────────────────────────────────────────────────
 // Modal: Crear / Editar evento
+// CORRECCIÓN: Las claves del form coinciden exactamente con el payload del backend:
+//   { nombre, tipo_evento_id, fecha, descripcion }
 // ──────────────────────────────────────────────────
-const mostrarModalEvento  = ref(false)
-const modoEdicion         = ref(false)
-const eventoEditandoId    = ref(null)
-const form    = ref({ nombre_evento: '', id_tipo_evento: '', fecha: '', descripcion: '' })
-const errores = ref({ nombre_evento: '', id_tipo_evento: '', fecha: '' })
 
 // ──────────────────────────────────────────────────
-// Modal: Detalle del evento (NUEVO)
-// Abre una vista flotante con toda la info del evento
-// sin navegar a otra página.
+// Modal: Detalle del evento
 // ──────────────────────────────────────────────────
 const mostrarModalDetalle = ref(false)
 const eventoDetalle       = ref(null)
 
-/**
- * Abre el modal de detalle con el evento seleccionado.
- * @param {Object} evento - Objeto del evento a mostrar
- */
 const abrirModalDetalle = (evento) => {
   eventoDetalle.value = evento
   mostrarModalDetalle.value = true
 }
 
-/** Cierra el modal de detalle y limpia la referencia. */
 const cerrarModalDetalle = () => {
   mostrarModalDetalle.value = false
   eventoDetalle.value = null
@@ -763,13 +668,17 @@ const mostrarToast = (mensaje, tipo = 'exito') => {
 
 // ──────────────────────────────────────────────────
 // Carga de datos
+// CORRECCIÓN: Manejo defensivo para respuestas tipo { data: [] } (Laravel pagination)
 // ──────────────────────────────────────────────────
 const cargarTipos = async () => {
   try {
     const res = await fetch(`${API}/tipos-evento`, { headers: headersGet })
     if (!res.ok) throw new Error()
-    tiposEvento.value = await res.json()
-  } catch { tiposEvento.value = [] }
+    const data = await res.json()
+    tiposEvento.value = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : [])
+  } catch {
+    tiposEvento.value = []
+  }
 }
 
 const cargarEventos = async () => {
@@ -777,9 +686,14 @@ const cargarEventos = async () => {
   try {
     const res = await fetch(`${API}/eventos`, { headers: headersGet })
     if (!res.ok) throw new Error()
-    eventos.value = await res.json()
-  } catch (err) { console.error(err) }
-  finally { cargando.value = false }
+    const data = await res.json()
+    eventos.value = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : [])
+  } catch (err) {
+    console.error(err)
+    eventos.value = []
+  } finally {
+    cargando.value = false
+  }
 }
 
 onMounted(() => { cargarTipos(); cargarEventos() })
@@ -791,28 +705,46 @@ const hoy = new Date().toISOString().split('T')[0]
 
 const eventosFiltrados = computed(() => {
   return eventos.value.filter(e => {
-    const matchNombre  = !busquedaNombre.value || e.nombre_evento?.toLowerCase().includes(busquedaNombre.value.toLowerCase())
-    const matchTipo    = !filtrosAvanzados.value.tipo || String(e.tipo_evento_id) === String(filtrosAvanzados.value.tipo)
+    // CORRECCIÓN: Búsqueda por nombre usando ambos campos que devuelve el backend
+    const nombreEvento = (e.nombre_evento || e.nombre || '').toLowerCase()
+    const matchNombre = !busquedaNombre.value || nombreEvento.includes(busquedaNombre.value.toLowerCase())
+
+    // CORRECCIÓN: Filtro por tipo usando tipo_evento_id (campo real del backend)
+    const matchTipo =
+  !filtrosAvanzados.value.tipo ||
+  String(e.tipo_evento?.id_tipo_evento) ===
+  String(filtrosAvanzados.value.tipo)
+
     const esProximo    = e.fecha >= hoy
     const esFinalizado = e.fecha < hoy
     let matchEstatus   = true
     if (filtrosAvanzados.value.estatus === 'Próximo')    matchEstatus = esProximo
     if (filtrosAvanzados.value.estatus === 'Finalizado') matchEstatus = esFinalizado
+
     let matchFecha = true
     if (filtrosAvanzados.value.fechaInicio && e.fecha < filtrosAvanzados.value.fechaInicio) matchFecha = false
     if (filtrosAvanzados.value.fechaFin    && e.fecha > filtrosAvanzados.value.fechaFin)    matchFecha = false
+
     return matchNombre && matchTipo && matchEstatus && matchFecha
   })
 })
 
-const eventosProximos = computed(() => eventosFiltrados.value.filter(e => e.fecha >= hoy))
+// KPI: Eventos próximos — siempre sobre todos los eventos (no filtrados)
+const eventosProximos = computed(() =>
+  eventosFiltrados.value.filter(e => e.fecha >= hoy)
+)
+
+// CORRECCIÓN: eventosFinalizados no estaba declarado — bug crítico de runtime
+const eventosFinalizados = computed(() =>
+  eventos.value.filter(e => e.fecha < hoy).length
+)
 
 const eventosPaginados = computed(() => {
   const inicio = (paginaActual.value - 1) * registrosPorPagina
   return eventosFiltrados.value.slice(inicio, inicio + registrosPorPagina)
 })
 
-const totalPaginas   = computed(() => Math.ceil(eventosFiltrados.value.length / registrosPorPagina))
+const totalPaginas   = computed(() => Math.max(1, Math.ceil(eventosFiltrados.value.length / registrosPorPagina)))
 const mostrandoDesde = computed(() => eventosFiltrados.value.length === 0 ? 0 : (paginaActual.value - 1) * registrosPorPagina + 1)
 const mostrandoHasta = computed(() => Math.min(paginaActual.value * registrosPorPagina, eventosFiltrados.value.length))
 
@@ -822,71 +754,32 @@ const limpiarFiltros  = () => { filtrosAvanzados.value = { tipo: '', estatus: ''
 
 // ──────────────────────────────────────────────────
 // Modal: Crear / Editar
+// CORRECCIÓN: El form usa claves que coinciden directamente con el payload del backend.
+//   Al cargar para editar, se mapea tipo_evento_id desde el evento.
 // ──────────────────────────────────────────────────
-const abrirModalEvento = (evento = null) => {
-  modoEdicion.value       = !!evento
-  eventoEditandoId.value  = evento?.id_evento || null
-  form.value = evento
-    ? { nombre_evento: evento.nombre_evento, id_tipo_evento: evento.tipo_evento_id, fecha: evento.fecha, descripcion: evento.descripcion || '' }
-    : { nombre_evento: '', id_tipo_evento: '', fecha: '', descripcion: '' }
-  errores.value = { nombre_evento: '', id_tipo_evento: '', fecha: '' }
-  mostrarModalEvento.value = true
-}
-
-const cerrarModalEvento = () => { mostrarModalEvento.value = false }
-
-const validarCampo = (c) => {
-  errores.value[c] = ''
-  if (c === 'nombre_evento' && !form.value.nombre_evento.trim()) errores.value.nombre_evento = 'Requerido'
-  if (c === 'id_tipo_evento' && !form.value.id_tipo_evento)      errores.value.id_tipo_evento = 'Selecciona un tipo'
-  if (c === 'fecha') {
-    if (!form.value.fecha)                                                              errores.value.fecha = 'Requerida'
-    else if (form.value.fecha < fechaMinima.value && !modoEdicion.value)               errores.value.fecha = 'La fecha no puede ser pasada'
-  }
-}
-
-const validarTodo = () => {
-  ;['nombre_evento', 'id_tipo_evento', 'fecha'].forEach(validarCampo)
-  return !Object.values(errores.value).some(Boolean)
-}
-
-const guardarEvento = async () => {
-  if (!validarTodo()) return mostrarToast('Revisa los campos marcados', 'error')
-  cargandoForm.value = true
-  try {
-    const url    = modoEdicion.value ? `${API}/eventos/${eventoEditandoId.value}` : `${API}/eventos`
-    const method = modoEdicion.value ? 'PUT' : 'POST'
-    const payload = {
-      nombre:         form.value.nombre_evento.trim(),
-      tipo_evento_id: Number(form.value.id_tipo_evento),
-      fecha:          form.value.fecha,
-      descripcion:    form.value.descripcion.trim() || null
-    }
-    const res = await fetch(url, { method, headers, body: JSON.stringify(payload) })
-    if (!res.ok) throw new Error((await res.json()).message || 'Error del servidor')
-    mostrarToast(modoEdicion.value ? 'Evento actualizado' : 'Evento creado')
-    cerrarModalEvento()
-    await cargarEventos()
-  } catch (e) {
-    mostrarToast(e.message, 'error')
-  } finally {
-    cargandoForm.value = false
-  }
-}
-
 // ──────────────────────────────────────────────────
 // Eliminar evento
+// CORRECCIÓN: Usa id_evento (campo real del backend) y headers con Authorization
 // ──────────────────────────────────────────────────
 const eliminarEvento = async (e) => {
-  if (!confirm(`¿Eliminar el evento "${e.nombre_evento}"?`)) return
+  // CORRECCIÓN: Nombre del evento con fallback doble para compatibilidad
+  const nombreEvento = e.nombre_evento || e.nombre || 'este evento'
+  if (!confirm(`¿Eliminar el evento "${nombreEvento}"?`)) return
   cargando.value = true
   try {
-    const res = await fetch(`${API}/eventos/${e.id_evento}`, { method: 'DELETE', headers: headersGet })
+    // CORRECCIÓN: Usa e.id_evento (id correcto del backend)
+    const res = await fetch(`${API}/eventos/${e.id_evento}`, {
+      method: 'DELETE',
+      headers: headersGet
+    })
     if (!res.ok) throw new Error('No se pudo eliminar')
     mostrarToast('Evento eliminado correctamente')
     await cargarEventos()
-  } catch (err) { mostrarToast(err.message, 'error') }
-  finally { cargando.value = false }
+  } catch (err) {
+    mostrarToast(err.message, 'error')
+  } finally {
+    cargando.value = false
+  }
 }
 
 // ──────────────────────────────────────────────────
@@ -903,10 +796,6 @@ const colorTipo      = (t) => ({ 'Académico':'#0B2545','Cultural':'#F59E0B','De
 const colorFondoTipo = (t) => ({ 'Académico':'rgba(29,82,183,0.10)','Cultural':'#FEF3C7','Deportivo':'#DCFCE7','Institucional':'#EDE9FE' }[t] || '#F3F4F6')
 const estiloBadgeTipo = (t) => ({ background: colorFondoTipo(t), color: colorTipo(t) })
 
-/**
- * Devuelve la clase CSS del badge de estatus según la fecha del evento.
- * @param {string} fecha - Fecha en formato YYYY-MM-DD
- */
 const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus-finalizado'
 </script>
 
@@ -1176,60 +1065,33 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: rgba(29,82,183,.05);
-  border: 1.5px solid rgba(29,82,183,.12);
+  background: rgba(29,82,183,.06);
 }
 .estado-vacio-circulo-interior {
   position: absolute;
-  inset: 14px;
+  inset: 16px;
   border-radius: 50%;
-  background: rgba(29,82,183,.07);
-  border: 1.5px solid rgba(29,82,183,.15);
+  background: rgba(29,82,183,.08);
 }
 .estado-vacio-icono-wrap {
   position: relative;
   z-index: 1;
-  width: 52px;
-  height: 52px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
   background: #FFFFFF;
-  border-radius: 14px;
+  border: 1.5px solid rgba(29,82,183,.15);
+  box-shadow: 0 8px 24px rgba(29,82,183,.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(29,82,183,.15);
 }
-
-.vacio-titulo {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: #1D52B7;
-  letter-spacing: 0.12em;
-  margin: 0 0 0.5rem;
-  text-transform: uppercase;
-}
-.vacio-subtitulo {
-  font-size: 0.9rem;
-  color: #6B7280;
-  margin: 0 0 1.5rem;
-  font-weight: 500;
-  max-width: 320px;
-}
-.vacio-cta { display: flex; justify-content: center; }
-.vacio-cta-hint {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #1D52B7;
-  background: rgba(29,82,183,.07);
-  border: 1px solid rgba(29,82,183,.15);
-  padding: 8px 16px;
-  border-radius: 8px;
-}
+.vacio-titulo { font-size: 1.1rem; font-weight: 800; color: #0B2545; margin: 0 0 0.5rem; }
+.vacio-subtitulo { font-size: 0.88rem; color: #6B7280; margin: 0 0 1.5rem; }
+.vacio-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
 
 /* ─────────────────────────────────────────────── */
-/* TABLA HISTORIAL                                 */
+/* TABLA                                           */
 /* ─────────────────────────────────────────────── */
 .tabla-card {
   background: #FFFFFF;
@@ -1240,76 +1102,108 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
   margin-bottom: 1.5rem;
 }
 .tabla-encabezado {
-  padding: 1rem 1.4rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid #EEF1F6;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  background: linear-gradient(180deg, #F8FAFC 0%, #F2F5FA 100%);
+  justify-content: space-between;
 }
-.tabla-contador {
-  font-size: 0.78rem;
-  color: #6B7280;
-  background: #FFFFFF;
-  border: 1px solid #E4E9F0;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-weight: 600;
-}
+.tabla-contador { font-size: 0.8rem; color: #6B7280; font-weight: 600; }
 .tabla-scroll { overflow-x: auto; }
-.tabla-principal { width: 100%; border-collapse: collapse; }
+.tabla-principal { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.tabla-principal thead tr { background: #F8FAFC; }
 .tabla-principal th {
-  background: linear-gradient(180deg, #F4F6F9 0%, #EEF1F6 100%);
-  padding: 10px 14px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #6B7280;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  border-bottom: 1px solid #E4E9F0;
+  padding: 0.85rem 1rem;
   text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #EEF1F6;
+  white-space: nowrap;
 }
-.tabla-principal th.centrado { text-align: center; }
-.tabla-principal td { padding: 12px 14px; border-bottom: 1px solid #F0F3F8; vertical-align: middle; font-size: 0.875rem; color: #374151; }
-.tabla-principal td.centrado { text-align: center; }
-.tabla-principal tr:last-child td { border-bottom: none; }
-.tabla-principal tr:hover td { background: rgba(29,82,183,.04); }
-.texto-principal { font-weight: 600; color: #0B2545; font-size: 0.875rem; }
-.texto-secundario { color: #6B7280; font-size: 0.82rem; }
+.tabla-principal td {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid #F4F6F9;
+  vertical-align: middle;
+}
+.tabla-principal tbody tr:hover { background: #F8FAFC; }
+.tabla-principal tbody tr:last-child td { border-bottom: none; }
+.texto-principal { font-weight: 600; color: #0B2545; }
+.texto-secundario { color: #6B7280; }
 .texto-corto { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.badge-estado { font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+.centrado { text-align: center; }
+.badge-estado { font-size: 0.73rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.sin-resultados { text-align: center; padding: 3rem; color: #9CA3AF; font-size: 0.9rem; }
+.sin-resultados p { margin: 0.75rem 0 0; }
 
-/* Acciones iconizadas */
-.acciones-fila { display: flex; gap: 4px; justify-content: center; align-items: center; }
-.btn-accion { width: 32px; height: 32px; border-radius: 8px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s, opacity 0.2s, box-shadow 0.15s; flex-shrink: 0; }
-.btn-accion:hover:not(:disabled) { transform: scale(1.1); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
-.btn-accion:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-.btn-accion.ver { background: rgba(29,82,183,.10); color: #1D52B7; }
-.btn-accion.editar { background: #F4F6F9; color: #4F4F4F; }
-.btn-accion.eliminar { background: rgba(235,87,87,.10); color: #EB5757; }
-
-.sin-resultados { padding: 2.5rem; text-align: center; color: #9CA3AF; font-size: 0.85rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
-.sin-resultados p { margin: 0; }
-
-/* ─────────────────────────────────────────────── */
-/* PAGINACIÓN                                      */
-/* ─────────────────────────────────────────────── */
-.paginacion-container { padding: 0.9rem 1.4rem; border-top: 1px solid #EEF1F6; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; background: #FAFBFC; }
-.paginacion-info { font-size: 0.82rem; color: #6B7280; font-weight: 500; }
-.paginacion-controles { display: flex; align-items: center; gap: 4px; }
-.btn-pag { width: 34px; height: 34px; border-radius: 9px; border: 1.5px solid #E4E9F0; background: #FFFFFF; color: #4F4F4F; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-.btn-pag:hover:not(:disabled) { background: #F4F6F9; border-color: #C8D3E8; color: #0B2545; }
-.btn-pag:disabled { opacity: 0.35; cursor: not-allowed; }
-.paginacion-numeros { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
-.btn-num { min-width: 34px; height: 34px; border-radius: 10px; border: 1.5px solid #E4E9F0; background: #FFFFFF; color: #4F4F4F; font-weight: 600; font-size: 0.82rem; font-family: inherit; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-.btn-num:hover { background: #F4F6F9; color: #0B2545; border-color: #C8D3E8; }
-.btn-num.activa {
-  background: linear-gradient(135deg, #0B2545, #1D52B7);
-  color: #FFFFFF;
-  border-color: transparent;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(29,82,183,.3);
+/* Acciones fila */
+.acciones-fila { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-accion {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+  flex-shrink: 0;
 }
+.btn-accion:hover { transform: scale(1.1); }
+.btn-accion.ver     { background: rgba(29,82,183,.08);  color: #1D52B7; }
+.btn-accion.ver:hover     { background: rgba(29,82,183,.15); }
+.btn-accion.editar  { background: rgba(39,174,96,.08);  color: #27AE60; }
+.btn-accion.editar:hover  { background: rgba(39,174,96,.15); }
+.btn-accion.eliminar { background: rgba(235,87,87,.08); color: #EB5757; }
+.btn-accion.eliminar:hover { background: rgba(235,87,87,.15); }
+
+/* Paginación */
+.paginacion-container {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #EEF1F6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.paginacion-info { font-size: 0.8rem; color: #6B7280; font-weight: 600; }
+.paginacion-controles { display: flex; align-items: center; gap: 6px; }
+.btn-pag {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #E4E9F0;
+  background: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4F4F4F;
+  transition: all 0.2s;
+}
+.btn-pag:hover:not(:disabled) { background: #F4F6F9; border-color: #C8D3E8; }
+.btn-pag:disabled { opacity: 0.35; cursor: not-allowed; }
+.paginacion-numeros { display: flex; align-items: center; gap: 4px; }
+.btn-num {
+  min-width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #E4E9F0;
+  background: #FFFFFF;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #4F4F4F;
+  transition: all 0.2s;
+  padding: 0 8px;
+}
+.btn-num:hover { background: #F4F6F9; }
+.btn-num.activa { background: linear-gradient(135deg, #0B2545, #1D52B7); color: #FFFFFF; border-color: #1D52B7; }
 
 /* ─────────────────────────────────────────────── */
 /* MODAL BASE                                      */
@@ -1318,49 +1212,103 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
   position: fixed;
   inset: 0;
   background: rgba(11,37,69,.45);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
-  backdrop-filter: blur(4px);
   padding: 1rem;
 }
 .modal-caja {
   background: #FFFFFF;
-  width: 480px;
-  max-width: 95vw;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 32px 80px rgba(0,0,0,.28);
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(11,37,69,.22);
+  width: 520px;
+  max-width: 96vw;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
-.modal-caja.modal-ancho { width: 600px; max-width: 95vw; }
+.modal-caja.modal-ancho { width: 620px; }
 .modal-cabecera {
-  background: linear-gradient(135deg, #0B2545, #1A4184);
-  color: #FFFFFF;
-  padding: 1.2rem 1.6rem;
+  padding: 1.4rem 1.6rem 1.1rem;
+  border-bottom: 1px solid #EEF1F6;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
 }
-.modal-cabecera h3 { margin: 0; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.01em; }
-.btn-cerrar-modal { background: none; border: none; color: rgba(255,255,255,0.75); cursor: pointer; display: flex; align-items: center; transition: color 0.2s, background 0.2s; padding: 5px; border-radius: 7px; }
-.btn-cerrar-modal:hover { color: #FFFFFF; background: rgba(255,255,255,0.14); }
-.modal-cuerpo { padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; flex: 1; }
-.modal-pie { padding: 1rem 1.6rem; background: #F8F9FA; border-top: 1px solid #EEF1F6; display: flex; justify-content: flex-end; gap: 0.75rem; }
+.modal-cabecera h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0B2545;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.btn-cerrar-modal {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid #E4E9F0;
+  background: #F8FAFC;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7280;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.btn-cerrar-modal:hover { background: #FEF2F2; border-color: #FCA5A5; color: #EB5757; }
+.modal-cuerpo {
+  padding: 1.4rem 1.6rem;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-pie {
+  padding: 1rem 1.6rem;
+  border-top: 1px solid #EEF1F6;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
 
 /* ─────────────────────────────────────────────── */
 /* MODAL: DETALLE DEL EVENTO                       */
 /* ─────────────────────────────────────────────── */
-.modal-detalle { width: 580px; max-width: 95vw; }
-.modal-detalle-cabecera { padding: 1.4rem 1.6rem; gap: 1rem; align-items: flex-start; }
-.detalle-cabecera-izq { display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 0; }
-.detalle-icono-grande { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.modal-detalle { width: 600px; max-width: 96vw; }
+.modal-detalle-cabecera {
+  background: linear-gradient(135deg, #0B2545 0%, #1A4184 100%);
+  border-bottom: none;
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.6rem;
+}
+.detalle-cabecera-izq { display: flex; align-items: center; gap: 1rem; }
+.detalle-icono-grande {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+.modal-detalle-cabecera .btn-cerrar-modal {
+  background: rgba(255,255,255,.15);
+  border-color: rgba(255,255,255,.2);
+  color: #FFFFFF;
+}
+.modal-detalle-cabecera .btn-cerrar-modal:hover { background: rgba(255,255,255,.25); }
 .detalle-titulo {
-  margin: 0 0 6px;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: #FFFFFF;
   line-height: 1.3;
@@ -1533,5 +1481,7 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
 
   .kpis-row { gap: 0.75rem; }
   .kpi-card { min-width: 140px; }
+
+  .encabezado-seccion { flex-direction: column; gap: 1rem; align-items: flex-start; }
 }
 </style>

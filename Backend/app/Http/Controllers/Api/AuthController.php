@@ -73,7 +73,8 @@ class AuthController extends Controller
                     'p.apellido_paterno',
                     'p.apellido_materno',
                     'r.id_rol',
-                    'r.nombre_rol'
+                    'r.nombre_rol',
+                    'r.clave as rol_clave'
                 )
                 ->first();
 
@@ -142,7 +143,8 @@ class AuthController extends Controller
                     'correo'         => $correoBuscado,
                     'nombre'         => $nombreCompleto,
                     'id_rol'         => $usuario->id_rol,
-                    'rol'            => $usuario->nombre_rol ?? 'Sin rol',
+                    'nombre_rol'     => $usuario->nombre_rol ?? 'Sin rol',
+                    'rol'            => $usuario->rol_clave ?? $usuario->nombre_rol ?? 'Sin rol',
                 ]
             ]);
 

@@ -84,20 +84,6 @@
       </div>
 
       <div class="kpis-grid">
-        <div class="kpi-card kpi-total">
-          <div class="kpi-icon-wrap">
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-          </div>
-          <div class="kpi-data">
-            <span class="kpi-numero">{{ kpiTotal }}</span>
-            <span class="kpi-label">TOTAL ALUMNOS</span>
-          </div>
-        </div>
         <div class="kpi-card kpi-activo">
           <div class="kpi-icon-wrap">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" width="22" height="22" stroke-width="2">
@@ -307,8 +293,7 @@
           <tbody>
             <tr
               v-for="(alumno, index) in paginatedAlumnos"
-              :key="alumno.id_alumno || alumno.id"
-              v-memo="[alumno.id_alumno || alumno.id, filaActiva === index, seleccionados.has(alumno.id_alumno || alumno.id)]"
+              :key="`${alumno.id_alumno || alumno.id}-${alumno.estatus}-${alumno.id_estatus_alumno}`"
               class="fila-alumno"
               :class="{
                 'fila-activa': filaActiva === index && selectedCount === 0,
@@ -473,6 +458,8 @@
                 </svg>
               </button>
             </div>
+            <!-- Barra de carga mientras se obtiene el expediente completo -->
+            <div v-if="cargandoExpediente" style="height:3px;background:linear-gradient(90deg,#1B396A 0%,#3B82F6 50%,#1B396A 100%);background-size:200% 100%;animation:shimmer 1.2s infinite;"></div>
             <div class="modal-body-tabs">
               <div class="detalle-tabs" role="tablist">
                 <button v-for="tab in tabs" :key="tab.id"
@@ -515,11 +502,19 @@
                       </div>
                       <div class="detalle-campo">
                         <span class="detalle-label">GÉNERO</span>
-                        <span class="detalle-valor">{{ (alumnoSeleccionado.genero || alumnoSeleccionado.persona?.genero || '—').toUpperCase() }}</span>
+                        <span class="detalle-valor">{{ (alumnoSeleccionado.genero || '—').toUpperCase() }}</span>
+                      </div>
+                      <div class="detalle-campo">
+                        <span class="detalle-label">TELÉFONO</span>
+                        <span class="detalle-valor mono-bold">{{ alumnoSeleccionado.telefono || '—' }}</span>
                       </div>
                       <div class="detalle-campo full-width">
-                        <span class="detalle-label">CORREO INSTITUCIONAL</span>
-                        <span class="detalle-valor">{{ alumnoSeleccionado.email || alumnoSeleccionado.persona?.email || '—' }}</span>
+                        <span class="detalle-label">CORREO ELECTRÓNICO</span>
+                        <span class="detalle-valor">{{ alumnoSeleccionado.email || '—' }}</span>
+                      </div>
+                      <div class="detalle-campo full-width">
+                        <span class="detalle-label">DIRECCIÓN</span>
+                        <span class="detalle-valor">{{ alumnoSeleccionado.direccion || '—' }}</span>
                       </div>
                     </div>
                   </div>
@@ -565,12 +560,12 @@
                     </div>
                     <div class="detalle-grid">
                       <div class="detalle-campo">
-                        <span class="detalle-label">SEGURO MÉDICO</span>
-                        <span class="detalle-valor">{{ (alumnoSeleccionado.seguro_medico || '—').toUpperCase() }}</span>
+                        <span class="detalle-label">NSS (SEGURO SOCIAL)</span>
+                        <span class="detalle-valor mono-bold">{{ alumnoSeleccionado.nss || '—' }}</span>
                       </div>
                       <div class="detalle-campo">
-                        <span class="detalle-label">SUBES / BECA</span>
-                        <span class="detalle-valor">{{ (alumnoSeleccionado.subes || alumnoSeleccionado.beca || '—').toUpperCase() }}</span>
+                        <span class="detalle-label">FOLIO SUBES / BECA</span>
+                        <span class="detalle-valor">{{ alumnoSeleccionado.folio_subes || '—' }}</span>
                       </div>
                       <div class="detalle-campo full-width exp-contacto-titulo">
                         <span class="detalle-label">CONTACTO DE EMERGENCIA</span>
@@ -580,16 +575,16 @@
                         <span class="detalle-valor">{{ (alumnoSeleccionado.contacto_emergencia?.nombre || '—').toUpperCase() }}</span>
                       </div>
                       <div class="detalle-campo">
-                        <span class="detalle-label">RELACIÓN</span>
-                        <span class="detalle-valor">{{ (alumnoSeleccionado.contacto_emergencia?.relacion || '—').toUpperCase() }}</span>
+                        <span class="detalle-label">PARENTESCO</span>
+                        <span class="detalle-valor">{{ (alumnoSeleccionado.contacto_emergencia?.parentesco || '—').toUpperCase() }}</span>
                       </div>
                       <div class="detalle-campo">
                         <span class="detalle-label">TELÉFONO</span>
                         <span class="detalle-valor mono-bold">{{ alumnoSeleccionado.contacto_emergencia?.telefono || '—' }}</span>
                       </div>
                       <div class="detalle-campo">
-                        <span class="detalle-label">CORREO</span>
-                        <span class="detalle-valor">{{ alumnoSeleccionado.contacto_emergencia?.email || '—' }}</span>
+                        <span class="detalle-label">TELÉFONO ALTERNATIVO</span>
+                        <span class="detalle-valor mono-bold">{{ alumnoSeleccionado.contacto_emergencia?.telefono_alt || '—' }}</span>
                       </div>
                     </div>
                   </div>
@@ -879,7 +874,7 @@
 * - Breadcrumb dinámico: ALUMNOS → EXPEDIENTE: [NO_CONTROL]
 * - Botón "← VOLVER A LA LISTA" en el modal preserva scroll/filtros/página
 */
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, toRaw } from 'vue'
 import { useRouter, useRoute }                       from 'vue-router'
 import MainLayout                                    from '@/layouts/MainLayout.vue'
 
@@ -903,6 +898,7 @@ const showModal          = ref(false)
 const showModalEliminar  = ref(false)
 const alumnoSeleccionado = ref(null)
 const alumnoEditar       = ref({})
+const cargandoExpediente = ref(false)
 
 const tabActivo         = ref('general')
 const kardexData        = ref(null)
@@ -1303,13 +1299,33 @@ watch(() => route.query.ver, (verControl) => {
   if (encontrado) abrirModalVer(encontrado)
 })
 
-const abrirModalVer = (alumno) => {
+const abrirModalVer = async (alumno) => {
+  // Mostrar el modal de inmediato con datos básicos (sin bloquear UX)
   alumnoSeleccionado.value = alumno
   tabActivo.value   = 'general'
   kardexData.value  = null
   horarioData.value = null
   showViewModal.value = true
   router.replace({ query: { ...route.query, ver: alumno.numero_control || alumno.noControl } })
+
+  // En paralelo, cargar el expediente completo con todos los campos
+  const nc = alumno.numero_control || alumno.noControl
+  if (!nc) return
+  cargandoExpediente.value = true
+  try {
+    const res  = await fetch(`${API_URL}/api/alumnos/${encodeURIComponent(nc)}/expediente`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const json = await res.json()
+    if (json.success && json.data) {
+      // Mezclar los datos del expediente sobre los datos básicos ya visibles
+      alumnoSeleccionado.value = { ...alumnoSeleccionado.value, ...json.data }
+    }
+  } catch (e) {
+    console.warn('[AlumnosSE] expediente completo no disponible:', e.message)
+    // Silencioso: el modal sigue con los datos básicos de la lista
+  } finally {
+    cargandoExpediente.value = false
+  }
 }
 
 const cerrarModalVer = () => {
@@ -1392,14 +1408,18 @@ const verKardex = (alumno) => {
 }
 
 const abrirModalEditar = (alumno) => {
+  // Normalizar siempre a Number para que el v-model del select coincida con los :value de las options
+  const idEstatus = alumno.id_estatus_alumno
+    ? Number(alumno.id_estatus_alumno)
+    : Number(catalogos.value.estatus_alumno.find(e => e.nombre === alumno.estatus)?.id_estatus_alumno) || null
+
   alumnoEditar.value = {
-    id_alumno:         alumno.id_alumno || alumno.id,
+    id_alumno:         Number(alumno.id_alumno || alumno.id),
     noControl:         alumno.numero_control || alumno.noControl || '',
     nombre:            resolverNombre(alumno),
-    id_carrera:        resolverIdCarrera(alumno),
+    id_carrera:        Number(resolverIdCarrera(alumno)) || null,
     semestre:          alumno.semestre_actual || alumno.semestre || 1,
-    id_estatus_alumno: alumno.id_estatus_alumno ||
-      catalogos.value.estatus_alumno.find(e => e.nombre === alumno.estatus)?.id_estatus_alumno || null
+    id_estatus_alumno: idEstatus,
   }
   showModal.value = true
 }
@@ -1407,38 +1427,125 @@ const abrirModalEditar = (alumno) => {
 const cerrarModal = () => { showModal.value = false }
 const nuevoAlumno = () => router.push('/formulario-alumno')
 
-const guardarCambios = async () => {
-  const id = alumnoEditar.value.id_alumno
-  if (!id)                                   { mostrarNotificacion('No se encontró el identificador.', 'error'); return }
-  if (!alumnoEditar.value.id_carrera)        { mostrarNotificacion('Selecciona una carrera.', 'error');          return }
-  if (!alumnoEditar.value.id_estatus_alumno) { mostrarNotificacion('Selecciona un estatus.', 'error');           return }
+const actualizarAlumnoEnLista = (datosActualizados) => {
+  const idBuscado = Number(datosActualizados.id_alumno ?? datosActualizados.id)
+  if (!idBuscado) return
 
-  const nombreEstatus = catalogos.value.estatus_alumno
-  .find(e => e.id_estatus_alumno === alumnoEditar.value.id_estatus_alumno)?.nombre || 'Activo'
+  const index = alumnos.value.findIndex(a => Number(a.id_alumno ?? a.id) === idBuscado)
+  if (index === -1) return
+
+  const carreraCat = catalogos.value.carreras.find(c => 
+    Number(c.id_carrera) === Number(datosActualizados.id_carrera)
+  )
+  const estatusCat = catalogos.value.estatus_alumno.find(e => 
+    Number(e.id_estatus_alumno) === Number(datosActualizados.id_estatus_alumno)
+  )
+
+  // Crear objeto COMPLETAMENTE NUEVO (no usar toRaw del original)
+  const alumnoOriginal = alumnos.value[index]
+  const alumnoNuevo = {
+    id_alumno: alumnoOriginal.id_alumno,
+    id: alumnoOriginal.id,
+    numero_control: alumnoOriginal.numero_control,
+    noControl: alumnoOriginal.noControl,
+    nombre: corregirNombreAlumno(datosActualizados.nombre ?? alumnoOriginal.nombre),
+    id_carrera: Number(datosActualizados.id_carrera),
+    id_estatus_alumno: Number(datosActualizados.id_estatus_alumno),
+    semestre_actual: Number(datosActualizados.semestre_actual),
+    semestre: Number(datosActualizados.semestre_actual),
+    estatus: estatusCat?.nombre ?? datosActualizados.estatus ?? alumnoOriginal.estatus,
+    fecha_ingreso: alumnoOriginal.fecha_ingreso,
+    carrera: {
+      id_carrera: Number(datosActualizados.id_carrera),
+      nombre_carrera: carreraCat?.nombre ?? alumnoOriginal.carrera?.nombre_carrera ?? ''
+    },
+    persona: alumnoOriginal.persona ? {
+      ...alumnoOriginal.persona,
+      nombre: corregirNombreAlumno(datosActualizados.nombre ?? alumnoOriginal.persona.nombre),
+      nombre_completo: corregirNombreAlumno(datosActualizados.nombre ?? alumnoOriginal.persona.nombre_completo)
+    } : undefined,
+    // Copiar TODAS las demás propiedades que pueda tener
+    ...Object.fromEntries(
+      Object.entries(alumnoOriginal).filter(([key]) => 
+        !['id_alumno','id','numero_control','noControl','nombre','id_carrera',
+          'id_estatus_alumno','semestre_actual','semestre','estatus','fecha_ingreso',
+          'carrera','persona'].includes(key)
+      )
+    )
+  }
+
+  // Reemplazo directo
+  alumnos.value[index] = alumnoNuevo
+  // Forzar nueva referencia de array
+  alumnos.value = [...alumnos.value]
+
+  console.log('✅ Alumno actualizado en lista:', alumnoNuevo.nombre, '| Estatus:', alumnoNuevo.estatus)
+
+  // Sincronizar modal si está abierto
+  if (alumnoSeleccionado.value && 
+      Number(alumnoSeleccionado.value.id_alumno ?? alumnoSeleccionado.value.id) === idBuscado) {
+    alumnoSeleccionado.value = { ...alumnoNuevo }
+  }
+}
+
+const guardarCambios = async () => {
+  const id = Number(alumnoEditar.value.id_alumno)
+  if (!id) return mostrarNotificacion('No se encontró el identificador.', 'error')
+  if (!alumnoEditar.value.id_carrera) return mostrarNotificacion('Selecciona una carrera.', 'error')
+  if (!alumnoEditar.value.id_estatus_alumno) return mostrarNotificacion('Selecciona un estatus.', 'error')
+
+  const idEstatusNum = Number(alumnoEditar.value.id_estatus_alumno)
+  const idCarreraNum = Number(alumnoEditar.value.id_carrera)
+
+  // Buscar nombre del estatus desde catálogos
+  const estatusCat = catalogos.value.estatus_alumno.find(e => 
+    Number(e.id_estatus_alumno) === idEstatusNum
+  )
+  const nombreEstatus = estatusCat?.nombre || ''
+
+  console.log('💾 Guardando cambios:', {
+    id,
+    idEstatusNum,
+    nombreEstatus,
+    semestre: parseInt(alumnoEditar.value.semestre, 10)
+  })
 
   guardando.value = true
   try {
-    const res = await fetch(`${API_URL}/api/alumnos/${id}`, {
-      method:   'PUT',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        nombre:            alumnoEditar.value.nombre,
-        id_carrera:        alumnoEditar.value.id_carrera,
-        semestre_actual:   parseInt(alumnoEditar.value.semestre),
-        estatus:           nombreEstatus,
-        id_estatus_alumno: alumnoEditar.value.id_estatus_alumno
-      })
-    })
-    const data = await res.json()
-    if (res.ok) {
-      await cargarAlumnosDesdeBD()
-      cerrarModal()
-      mostrarNotificacion('Alumno actualizado correctamente.', 'exito')
-    } else {
-      mostrarNotificacion(data.message || data.error || 'Error al actualizar.', 'error')
+    const payload = {
+      nombre: (alumnoEditar.value.nombre || '').trim().toUpperCase(),
+      id_carrera: idCarreraNum,
+      semestre_actual: parseInt(alumnoEditar.value.semestre, 10) || 1,
+      id_estatus_alumno: idEstatusNum
     }
-  } catch {
-    mostrarNotificacion('Error de conexión.', 'error')
+
+    const res = await fetch(`${API_URL}/api/alumnos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    const data = await res.json().catch(() => ({}))
+    
+    if (!res.ok) {
+      console.error('❌ Error API:', data)
+      throw new Error(data.message || 'El servidor rechazó la actualización.')
+    }
+
+    console.log('✅ Respuesta API exitosa:', data)
+
+    // Actualizar inmediatamente en la lista
+    actualizarAlumnoEnLista({ 
+      id_alumno: id, 
+      ...payload, 
+      estatus: nombreEstatus 
+    })
+
+    cerrarModal()
+    mostrarNotificacion('ALUMNO ACTUALIZADO CORRECTAMENTE.', 'exito')
+  } catch (err) {
+    console.error('❌ Error al guardar:', err)
+    mostrarNotificacion(err.message || 'Error al guardar.', 'error')
   } finally {
     guardando.value = false
   }
@@ -1541,7 +1648,7 @@ BASE & OPTIMIZACIÓN DE ESPACIO
   font-family: 'Montserrat', sans-serif; font-weight: 700;
   font-size: 0.82rem; letter-spacing: 0.06em; cursor: pointer;
   transition: background 0.18s, transform 0.1s, box-shadow 0.18s;
-  box-shadow: 0 2px 8px rgba(27,57,106,.25); white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(27,57,106,.25); white-space: nowrap; 
 }
 .btn-nuevo:hover  { background: #152D57; box-shadow: 0 4px 16px rgba(27,57,106,.35); }
 .btn-nuevo:active { transform: scale(0.97); }
@@ -1560,7 +1667,7 @@ BASE & OPTIMIZACIÓN DE ESPACIO
 KPIs COMPACTOS
 ══════════════════════════════════════════════════════ */
 .kpis-grid {
-  display: grid; grid-template-columns: repeat(5,1fr);
+  display: grid; grid-template-columns: repeat(4,1fr);
   gap: 10px; margin-bottom: 20px;
 }
 .kpi-card {
@@ -1881,7 +1988,7 @@ EXPEDIENTE v2.2
 /* ══════════════════════════════════════════════════════
 RESPONSIVE
 ══════════════════════════════════════════════════════ */
-@media (max-width:1200px) { .kpis-grid{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:1200px) { .kpis-grid{grid-template-columns:repeat(4,1fr)} }
 @media (max-width:900px) {
   .kpis-grid{grid-template-columns:repeat(2,1fr)}
   .filtros-grid{grid-template-columns:1fr 1fr}

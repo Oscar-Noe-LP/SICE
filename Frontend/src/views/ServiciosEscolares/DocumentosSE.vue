@@ -386,6 +386,54 @@
 
       </section>
     </div>
+      <!-- Agregar botón de exportación CSV en el panel de selección -->
+  <div class="selected-actions">
+    <button
+      v-if="tieneRutaPDF"
+      class="btn btn--secondary"
+      @click="verPrevia"
+      :disabled="procesando || (requierePeriodo && !periodoSeleccionado)"
+    >
+      <svg viewBox="0 0 20 20" fill="none" width="14" height="14"><path d="M1 10s4-7 9-7 9 7 9 7-4 7-9 7-9-7-9-7z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+      VISTA PREVIA
+    </button>
+    
+    <!-- NUEVO BOTÓN CSV -->
+    <button
+      v-if="resultadosFiltrados.length > 0 && submodulo !== 'actas'"
+      class="btn btn--secondary"
+      @click="descargarCSV(resultadosFiltrados, moduloActual.titulo)"
+      :disabled="procesando"
+    >
+      <svg viewBox="0 0 20 20" fill="none" width="14" height="14">
+        <rect x="3" y="3" width="14" height="14" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M7 8h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      EXPORTAR CSV
+    </button>
+    
+    <button
+      v-if="tieneRutaPDF"
+      class="btn btn--secondary"
+      @click="imprimirDocumento"
+      :disabled="procesando || (requierePeriodo && !periodoSeleccionado)"
+    >
+      <svg viewBox="0 0 20 20" fill="none" width="14" height="14"><rect x="4" y="7" width="12" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 7V4h6v3M7 13h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      IMPRIMIR
+    </button>
+    <button
+      v-if="tieneRutaPDF"
+      class="btn btn--primary"
+      :style="{ background: moduloActual.color }"
+      @click="descargarDocumento"
+      :disabled="procesando || (requierePeriodo && !periodoSeleccionado)"
+    >
+      <svg v-if="procesando" class="spin" viewBox="0 0 44 44" width="14" height="14"><circle cx="22" cy="22" r="18" fill="none" stroke="white" stroke-width="3" stroke-dasharray="90 60" stroke-linecap="round"/></svg>
+      <svg v-else viewBox="0 0 20 20" fill="none" width="14" height="14"><path d="M10 3v9m0 0l-3-3m3 3l3-3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 14v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      DESCARGAR PDF
+    </button>
+  </div>
+
   </MainLayout>
 </template>
 
@@ -845,34 +893,6 @@ async function imprimirDocumento() {
     procesando.value = false
   }
 }
-
-async function descargarDocumento() {
-  if (!alumnoSeleccionado.value && submodulo.value !== 'boletas') return
-  if (!tieneRutaPDF.value) return
-  procesando.value = true
-  try {
-    const res = await fetch(buildUrlDocumento(), { headers: authHeaders() })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const blob   = await res.blob()
-    const url    = URL.createObjectURL(blob)
-    const a      = document.createElement('a')
-    const nombre = buildNombreArchivo()
-    a.href       = url
-    a.download   = nombre
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    setTimeout(() => URL.revokeObjectURL(url), 10_000)
-    mostrarToast(`DOCUMENTO ${nombre} DESCARGADO.`, 'success')
-    if (modalVisible.value) cerrarModal()
-  } catch (err) {
-    console.error('descargarDocumento error:', err)
-    mostrarToast('ERROR AL DESCARGAR DOCUMENTO.', 'error')
-  } finally {
-    procesando.value = false
-  }
-}
-
 /**
  * buildUrlDocumento
  * ─────────────────
@@ -916,6 +936,177 @@ function buildNombreArchivo() {
   const per  = periodoSeleccionado.value || new Date().getFullYear()
   const tipo = submodulo.value === 'constancias' ? `_${tipoConstancia.value.toUpperCase()}` : ''
   return `${mod}${tipo}_${nc}_${per}.pdf`
+}
+// ─── NUEVAS FUNCIONES PARA EXPORTACIÓN ──────────────────────────────────────
+
+/**
+ * Genera y descarga un CSV
+ * @param {Array} data - Datos a exportar
+ * @param {string} tipoDocumento - Tipo de documento (CONSTANCIA/BOLETA/CERTIFICADO)
+ */
+async function descargarCSV(data, tipoDocumento) {
+  if (!data || data.length === 0) {
+    mostrarToast('NO HAY DATOS PARA EXPORTAR A CSV', 'error')
+    return
+  }
+
+  try {
+    // Construir el contenido del CSV con encabezados que incluyan el tipo de documento
+    const headers = [
+      `TIPO_DOCUMENTO:${tipoDocumento}`,
+      `FECHA_GENERACION:${new Date().toLocaleDateString('es-MX')}`,
+      'NUMERO_CONTROL',
+      'NOMBRE_COMPLETO',
+      'CARRERA',
+      'SEMESTRE',
+      'ESTATUS',
+      'PERIODO',
+      'TIPO_CONSTANCIA'
+    ]
+
+    // Filas de datos
+    const rows = data.map(alumno => [
+      alumno.numero_control || alumno.noControl || '',
+      alumno.nombre_completo || alumno.nombre || '',
+      alumno.carrera || '',
+      alumno.semestre_actual || alumno.semestre || '',
+      alumno.estatus || '',
+      periodoSeleccionado.value || '',
+      submodulo.value === 'constancias' ? tipoConstancia.value.toUpperCase() : ''
+    ])
+
+    // Crear el contenido CSV
+    let csvContent = headers.join(',') + '\n'
+    
+    // Agregar filas de datos
+    rows.forEach(row => {
+      // Escapar comillas y caracteres especiales
+      const escapedRow = row.map(cell => 
+        `"${String(cell || '').replace(/"/g, '""')}"`
+      ).join(',')
+      csvContent += escapedRow + '\n'
+    })
+
+    // Agregar pie de página con tipo de documento
+    csvContent += `\n"DOCUMENTO_GENERADO: ${tipoDocumentO}"\n`
+    csvContent += `"TOTAL_REGISTROS: ${data.length}"`
+
+    // Crear blob y descargar
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const filename = `${tipoDocumento}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    mostrarToast(`CSV GENERADO: ${filename}`, 'success')
+  } catch (error) {
+    console.error('Error generando CSV:', error)
+    mostrarToast('ERROR AL GENERAR CSV', 'error')
+  }
+}
+
+/**
+ * Descarga múltiples documentos en ZIP
+ */
+async function descargarZipMasivo(urls, nombres) {
+  try {
+    const JSZip = (await import('jszip')).default
+    const zip = new JSZip()
+    
+    for (let i = 0; i < urls.length; i++) {
+      const response = await fetch(urls[i], { headers: authHeaders() })
+      if (response.ok) {
+        const blob = await response.blob()
+        zip.file(nombres[i], blob)
+      }
+    }
+    
+    const content = await zip.generateAsync({ type: 'blob' })
+    const zipUrl = URL.createObjectURL(content)
+    const a = document.createElement('a')
+    a.href = zipUrl
+    a.download = `${submodulo.value}_MASIVO_${new Date().toISOString().slice(0, 19)}.zip`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(zipUrl)
+    
+    mostrarToast('ZIP GENERADO CORRECTAMENTE', 'success')
+  } catch (error) {
+    console.error('Error generando ZIP:', error)
+    mostrarToast('ERROR AL GENERAR ZIP', 'error')
+  }
+}
+
+/**
+ * Función mejorada para descargar documento con verificación de tipo
+ */
+async function descargarDocumento() {
+  if (!alumnoSeleccionado.value && submodulo.value !== 'boletas') return
+  if (!tieneRutaPDF.value) return
+  
+  procesando.value = true
+  
+  // Determinar si es exportación masiva o individual
+  const isMasivo = submodulo.value === 'boletas' && modoBoletaMasiva.value && resultadosFiltrados.value.length > 0
+  
+  try {
+    if (isMasivo && resultadosFiltrados.value.length > 0) {
+      // Generación masiva con ZIP
+      const urls = []
+      const nombres = []
+      
+      for (const alumno of resultadosFiltrados.value) {
+        const nc = alumno.numero_control || alumno.noControl
+        const segmento = SEGMENTO_PDF[submodulo.value]
+        const params = new URLSearchParams()
+        
+        if (submodulo.value === 'constancias') {
+          params.set('tipo', tipoConstancia.value)
+          if (periodoSeleccionado.value) params.set('periodo', periodoSeleccionado.value)
+        }
+        if (submodulo.value === 'boletas' && periodoSeleccionado.value) {
+          params.set('periodo', periodoSeleccionado.value)
+        }
+        
+        const qs = params.toString()
+        const url = `${API}/api/documentos/${segmento}/${nc}${qs ? '?' + qs : ''}`
+        urls.push(url)
+        nombres.push(`${submodulo.value.toUpperCase()}_${nc}_${periodoSeleccionado.value || 'SIN_PERIODO'}.pdf`)
+      }
+      
+      await descargarZipMasivo(urls, nombres)
+    } else {
+      // Generación individual
+      const res = await fetch(buildUrlDocumento(), { headers: authHeaders() })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      const nombre = buildNombreArchivo()
+      a.href = url
+      a.download = nombre
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 10000)
+      
+      mostrarToast(`DOCUMENTO ${nombre} DESCARGADO.`, 'success')
+    }
+    
+    if (modalVisible.value) cerrarModal()
+  } catch (err) {
+    console.error('descargarDocumento error:', err)
+    mostrarToast('ERROR AL DESCARGAR DOCUMENTO.', 'error')
+  } finally {
+    procesando.value = false
+  }
 }
 </script>
 
@@ -971,6 +1162,7 @@ function buildNombreArchivo() {
   font-size: 24px;
   font-weight: 700;
   line-height: 1.15;
+  font-family: 'Montserrat', sans-serif;
 }
 .page-subtitle {
   margin: 4px 0 0;

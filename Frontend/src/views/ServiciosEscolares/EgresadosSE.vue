@@ -5,12 +5,7 @@
     <!-- ══ ENCABEZADO DEL MÓDULO ══ -->
     <div class="modulo-header">
       <div class="modulo-header__izq">
-        <div class="modulo-icono">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-              d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
-          </svg>
-        </div>
+        
         <div>
           <h1 class="modulo-titulo">{{ seccionActual.titulo }}</h1>
           <p class="modulo-subtitulo">{{ seccionActual.descripcion }}</p>
@@ -753,6 +748,7 @@ const generarColorAvatar = (nombre) => COLORES_AVATAR[nombre.charCodeAt(0) % COL
 .modulo-titulo {
   font-size: 1.35rem; font-weight: 700;
   color: var(--texto-1); margin: 0 0 3px;
+   font-family: 'Montserrat', sans-serif;
 }
 .modulo-subtitulo {
   font-size: 0.82rem; color: var(--texto-2);

@@ -753,25 +753,48 @@ const mostrarToast = (mensaje, tipo = 'exito') => {
   timerToast = setTimeout(() => { toast.value.visible = false }, 3500)
 }
 
-// ── Carga del alumno ───────────────────────────────────────────────────
+// ── Carga del alumno (MEJORADA) ───────────────────────────────────────
 const cargarAlumno = async () => {
   if (!noControl.value) return
+  
   cargandoAlumno.value = true
   errorAlumno.value    = false
-  try {
-    if (!_cacheAlumnos) {
-      const res  = await fetch(`${API_URL}/api/alumnos-crud`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
-      _cacheAlumnos = Array.isArray(data) ? data : (data.alumnos ?? [])
-    }
-    const encontrado = _cacheAlumnos.find(a => String(a.numero_control ?? '').trim() === String(noControl.value).trim())
-    if (!encontrado) { errorAlumno.value = true; return }
-    alumno.value = encontrado
-  } catch (e) { console.error('[ExpedienteSE] cargarAlumno:', e); errorAlumno.value = true }
-  finally      { cargandoAlumno.value = false }
-}
 
+  try {
+    const res = await fetch(`${API_URL}/api/alumnos/${encodeURIComponent(noControl.value)}/expediente`)
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+    const json = await res.json()
+
+    if (json.success && json.data) {
+      alumno.value = json.data
+      console.log("✅ Expediente completo cargado:", alumno.value)
+    } else {
+      throw new Error(json.message || 'Error desconocido')
+    }
+  } catch (e) {
+    console.error('[ExpedienteSE] cargarAlumno:', e)
+    
+    // Fallback: usar caché básico si el endpoint nuevo falla
+    try {
+      if (!_cacheAlumnos) {
+        const resList = await fetch(`${API_URL}/api/alumnos-crud`)
+        const data = await resList.json()
+        _cacheAlumnos = Array.isArray(data) ? data : []
+      }
+      const encontrado = _cacheAlumnos.find(a => 
+        String(a.numero_control ?? '').trim() === String(noControl.value).trim()
+      )
+      if (encontrado) alumno.value = encontrado
+      else errorAlumno.value = true
+    } catch {
+      errorAlumno.value = true
+    }
+  } finally {
+    cargandoAlumno.value = false
+  }
+}
 // ── Carga kardex ───────────────────────────────────────────────────────
 const cargarKardex = async () => {
   if (!noControl.value) return

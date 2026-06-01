@@ -67,7 +67,11 @@ Route::post('/alumnos', [ServiciosEscolaresController::class, 'store']);
 Route::get('/buscar-alumno', [ServiciosEscolaresController::class, 'buscarAlumnoInscripcion']);
 Route::get('/horario/{numero_control}', [AlumnoController::class, 'horario']);
 Route::get('/alumnos/buscar-control', [EventoController::class, 'buscarAlumno']);
+// === EXPEDIENTE COMPLETO ===
+Route::get('/alumnos/{numero_control}/expediente', [AlumnoController::class, 'expediente']);
+Route::put('/alumnos/{numero_control}/expediente', [AlumnoController::class, 'actualizarExpediente']);
 
+Route::get('/alumnos/especialidades', [AlumnoController::class, 'especialidades']);
 // === CRUD COMPLETO DE ALUMNOS ===
 Route::get('/alumnos/catalogos', [AlumnoController::class, 'catalogos']);
 Route::get('/alumnos-crud', [AlumnoController::class, 'index']);
@@ -134,6 +138,7 @@ Route::post('/carreras', [CarreraController::class, 'store']);
 Route::put('/carreras/{id}', [CarreraController::class, 'update']);
 Route::delete('/carreras/{id}', [CarreraController::class, 'destroy']);
 Route::get('/carreras/{id}/grupos', [CarreraController::class, 'grupos']);
+Route::get('/carreras/{id}/semestres/{semestre}/grupos', [CarreraController::class, 'gruposPorSemestre']);
 
 Route::get('/departamentos',           [DepartamentoController::class, 'index']);
 Route::post('/departamentos',          [DepartamentoController::class, 'store']);
@@ -228,7 +233,7 @@ Route::get('/bitacora', [BitacoraController::class, 'index']);
 
 // ====================== Modulo Eventos ======================
 Route::get('/tipos-evento',         [EventoController::class, 'tiposEvento']);
-Route::get('/eventos/proximos',     [EventoController::class, 'proximos']);  
+Route::get('/eventos/proximos',     [EventoController::class, 'proximos']);
 Route::get('/eventos/estadisticas', [EventoController::class, 'estadisticas']);
 Route::get('/eventos',              [EventoController::class, 'index']);
 Route::post('/eventos',             [EventoController::class, 'store']);
@@ -243,6 +248,8 @@ Route::delete('/eventos/{id}/participantes/{control}',           [EventoControll
 
 Route::get('/eventos/{id}/constancias',          [EventoController::class, 'constancias']);
 Route::post('/eventos/{id}/constancias/generar', [EventoController::class, 'generarConstancias']);
+
+Route::get('/eventos/{id}/constancias/{no_control}', [EventoController::class, 'constanciaPDF']);
 
 
 // ====================== MÓDULO DE RECURSOS HUMANOS ======================
@@ -429,16 +436,38 @@ Route::prefix('analitica')->group(function () {
     Route::get('/carreras', [AnaliticaController::class, 'rendimientoPorCarreras']);
     Route::get('/materias-criticas', [AnaliticaController::class, 'materiasCriticas']);
 });
-// =============== Resumen de cacrreras =====================================
+// =============== Resumen de carreras =====================================
 use App\Http\Controllers\Api\CarreraResumenController;
 
 Route::get('/carreras/resumen', [CarreraResumenController::class, 'index']);
 
-//======================= DOCUMENTOS OFICIALES EN PDF ======================
-Route::get('/documentos/constancia/{numero_control}',  [DocumentoController::class, 'constancia']);
-Route::get('/documentos/boleta/{numero_control}',      [DocumentoController::class, 'boleta']);
-Route::get('/documentos/certificado/{numero_control}', [DocumentoController::class, 'certificado']);
+// ====================== ANALYTICS (Equipo D4) ======================
+use App\Http\Controllers\Api\AnalyticsController;
 
+Route::get('/analytics/aprobados-reprobados', [AnalyticsController::class, 'aprobadosReprobados']);
+Route::get('/analytics/tronco-comun',         [AnalyticsController::class, 'troncoComun']);
+Route::get('/analytics/materias-riesgo',      [AnalyticsController::class, 'materiasRiesgo']);
+
+//======================= DOCUMENTOS OFICIALES EN PDF ======================
+use App\Http\Controllers\Api\ConstanciaController;
+use App\Http\Controllers\Api\BoletaController;
+use App\Http\Controllers\Api\CertificadoController;
+
+// Constancias
+Route::get('/documentos/constancia/{numero_control}', [ConstanciaController::class, 'generarConstancia'])
+    ->name('documentos.constancia');
+
+// Boletas (individual)
+Route::get('/documentos/boleta/{numero_control}', [BoletaController::class, 'generarBoleta'])
+    ->name('documentos.boleta');
+
+// Boletas masivas (ZIP)
+Route::get('/documentos/boletas-masivas', [BoletaController::class, 'generarBoletasMasivas'])
+    ->name('documentos.boletas-masivas');
+
+// Certificados
+Route::get('/documentos/certificado/{numero_control}', [CertificadoController::class, 'generarCertificado'])
+    ->name('documentos.certificado');
 
 // Residencias Profesionales
 Route::get ('/residencias/elegibles',          [ResidenciaController::class, 'elegibles']);

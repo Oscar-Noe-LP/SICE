@@ -437,6 +437,7 @@ onMounted(() => recargarTodo())
   font-family: 'Montserrat', sans-serif;
   box-sizing: border-box;
   padding: 1rem 1rem 2rem;
+   text-transform: uppercase; 
 }
 
 /* Breadcrumb */
@@ -448,8 +449,8 @@ onMounted(() => recargarTodo())
 
 /* Encabezado */
 .encabezado-seccion { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-.titulo-pagina { color: #1A1A1A; font-size: 1.9rem; font-weight: 800; margin: 0 0 0.25rem; }
-.subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; }
+.titulo-pagina { color: #1A1A1A; font-size: 1.9rem; font-weight: 800; margin: 0 0 0.25rem; font-family: 'Montserrat', sans-serif;}
+.subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; font-family: 'Montserrat', sans-serif;}
 
 /* Barra de carga */
 .barra-carga { position: fixed; top: 74px; left: 0; right: 0; height: 3px; z-index: 1001; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
@@ -463,7 +464,7 @@ onMounted(() => recargarTodo())
 
 /* Sección título */
 .seccion-titulo-wrap { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-.seccion-titulo { font-size: 1rem; font-weight: 700; color: #1A1A1A; margin: 0; }
+.seccion-titulo { font-size: 1rem; font-weight: 700; color: #1A1A1A; margin: 0;  font-family: 'Montserrat', sans-serif;}
 .seccion-badge { background: #FEF2F2; color: #DC2626; font-size: 0.72rem; font-weight: 600; padding: 2px 10px; border-radius: 12px; border: 1px solid #FECACA; }
 
 /* KPIs */
