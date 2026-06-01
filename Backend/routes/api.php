@@ -18,6 +18,7 @@ use App\Http\Controllers\Docentes\AsignacionDocenteController;
 use App\Http\Controllers\Docentes\CargaDocenteController;
 use App\Http\Controllers\Api\DocumentoController;
 use App\Http\Controllers\Api\ResidenciaController;
+use App\Http\Controllers\Api\PlanCurricularController;
 use App\Http\Controllers\CarreraController;
 use App\Http\Controllers\DepartamentoController;
 use App\Http\Controllers\NivelCarreraController;
@@ -93,6 +94,18 @@ Route::delete('/evaluaciones/{id}', [ServiciosEscolaresController::class, 'elimi
 
 // 🔹 RESUMEN ESCOLAR
 Route::get('/resumen-escolar', [ServiciosEscolaresController::class, 'getResumen']);
+
+// 🔹 PLANES CURRICULARES
+Route::get('/planes-curriculares/kpis',                                         [PlanCurricularController::class, 'kpis']);
+Route::get('/planes-curriculares',                                               [PlanCurricularController::class, 'index']);
+Route::post('/planes-curriculares',                                              [PlanCurricularController::class, 'store']);
+Route::put('/planes-curriculares/{id}',                                          [PlanCurricularController::class, 'update']);
+Route::get('/planes-curriculares/{id}/materias',                                 [PlanCurricularController::class, 'getMaterias']);
+Route::post('/planes-curriculares/{id}/materias',                                [PlanCurricularController::class, 'addMateria']);
+Route::delete('/planes-curriculares/{idPlan}/materias/{idMateria}',              [PlanCurricularController::class, 'removeMateria']);
+Route::get('/planes-curriculares/{id}/prerequisitos',                            [PlanCurricularController::class, 'getPrerequisitos']);
+Route::post('/planes-curriculares/{id}/prerequisitos',                           [PlanCurricularController::class, 'addPrerequisito']);
+Route::delete('/planes-curriculares/{idPlan}/prerequisitos/{idPrerequisito}',    [PlanCurricularController::class, 'removePrerequisito']);
 
 
 // INSCRIPCIÓN
