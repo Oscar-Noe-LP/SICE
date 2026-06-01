@@ -642,14 +642,14 @@ const iniciales = (n) => {
 .evento-resumen-card { background: #FFFFFF; border-radius: 12px; border: 1px solid #E0E0E0; box-shadow: 0 4px 12px rgba(29,82,183,0.08); padding: 1.6rem; margin-bottom: 1.5rem; display: flex; gap: 1.5rem; align-items: flex-start; }
 .resumen-info { display: flex; align-items: flex-start; gap: 14px; flex: 1; }
 .resumen-icono-wrap { width: 56px; height: 56px; background: rgba(29,82,183,0.10); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.resumen-nombre { font-size: 1.2rem; font-weight: 800; color: #333333; margin: 0 0 0.4rem; }
+.resumen-nombre { font-size: 1.2rem; font-weight: 800; color: #333333; margin: 0 0 0.4rem;   font-family: 'Montserrat', sans-serif;}
 .resumen-meta { display: flex; gap: 1.2rem; flex-wrap: wrap; align-items: center; }
 .meta-item { display: flex; align-items: center; gap: 5px; font-size: 0.82rem; color: #4F4F4F; }
 .descripcion-truncada { max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Header tabla */
 .tabla-header-acciones { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
-.seccion-titulo { font-size: 1rem; font-weight: 700; color: #333333; margin: 0 0 2px; }
+.seccion-titulo { font-size: 1rem; font-weight: 700; color: #333333; margin: 0 0 2px;   font-family: 'Montserrat', sans-serif;}
 .subtitulo { color: #4F4F4F; font-size: 0.82rem; margin: 0; }
 
 /* Tabla Estándar */

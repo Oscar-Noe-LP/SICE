@@ -522,6 +522,7 @@ const guardar = async () => {
   font-weight: 800;
   margin: 0 0 0.25rem;
   letter-spacing: -0.02em;
+  font-family: 'Montserrat', sans-serif;
 }
 .subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; font-weight: 500; }
 
@@ -554,7 +555,7 @@ const guardar = async () => {
   flex-shrink: 0;
   border: 1px solid rgba(29,82,183,.12);
 }
-.seccion-nombre { font-size: 1.05rem; font-weight: 700; color: #0B2545; margin: 0 0 3px; letter-spacing: -0.01em; }
+.seccion-nombre { font-size: 1.05rem; font-weight: 700; color: #0B2545; margin: 0 0 3px; letter-spacing: -0.01em;   font-family: 'Montserrat', sans-serif;}
 .seccion-desc { font-size: 0.82rem; color: #9CA3AF; margin: 0; font-weight: 500; }
 .divisor {
   height: 1px;

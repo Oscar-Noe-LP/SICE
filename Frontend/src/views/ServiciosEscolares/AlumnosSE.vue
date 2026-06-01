@@ -1638,7 +1638,7 @@ BASE & OPTIMIZACIÓN DE ESPACIO
 }
 .page-header-left { display: flex; flex-direction: column; gap: 4px; }
 .page-header-btns  { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.page-title { font-size: 1.6rem; font-weight: 800; color: #0F172A; letter-spacing: -0.01em; margin: 0; }
+.page-title { font-size: 1.6rem; font-weight: 800; color: #0F172A; letter-spacing: -0.01em; margin: 0;   font-family: 'Montserrat', sans-serif;}
 .page-subtitle { font-size: 0.8rem; font-weight: 600; color: #6B7280; letter-spacing: 0.04em; margin: 0; }
 .subtitle-sel  { color: #1B396A; }
 
@@ -1796,7 +1796,7 @@ TABLA DE ALUMNOS
   display: inline-flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: color 0.15s;
 }
 .btn-select-all-table:hover, .btn-select-all-table.activo { color: #1B396A; }
-.col-control { font-family: 'Courier New', monospace; font-weight: 700; color: #1B396A; }
+.col-control { font-family: 'Courier New', monospace; font-weight: 700; color: #1B396A;   font-family: 'Montserrat', sans-serif;}
 .col-nombre { font-weight: 700; color: #0F172A; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
 .col-carrera { color: #6B7280; }
 .col-semestre { text-align: center; font-weight: 700; }

@@ -834,6 +834,7 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
   font-weight: 800;
   margin: 0 0 0.3rem;
   letter-spacing: -0.02em;
+  font-family: 'Montserrat', sans-serif;
 }
 .subtitulo { color: #6B7280; font-size: 0.9rem; margin: 0; }
 
@@ -982,6 +983,7 @@ const classBadgeEstatus = (fecha) => fecha >= hoy ? 'estatus-proximo' : 'estatus
   color: #0B2545;
   margin: 0;
   letter-spacing: -0.01em;
+  font-family: 'Montserrat', sans-serif;
 }
 .seccion-contador {
   font-size: 0.78rem;
